@@ -44,29 +44,29 @@ statements, which you should type into the ``views.py`` file::
 
 Let's step through this code one line at a time:
 
-    * First, we import the class ``HttpResponse``, which lives in the
-      ``django.http`` module. We need to import this class because it's used
-      later in our code.
+* First, we import the class ``HttpResponse``, which lives in the
+  ``django.http`` module. We need to import this class because it's used
+  later in our code.
 
-    * Next, we define a function called ``hello`` -- the view function.
+* Next, we define a function called ``hello`` -- the view function.
 
-      Each view function takes at least one parameter, called ``request`` by
-      convention. This is an object that contains information about the
-      current Web request that has triggered this view, and it's an instance of
-      the class ``django.http.HttpRequest``. In this example, we don't do
-      anything with ``request``, but it must be the first parameter of the view
-      nonetheless.
+  Each view function takes at least one parameter, called ``request`` by
+  convention. This is an object that contains information about the
+  current Web request that has triggered this view, and it's an instance of
+  the class ``django.http.HttpRequest``. In this example, we don't do
+  anything with ``request``, but it must be the first parameter of the view
+  nonetheless.
 
-      Note that the name of the view function doesn't matter; it doesn't have
-      to be named in a certain way in order for Django to recognize it. We're
-      calling it ``hello`` here, because that name clearly indicates the gist
-      of the view, but it could just as well be named
-      ``hello_wonderful_beautiful_world``, or something equally revolting. The
-      next section, "Your First URLconf", will shed light on how Django finds
-      this function.
+  Note that the name of the view function doesn't matter; it doesn't have
+  to be named in a certain way in order for Django to recognize it. We're
+  calling it ``hello`` here, because that name clearly indicates the gist
+  of the view, but it could just as well be named
+  ``hello_wonderful_beautiful_world``, or something equally revolting. The
+  next section, "Your First URLconf", will shed light on how Django finds
+  this function.
 
-    * The function is a simple one-liner: it merely returns an ``HttpResponse``
-      object that has been instantiated with the text ``"Hello world"``.
+* The function is a simple one-liner: it merely returns an ``HttpResponse``
+  object that has been instantiated with the text ``"Hello world"``.
 
 The main lesson here is this: a view is just a Python function that takes an
 ``HttpRequest`` as its first parameter and returns an instance of
@@ -125,15 +125,15 @@ lines. If we ignore the commented-out code, here's the essence of a URLconf::
 
 Let's step through this code one line at a time:
 
-    * The first line imports all objects from the ``django.conf.urls.defaults``
-      module, which is Django's URLconf infrastructure. This includes a
-      function called ``patterns``.
+* The first line imports all objects from the ``django.conf.urls.defaults``
+  module, which is Django's URLconf infrastructure. This includes a
+  function called ``patterns``.
 
-    * The second line calls the function ``patterns`` and saves the result
-      into a variable called ``urlpatterns``. The ``patterns`` function gets
-      passed only a single argument -- the empty string. (The string can be
-      used to supply a common prefix for view functions, which we'll cover in
-      Chapter 8.)
+* The second line calls the function ``patterns`` and saves the result
+  into a variable called ``urlpatterns``. The ``patterns`` function gets
+  passed only a single argument -- the empty string. (The string can be
+  used to supply a common prefix for view functions, which we'll cover in
+  :doc:`chapter08`.)
 
 The main thing to note here is the variable ``urlpatterns``, which Django
 expects to find in your URLconf module. This variable defines the mapping
@@ -158,16 +158,16 @@ to leave those lines in, if you'd like.)
 
 We made two changes here:
 
-    * First, we imported the ``hello`` view from its module --
-      ``mysite/views.py``, which translates into ``mysite.views`` in Python
-      import syntax. (This assumes ``mysite/views.py`` is on your Python path;
-      see the sidebar for details.)
+* First, we imported the ``hello`` view from its module --
+  ``mysite/views.py``, which translates into ``mysite.views`` in Python
+  import syntax. (This assumes ``mysite/views.py`` is on your Python path;
+  see the sidebar for details.)
 
-    * Next, we added the line ``('^hello/$', hello),`` to ``urlpatterns``. This
-      line is referred to as a *URLpattern*. It's a Python tuple in which the
-      first element is a pattern-matching string (a regular expression; more on
-      this in a bit) and the second element is the view function to use for
-      that pattern.
+* Next, we added the line ``('^hello/$', hello),`` to ``urlpatterns``. This
+  line is referred to as a *URLpattern*. It's a Python tuple in which the
+  first element is a pattern-matching string (a regular expression; more on
+  this in a bit) and the second element is the view function to use for
+  that pattern.
 
 In a nutshell, we just told Django that any request to the URL ``/hello/`` should
 be handled by the ``hello`` view function.
@@ -202,47 +202,47 @@ It's worth discussing the syntax of this URLpattern, as it may not be
 immediately obvious. Although we want to match the URL ``/hello/``, the pattern
 looks a bit different than that. Here's why:
 
-    * Django removes the slash from the front of every incoming URL before it
-      checks the URLpatterns. This means that our URLpattern doesn't include
-      the leading slash in ``/hello/``. (At first, this may seem unintuitive,
-      but this requirement simplifies things -- such as the inclusion of
-      URLconfs within other URLconfs, which we'll cover in Chapter 8.)
+* Django removes the slash from the front of every incoming URL before it
+  checks the URLpatterns. This means that our URLpattern doesn't include
+  the leading slash in ``/hello/``. (At first, this may seem unintuitive,
+  but this requirement simplifies things -- such as the inclusion of
+  URLconfs within other URLconfs, which we'll cover in Chapter 8.)
 
-    * The pattern includes a caret (``^``) and a dollar sign (``$``). These are
-      regular expression characters that have a special meaning: the caret
-      means "require that the pattern matches the start of the string," and the
-      dollar sign means "require that the pattern matches the end of the
-      string."
+* The pattern includes a caret (``^``) and a dollar sign (``$``). These are
+  regular expression characters that have a special meaning: the caret
+  means "require that the pattern matches the start of the string," and the
+  dollar sign means "require that the pattern matches the end of the
+  string."
 
-      This concept is best explained by example. If we had instead used the
-      pattern ``'^hello/'`` (without a dollar sign at the end), then *any* URL
-      starting with ``/hello/`` would match, such as ``/hello/foo`` and
-      ``/hello/bar``, not just ``/hello/``. Similarly, if we had left off the
-      initial caret character (i.e., ``'hello/$'``), Django would match *any*
-      URL that ends with ``hello/``, such as ``/foo/bar/hello/``. If we had
-      simply used ``hello/``, without a caret *or* dollar sign, then any URL
-      containing ``hello/`` would match, such as ``/foo/hello/bar``. Thus, we
-      use both the caret and dollar sign to ensure that only the URL
-      ``/hello/`` matches -- nothing more, nothing less.
+  This concept is best explained by example. If we had instead used the
+  pattern ``'^hello/'`` (without a dollar sign at the end), then *any* URL
+  starting with ``/hello/`` would match, such as ``/hello/foo`` and
+  ``/hello/bar``, not just ``/hello/``. Similarly, if we had left off the
+  initial caret character (i.e., ``'hello/$'``), Django would match *any*
+  URL that ends with ``hello/``, such as ``/foo/bar/hello/``. If we had
+  simply used ``hello/``, without a caret *or* dollar sign, then any URL
+  containing ``hello/`` would match, such as ``/foo/hello/bar``. Thus, we
+  use both the caret and dollar sign to ensure that only the URL
+  ``/hello/`` matches -- nothing more, nothing less.
 
-      Most of your URLpatterns will start with carets and end with dollar
-      signs, but it's nice to have the flexibility to perform more
-      sophisticated matches.
+  Most of your URLpatterns will start with carets and end with dollar
+  signs, but it's nice to have the flexibility to perform more
+  sophisticated matches.
 
-      You may be wondering what happens if someone requests the URL ``/hello``
-      (that is, *without* a trailing slash). Because our URLpattern requires a
-      trailing slash, that URL would *not* match. However, by default, any
-      request to a URL that *doesn't* match a URLpattern and *doesn't* end with
-      a slash will be redirected to the same URL with a trailing slash. (This
-      is regulated by the ``APPEND_SLASH`` Django setting, which is covered in
-      Appendix D.)
+  You may be wondering what happens if someone requests the URL ``/hello``
+  (that is, *without* a trailing slash). Because our URLpattern requires a
+  trailing slash, that URL would *not* match. However, by default, any
+  request to a URL that *doesn't* match a URLpattern and *doesn't* end with
+  a slash will be redirected to the same URL with a trailing slash. (This
+  is regulated by the ``APPEND_SLASH`` Django setting, which is covered in
+  Appendix D.)
 
-      If you're the type of person who likes all URLs to end with slashes
-      (which is the preference of Django's developers), all you'll need to do
-      is add a trailing slash to each URLpattern and leave ``APPEND_SLASH`` set
-      to ``True``. If you prefer your URLs *not* to have trailing slashes, or
-      if you want to decide it on a per-URL basis, set ``APPEND_SLASH`` to
-      ``False`` and put trailing slashes in your URLpatterns as you see fit.
+  If you're the type of person who likes all URLs to end with slashes
+  (which is the preference of Django's developers), all you'll need to do
+  is add a trailing slash to each URLpattern and leave ``APPEND_SLASH`` set
+  to ``True``. If you prefer your URLs *not* to have trailing slashes, or
+  if you want to decide it on a per-URL basis, set ``APPEND_SLASH`` to
+  ``False`` and put trailing slashes in your URLpatterns as you see fit.
 
 The other thing to note about this URLconf is that we've passed the
 ``hello`` view function as an object without calling the function. This is a
@@ -268,35 +268,35 @@ Hooray! You've made your first Django-powered Web page.
     powerful URL matching, you'll probably only use a few regex symbols in
     practice. Here's a selection of common symbols:
 
-        ============  ==========================================================
-        Symbol        Matches
-        ============  ==========================================================
-        ``.`` (dot)   Any single character
+    ============  ==========================================================
+    Symbol        Matches
+    ============  ==========================================================
+    ``.`` (dot)   Any single character
 
-        ``\d``        Any single digit
+    ``\d``        Any single digit
 
-        ``[A-Z]``     Any character between ``A`` and ``Z`` (uppercase)
+    ``[A-Z]``     Any character between ``A`` and ``Z`` (uppercase)
 
-        ``[a-z]``     Any character between ``a`` and ``z`` (lowercase)
+    ``[a-z]``     Any character between ``a`` and ``z`` (lowercase)
 
-        ``[A-Za-z]``  Any character between ``a`` and ``z`` (case-insensitive)
+    ``[A-Za-z]``  Any character between ``a`` and ``z`` (case-insensitive)
 
-        ``+``         One or more of the previous expression (e.g., ``\d+``
-                      matches one or more digits)
+    ``+``         One or more of the previous expression (e.g., ``\d+``
+                  matches one or more digits)
 
-        ``[^/]+``     One or more characters until (and not including) a
-                      forward slash
+    ``[^/]+``     One or more characters until (and not including) a
+                  forward slash
 
-        ``?``         Zero or one of the previous expression (e.g., ``\d?``
-                      matches zero or one digits)
+    ``?``         Zero or one of the previous expression (e.g., ``\d?``
+                  matches zero or one digits)
 
-        ``*``         Zero or more of the previous expression (e.g., ``\d*``
-                      matches zero, one or more than one digit)
+    ``*``         Zero or more of the previous expression (e.g., ``\d*``
+                  matches zero, one or more than one digit)
 
-        ``{1,3}``     Between one and three (inclusive) of the previous
-                      expression (e.g., ``\d{1,3}`` matches one, two or three
-                      digits)
-        ============  ==========================================================
+    ``{1,3}``     Between one and three (inclusive) of the previous
+                  expression (e.g., ``\d{1,3}`` matches one, two or three
+                  digits)
+    ============  ==========================================================
 
     For more on regular expressions, see http://www.djangoproject.com/r/python/re-module/.
 
@@ -390,15 +390,15 @@ body (i.e., the content of the Web page).
 
 In summary:
 
-    1. A request comes in to ``/hello/``.
-    2. Django determines the root URLconf by looking at the ``ROOT_URLCONF``
-       setting.
-    3. Django looks at all of the URLpatterns in the URLconf for the first one
-       that matches ``/hello/``.
-    4. If it finds a match, it calls the associated view function.
-    5. The view function returns an ``HttpResponse``.
-    6. Django converts the ``HttpResponse`` to the proper HTTP response, which
-       results in a Web page.
+1. A request comes in to ``/hello/``.
+2. Django determines the root URLconf by looking at the ``ROOT_URLCONF``
+   setting.
+3. Django looks at all of the URLpatterns in the URLconf for the first one
+   that matches ``/hello/``.
+4. If it finds a match, it calls the associated view function.
+5. The view function returns an ``HttpResponse``.
+6. Django converts the ``HttpResponse`` to the proper HTTP response, which
+   results in a Web page.
 
 You now know the basics of how to make Django-powered pages. It's quite simple,
 really -- just write view functions and map them to URLs via URLconfs.
@@ -469,28 +469,28 @@ are new vs. old.)
 Let's step through the changes we've made to ``views.py`` to accommodate
 the ``current_datetime`` view.
 
-    * We've added an ``import datetime`` to the top of the module, so we can
-      calculate dates.
+* We've added an ``import datetime`` to the top of the module, so we can
+  calculate dates.
 
-    * The new ``current_datetime`` function calculates the current date and
-      time, as a ``datetime.datetime`` object, and stores that as the local
-      variable ``now``.
+* The new ``current_datetime`` function calculates the current date and
+  time, as a ``datetime.datetime`` object, and stores that as the local
+  variable ``now``.
 
-    * The second line of code within the view constructs an HTML response using
-      Python's "format-string" capability. The ``%s`` within the string is a
-      placeholder, and the percent sign after the string means "Replace the
-      ``%s`` in the preceding string with the value of the variable ``now``."
-      The ``now`` variable is technically a ``datetime.datetime`` object, not
-      a string, but the ``%s`` format character converts it to its string
-      representation, which is something like ``"2008-12-13 14:09:39.002731"``.
-      This will result in an HTML string such as
-      ``"<html><body>It is now 2008-12-13 14:09:39.002731.</body></html>"``.
+* The second line of code within the view constructs an HTML response using
+  Python's "format-string" capability. The ``%s`` within the string is a
+  placeholder, and the percent sign after the string means "Replace the
+  ``%s`` in the preceding string with the value of the variable ``now``."
+  The ``now`` variable is technically a ``datetime.datetime`` object, not
+  a string, but the ``%s`` format character converts it to its string
+  representation, which is something like ``"2008-12-13 14:09:39.002731"``.
+  This will result in an HTML string such as
+  ``"<html><body>It is now 2008-12-13 14:09:39.002731.</body></html>"``.
 
-      (Yes, our HTML is invalid, but we're trying to keep the example simple
-      and short.)
+  (Yes, our HTML is invalid, but we're trying to keep the example simple
+  and short.)
 
-    * Finally, the view returns an ``HttpResponse`` object that contains the
-      generated response -- just as we did in ``hello``.
+* Finally, the view returns an ``HttpResponse`` object that contains the
+  generated response -- just as we did in ``hello``.
 
 After adding that to ``views.py``, add the URLpattern to ``urls.py`` to tell
 Django which URL should handle this view. Something like ``/time/`` would make
@@ -714,69 +714,69 @@ of offset. Here's the view code::
 
 Let's step through this code one line at a time:
 
-    * The view function, ``hours_ahead``, takes *two* parameters: ``request``
-      and ``offset``.
+* The view function, ``hours_ahead``, takes *two* parameters: ``request``
+  and ``offset``.
 
-        * ``request`` is an ``HttpRequest`` object, just as in ``hello`` and
-          ``current_datetime``. We'll say it again: each view *always* takes an
-          ``HttpRequest`` object as its first parameter.
+  * ``request`` is an ``HttpRequest`` object, just as in ``hello`` and
+    ``current_datetime``. We'll say it again: each view *always* takes an
+    ``HttpRequest`` object as its first parameter.
 
-        * ``offset`` is the string captured by the parentheses in the
-          URLpattern. For example, if the requested URL were ``/time/plus/3/``,
-          then ``offset`` would be the string ``'3'``. If the requested URL were
-          ``/time/plus/21/``, then ``offset`` would be the string ``'21'``. Note
-          that captured values will always be *strings*, not integers, even if
-          the string is composed of only digits, such as ``'21'``.
+  * ``offset`` is the string captured by the parentheses in the
+    URLpattern. For example, if the requested URL were ``/time/plus/3/``,
+    then ``offset`` would be the string ``'3'``. If the requested URL were
+    ``/time/plus/21/``, then ``offset`` would be the string ``'21'``. Note
+    that captured values will always be *strings*, not integers, even if
+    the string is composed of only digits, such as ``'21'``.
 
-          (Technically, captured values will always be *Unicode objects*, not
-          plain Python bytestrings, but don't worry about this distinction at
-          the moment.)
+    (Technically, captured values will always be *Unicode objects*, not
+    plain Python bytestrings, but don't worry about this distinction at
+    the moment.)
 
-          We decided to call the variable ``offset``, but you can call it
-          whatever you'd like, as long as it's a valid Python identifier. The
-          variable name doesn't matter; all that matters is that it's the second
-          argument to the function, after ``request``. (It's also possible to
-          use keyword, rather than positional, arguments in an URLconf. We cover
-          that in Chapter 8.)
+    We decided to call the variable ``offset``, but you can call it
+    whatever you'd like, as long as it's a valid Python identifier. The
+    variable name doesn't matter; all that matters is that it's the second
+    argument to the function, after ``request``. (It's also possible to
+    use keyword, rather than positional, arguments in an URLconf. We cover
+    that in Chapter 8.)
 
-    * The first thing we do within the function is call ``int()`` on ``offset``.
-      This converts the string value to an integer.
+* The first thing we do within the function is call ``int()`` on ``offset``.
+  This converts the string value to an integer.
 
-      Note that Python will raise a ``ValueError`` exception if you call
-      ``int()`` on a value that cannot be converted to an integer, such as the
-      string ``'foo'``. In this example, if we encounter the ``ValueError``, we
-      raise the exception ``django.http.Http404``, which, as you can imagine,
-      results in a 404 "Page not found" error.
+  Note that Python will raise a ``ValueError`` exception if you call
+  ``int()`` on a value that cannot be converted to an integer, such as the
+  string ``'foo'``. In this example, if we encounter the ``ValueError``, we
+  raise the exception ``django.http.Http404``, which, as you can imagine,
+  results in a 404 "Page not found" error.
 
-      Astute readers will wonder: how could we ever reach the ``ValueError``
-      case, anyway, given that the regular expression in our URLpattern --
-      ``(\d{1,2})`` -- captures only digits, and therefore ``offset`` will only
-      ever be a string composed of digits? The answer is, we won't, because
-      the URLpattern provides a modest but useful level of input validation,
-      *but* we still check for the ``ValueError`` in case this view function
-      ever gets called in some other way. It's good practice to implement view
-      functions such that they don't make any assumptions about their
-      parameters. Loose coupling, remember?
+  Astute readers will wonder: how could we ever reach the ``ValueError``
+  case, anyway, given that the regular expression in our URLpattern --
+  ``(\d{1,2})`` -- captures only digits, and therefore ``offset`` will only
+  ever be a string composed of digits? The answer is, we won't, because
+  the URLpattern provides a modest but useful level of input validation,
+  *but* we still check for the ``ValueError`` in case this view function
+  ever gets called in some other way. It's good practice to implement view
+  functions such that they don't make any assumptions about their
+  parameters. Loose coupling, remember?
 
-    * In the next line of the function, we calculate the current date/time and
-      add the appropriate number of hours. We've already seen
-      ``datetime.datetime.now()`` from the ``current_datetime`` view; the new
-      concept here is that you can perform date/time arithmetic by creating a
-      ``datetime.timedelta`` object and adding to a ``datetime.datetime``
-      object. Our result is stored in the variable ``dt``.
+* In the next line of the function, we calculate the current date/time and
+  add the appropriate number of hours. We've already seen
+  ``datetime.datetime.now()`` from the ``current_datetime`` view; the new
+  concept here is that you can perform date/time arithmetic by creating a
+  ``datetime.timedelta`` object and adding to a ``datetime.datetime``
+  object. Our result is stored in the variable ``dt``.
 
-      This line also shows why we called ``int()`` on ``offset`` -- the
-      ``datetime.timedelta`` function requires the ``hours`` parameter to be an
-      integer.
+  This line also shows why we called ``int()`` on ``offset`` -- the
+  ``datetime.timedelta`` function requires the ``hours`` parameter to be an
+  integer.
 
-    * Next, we construct the HTML output of this view function, just as we did
-      in ``current_datetime``. A small difference in this line from the previous
-      line is that it uses Python's format-string capability with *two* values,
-      not just one. Hence, there are two ``%s`` symbols in the string and a
-      tuple of values to insert: ``(offset, dt)``.
+* Next, we construct the HTML output of this view function, just as we did
+  in ``current_datetime``. A small difference in this line from the previous
+  line is that it uses Python's format-string capability with *two* values,
+  not just one. Hence, there are two ``%s`` symbols in the string and a
+  tuple of values to insert: ``(offset, dt)``.
 
-    * Finally, we return an ``HttpResponse`` of the HTML. By now, this is old
-      hat.
+* Finally, we return an ``HttpResponse`` of the HTML. By now, this is old
+  hat.
 
 With that view function and URLconf written, start the Django development server
 (if it's not already running), and visit ``http://127.0.0.1:8000/time/plus/3/``
@@ -822,49 +822,49 @@ it gives you.
 
 Here are some things to notice:
 
-    * At the top of the page, you get the key information about the exception:
-      the type of exception, any parameters to the exception (the ``"unsupported
-      type"`` message in this case), the file in which the exception was raised,
-      and the offending line number.
+* At the top of the page, you get the key information about the exception:
+  the type of exception, any parameters to the exception (the ``"unsupported
+  type"`` message in this case), the file in which the exception was raised,
+  and the offending line number.
 
-    * Under the key exception information, the page displays the full Python
-      traceback for this exception. This is similar to the standard traceback
-      you get in Python's command-line interpreter, except it's more
-      interactive. For each level ("frame") in the stack, Django displays the
-      name of the file, the function/method name, the line number, and the
-      source code of that line.
+* Under the key exception information, the page displays the full Python
+  traceback for this exception. This is similar to the standard traceback
+  you get in Python's command-line interpreter, except it's more
+  interactive. For each level ("frame") in the stack, Django displays the
+  name of the file, the function/method name, the line number, and the
+  source code of that line.
 
-      Click the line of source code (in dark gray), and you'll see several
-      lines from before and after the erroneous line, to give you context.
+  Click the line of source code (in dark gray), and you'll see several
+  lines from before and after the erroneous line, to give you context.
 
-      Click "Local vars" under any frame in the stack to view a table of all
-      local variables and their values, in that frame, at the exact point in the
-      code at which the exception was raised. This debugging information can be
-      a great help.
+  Click "Local vars" under any frame in the stack to view a table of all
+  local variables and their values, in that frame, at the exact point in the
+  code at which the exception was raised. This debugging information can be
+  a great help.
 
-    * Note the "Switch to copy-and-paste view" text under the "Traceback"
-      header. Click those words, and the traceback will switch to a alternate
-      version that can be easily copied and pasted. Use this when you want to
-      share your exception traceback with others to get technical support --
-      such as the kind folks in the Django IRC chat room or on the Django users
-      mailing list.
+* Note the "Switch to copy-and-paste view" text under the "Traceback"
+  header. Click those words, and the traceback will switch to a alternate
+  version that can be easily copied and pasted. Use this when you want to
+  share your exception traceback with others to get technical support --
+  such as the kind folks in the Django IRC chat room or on the Django users
+  mailing list.
 
-      Underneath, the "Share this traceback on a public Web site" button will
-      do this work for you in just one click. Click it to post the traceback to
-      http://www.dpaste.com/, where you'll get a distinct URL that you can
-      share with other people.
+  Underneath, the "Share this traceback on a public Web site" button will
+  do this work for you in just one click. Click it to post the traceback to
+  http://www.dpaste.com/, where you'll get a distinct URL that you can
+  share with other people.
 
-    * Next, the "Request information" section includes a wealth of information
-      about the incoming Web request that spawned the error: GET and POST
-      information, cookie values, and meta information, such as CGI headers.
-      Appendix G has a complete reference of all the information a request
-      object contains.
+* Next, the "Request information" section includes a wealth of information
+  about the incoming Web request that spawned the error: GET and POST
+  information, cookie values, and meta information, such as CGI headers.
+  Appendix G has a complete reference of all the information a request
+  object contains.
 
-      Below the "Request information" section, the "Settings" section lists all
-      of the settings for this particular Django installation. (We've already
-      mentioned ``ROOT_URLCONF``, and we'll show you various Django settings
-      throughout the book. All the available settings are covered in detail in
-      Appendix D.)
+  Below the "Request information" section, the "Settings" section lists all
+  of the settings for this particular Django installation. (We've already
+  mentioned ``ROOT_URLCONF``, and we'll show you various Django settings
+  throughout the book. All the available settings are covered in detail in
+  Appendix D.)
 
 The Django error page is capable of displaying more information in certain
 special cases, such as the case of template syntax errors. We'll get to those
@@ -907,6 +907,4 @@ core concepts, but in the real world, this is nearly always a bad idea.
 
 Django ships with a simple yet powerful template engine that allows you to
 separate the design of the page from the underlying code. We'll dive into
-Django's template engine in the `next chapter`_.
-
-.. _next chapter: ../chapter04/
+Django's template engine in the :doc:`next chapter <chapter04>`.

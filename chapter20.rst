@@ -118,10 +118,10 @@ Completely harmless.
 
 This applies to the entire Django database API, with a couple of exceptions:
 
-    * The ``where`` argument to the ``extra()`` method. (See Appendix C.)
-      That parameter accepts raw SQL by design.
+* The ``where`` argument to the ``extra()`` method. (See Appendix C.)
+  That parameter accepts raw SQL by design.
 
-    * Queries done "by hand" using the lower-level database API. (See Chapter 10.)
+* Queries done "by hand" using the lower-level database API. (See Chapter 10.)
 
 In each of these cases, it's easy to keep yourself protected. In each case,
 avoid string interpolation in favor of passing in *bind parameters*. That is,
@@ -186,8 +186,8 @@ into what looks like their bank's Web site, but in fact is an XSS-hijacked form
 that submits their back account information to an attacker.
 
 The problem gets worse if you store this data in the database and later display it
-it on your site. For example, MySpace was once found to be vulnerable to an XSS 
-attack of this nature. A user inserted JavaScript into his profile that automatically 
+it on your site. For example, MySpace was once found to be vulnerable to an XSS
+attack of this nature. A user inserted JavaScript into his profile that automatically
 added him as your friend when you visited his profile page. Within a few days, he had
 millions of friends.
 
@@ -236,8 +236,8 @@ time.
 Cross-Site Request Forgery
 ==========================
 
-Cross-site request forgery (CSRF) happens when a malicious Web site tricks users 
-into unknowingly loading a URL from a site at which they're already authenticated -- 
+Cross-site request forgery (CSRF) happens when a malicious Web site tricks users
+into unknowingly loading a URL from a site at which they're already authenticated --
 hence taking advantage of their authenticated status.
 
 Django has built-in tools to protect from this kind of attack. Both the attack
@@ -249,83 +249,83 @@ Session Forging/Hijacking
 This isn't a specific attack, but rather a general class of attacks on a
 user's session data. It can take a number of different forms:
 
-    * A *man-in-the-middle* attack, where an attacker snoops on session data
-      as it travels over the wire (or wireless) network.
+* A *man-in-the-middle* attack, where an attacker snoops on session data
+  as it travels over the wire (or wireless) network.
 
-    * *Session forging*, where an attacker uses a session ID
-      (perhaps obtained through a man-in-the-middle attack) to pretend to be
-      another user.
+* *Session forging*, where an attacker uses a session ID
+  (perhaps obtained through a man-in-the-middle attack) to pretend to be
+  another user.
 
-      An example of these first two would be an attacker in a coffee shop using
-      the shop's wireless network to capture a session cookie. She could then use that
-      cookie to impersonate the original user.
+  An example of these first two would be an attacker in a coffee shop using
+  the shop's wireless network to capture a session cookie. She could then use that
+  cookie to impersonate the original user.
 
-    * A *cookie-forging* attack, where an attacker overrides the supposedly
-      read-only data stored in a cookie. `Chapter 14`_ explains in detail how
-      cookies work, and one of the salient points is that it's trivial for
-      browsers and malicious users to change cookies without your knowledge.
+* A *cookie-forging* attack, where an attacker overrides the supposedly
+  read-only data stored in a cookie. `Chapter 14`_ explains in detail how
+  cookies work, and one of the salient points is that it's trivial for
+  browsers and malicious users to change cookies without your knowledge.
 
-      There's a long history of Web sites that have stored a cookie like
-      ``IsLoggedIn=1`` or even ``LoggedInAsUser=jacob``. It's dead simple to
-      exploit these types of cookies.
+  There's a long history of Web sites that have stored a cookie like
+  ``IsLoggedIn=1`` or even ``LoggedInAsUser=jacob``. It's dead simple to
+  exploit these types of cookies.
 
-      On a more subtle level, though, it's never a good idea to trust anything
-      stored in cookies. You never know who's been poking at them.
+  On a more subtle level, though, it's never a good idea to trust anything
+  stored in cookies. You never know who's been poking at them.
 
-    * *Session fixation*, where an attacker tricks a user into setting or
-      reseting the user's session ID.
+* *Session fixation*, where an attacker tricks a user into setting or
+  reseting the user's session ID.
 
-      For example, PHP allows session identifiers to be passed in the URL
-      (e.g.,
-      ``http://example.com/?PHPSESSID=fa90197ca25f6ab40bb1374c510d7a32``). An
-      attacker who tricks a user into clicking a link with a hard-coded
-      session ID will cause the user to pick up that session.
+  For example, PHP allows session identifiers to be passed in the URL
+  (e.g.,
+  ``http://example.com/?PHPSESSID=fa90197ca25f6ab40bb1374c510d7a32``). An
+  attacker who tricks a user into clicking a link with a hard-coded
+  session ID will cause the user to pick up that session.
 
-      Session fixation has been used in phishing attacks to trick users into entering
-      personal information into an account the attacker owns. He can
-      later log into that account and retrieve the data.
+  Session fixation has been used in phishing attacks to trick users into entering
+  personal information into an account the attacker owns. He can
+  later log into that account and retrieve the data.
 
-    * *Session poisoning*, where an attacker injects potentially dangerous
-      data into a user's session -- usually through a Web form that the user
-      submits to set session data.
+* *Session poisoning*, where an attacker injects potentially dangerous
+  data into a user's session -- usually through a Web form that the user
+  submits to set session data.
 
-      A canonical example is a site that stores a simple user preference (like
-      a page's background color) in a cookie. An attacker could trick a user
-      into clicking a link to submit a "color" that actually contains an
-      XSS attack. If that color isn't escaped, the user could again
-      inject malicious code into the user's environment.
+  A canonical example is a site that stores a simple user preference (like
+  a page's background color) in a cookie. An attacker could trick a user
+  into clicking a link to submit a "color" that actually contains an
+  XSS attack. If that color isn't escaped, the user could again
+  inject malicious code into the user's environment.
 
 The Solution
 ------------
 
 There are a number of general principles that can protect you from these attacks:
 
-    * Never allow session information to be contained in the URL.
+* Never allow session information to be contained in the URL.
 
-      Django's session framework (see `Chapter 14`_) simply doesn't allow
-      sessions to be contained in the URL.
+  Django's session framework (see `Chapter 14`_) simply doesn't allow
+  sessions to be contained in the URL.
 
-    * Don't store data in cookies directly. Instead, store a session ID
-      that maps to session data stored on the backend.
+* Don't store data in cookies directly. Instead, store a session ID
+  that maps to session data stored on the backend.
 
-      If you use Django's built-in session framework (i.e.,
-      ``request.session``), this is handled automatically for you. The only
-      cookie that the session framework uses is a single session ID; all the
-      session data is stored in the database.
+  If you use Django's built-in session framework (i.e.,
+  ``request.session``), this is handled automatically for you. The only
+  cookie that the session framework uses is a single session ID; all the
+  session data is stored in the database.
 
-    * Remember to escape session data if you display it in the template. See
-      the earlier XSS section, and remember that it applies to any user-created
-      content as well as any data from the browser. You should treat session 
-      information as being user created.
+* Remember to escape session data if you display it in the template. See
+  the earlier XSS section, and remember that it applies to any user-created
+  content as well as any data from the browser. You should treat session
+  information as being user created.
 
-    * Prevent attackers from spoofing session IDs whenever possible.
+* Prevent attackers from spoofing session IDs whenever possible.
 
-      Although it's nearly impossible to detect someone who's hijacked a
-      session ID, Django does have built-in protection against a brute-force
-      session attack. Session IDs are stored as hashes (instead of sequential
-      numbers), which prevents a brute-force attack, and a user will always get
-      a new session ID if she tries a nonexistent one, which prevents session
-      fixation.
+  Although it's nearly impossible to detect someone who's hijacked a
+  session ID, Django does have built-in protection against a brute-force
+  session attack. Session IDs are stored as hashes (instead of sequential
+  numbers), which prevents a brute-force attack, and a user will always get
+  a new session ID if she tries a nonexistent one, which prevents session
+  fixation.
 
 Notice that none of those principles and tools prevents man-in-the-middle
 attacks. These types of attacks are nearly impossible to detect. If your site

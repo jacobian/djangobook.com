@@ -43,18 +43,18 @@ fly, according to users' language preferences.
 
 Essentially, Django does two things:
 
-    * It lets developers and template authors specify which parts of their
-      applications should be translatable.
-      
-    * It uses that information to translate Web applications for particular
-      users according to their language preferences.
+* It lets developers and template authors specify which parts of their
+  applications should be translatable.
 
-.. note:: 
+* It uses that information to translate Web applications for particular
+  users according to their language preferences.
+
+.. note::
 
     Django's translation machinery uses GNU ``gettext``
     (http://www.gnu.org/software/gettext/) via the standard ``gettext`` module
     that comes with Python.
-    
+
 .. admonition:: If You Don't Need Internationalization:
 
     Django's internationalization hooks are enabled by default, which incurs a
@@ -62,19 +62,19 @@ Essentially, Django does two things:
     set ``USE_I18N = False`` in your settings file. If ``USE_I18N`` is set to
     ``False``, then Django will make some optimizations so as not to load the
     internationalization machinery.
-    
+
     You'll probably also want to remove
     ``'django.core.context_processors.i18n'`` from your
     ``TEMPLATE_CONTEXT_PROCESSORS`` setting.
 
 The three steps for internationalizing your Django application are:
 
-    1. Embed translation strings in your Python code and templates.
+1. Embed translation strings in your Python code and templates.
 
-    2. Get translations for those strings, in whichever languages you want to
-       support.
+2. Get translations for those strings, in whichever languages you want to
+   support.
 
-    3. Activate the locale middleware in your Django settings.
+3. Activate the locale middleware in your Django settings.
 
 We'll cover each one of these steps in detail.
 
@@ -295,17 +295,17 @@ Internally, all block and inline translations use the appropriate
 
 Each ``RequestContext`` has access to three translation-specific variables:
 
-    * ``LANGUAGES`` is a list of tuples in which the first element is the
-      language code and the second is the language name (translated into the
-      currently active locale).
+* ``LANGUAGES`` is a list of tuples in which the first element is the
+  language code and the second is the language name (translated into the
+  currently active locale).
 
-    * ``LANGUAGE_CODE`` is the current user's preferred language, as a string.
-      Example: ``en-us``. (See "How Django discovers language preference,"
-      below.)
+* ``LANGUAGE_CODE`` is the current user's preferred language, as a string.
+  Example: ``en-us``. (See "How Django discovers language preference,"
+  below.)
 
-    * ``LANGUAGE_BIDI`` is the current locale's direction. If True, it's a
-      right-to-left language, e.g.: Hebrew, Arabic. If False it's a
-      left-to-right language, e.g.: English, French, German etc.
+* ``LANGUAGE_BIDI`` is the current locale's direction. If True, it's a
+  right-to-left language, e.g.: Hebrew, Arabic. If False it's a
+  left-to-right language, e.g.: English, French, German etc.
 
 If you don't use the ``RequestContext`` extension, you can get those values with
 three tags::
@@ -435,12 +435,12 @@ The language code, in this case, is in locale format. For example, it's
 
 The script should be run from one of three places:
 
-    * The root directory of your Django project.
-    * The root directory of your Django app.
-    * The root ``django`` directory (not a Subversion checkout, but the one
-      that is linked-to via ``$PYTHONPATH`` or is located somewhere on that
-      path). This is only relevant when you are creating a translation for
-      Django itself.
+* The root directory of your Django project.
+* The root directory of your Django app.
+* The root ``django`` directory (not a Subversion checkout, but the one
+  that is linked-to via ``$PYTHONPATH`` or is located somewhere on that
+  path). This is only relevant when you are creating a translation for
+  Django itself.
 
 This script runs over your project source tree or your application source tree and
 pulls out all strings marked for translation. It creates (or updates) a message
@@ -495,14 +495,14 @@ containing the following snippet -- a message::
 
 A quick explanation:
 
-    * ``msgid`` is the translation string, which appears in the source. Don't
-      change it.
-    * ``msgstr`` is where you put the language-specific translation. It starts
-      out empty, so it's your responsibility to change it. Make sure you keep
-      the quotes around your translation.
-    * As a convenience, each message includes, in the form of a comment line
-      prefixed with ``#`` and located above the ``msgid`` line, the filename and
-      line number from which the translation string was gleaned.
+* ``msgid`` is the translation string, which appears in the source. Don't
+  change it.
+* ``msgstr`` is where you put the language-specific translation. It starts
+  out empty, so it's your responsibility to change it. Make sure you keep
+  the quotes around your translation.
+* As a convenience, each message includes, in the form of a comment line
+  prefixed with ``#`` and located above the ``msgid`` line, the filename and
+  line number from which the translation string was gleaned.
 
 Long messages are a special case. There, the first string directly after the
 ``msgstr`` (or ``msgid``) is an empty string. Then the content itself will be
@@ -557,10 +557,10 @@ To use ``LocaleMiddleware``, add ``'django.middleware.locale.LocaleMiddleware'``
 to your ``MIDDLEWARE_CLASSES`` setting. Because middleware order matters, you
 should follow these guidelines:
 
-    * Make sure it's one of the first middlewares installed.
-    * It should come after ``SessionMiddleware``, because ``LocaleMiddleware``
-      makes use of session data.
-    * If you use ``CacheMiddleware``, put ``LocaleMiddleware`` after it.
+* Make sure it's one of the first middlewares installed.
+* It should come after ``SessionMiddleware``, because ``LocaleMiddleware``
+  makes use of session data.
+* If you use ``CacheMiddleware``, put ``LocaleMiddleware`` after it.
 
 For example, your ``MIDDLEWARE_CLASSES`` might look like this::
 
@@ -575,84 +575,84 @@ For example, your ``MIDDLEWARE_CLASSES`` might look like this::
 ``LocaleMiddleware`` tries to determine the user's language preference by
 following this algorithm:
 
-    * First, it looks for a ``django_language`` key in the current user's
-      session.
+* First, it looks for a ``django_language`` key in the current user's
+  session.
 
-    * Failing that, it looks for a cookie.
+* Failing that, it looks for a cookie.
 
-    * Failing that, it looks at the ``Accept-Language`` HTTP header. This
-      header is sent by your browser and tells the server which language(s) you
-      prefer, in order by priority. Django tries each language in the header
-      until it finds one with available translations.
+* Failing that, it looks at the ``Accept-Language`` HTTP header. This
+  header is sent by your browser and tells the server which language(s) you
+  prefer, in order by priority. Django tries each language in the header
+  until it finds one with available translations.
 
-    * Failing that, it uses the global ``LANGUAGE_CODE`` setting.
+* Failing that, it uses the global ``LANGUAGE_CODE`` setting.
 
 Notes:
 
-    * In each of these places, the language preference is expected to be in the
-      standard language format, as a string. For example, Brazilian Portuguese
-      is ``pt-br``.
+* In each of these places, the language preference is expected to be in the
+  standard language format, as a string. For example, Brazilian Portuguese
+  is ``pt-br``.
 
-    * If a base language is available but the sublanguage specified is not,
-      Django uses the base language. For example, if a user specifies ``de-at``
-      (Austrian German) but Django only has ``de`` available, Django uses
-      ``de``.
+* If a base language is available but the sublanguage specified is not,
+  Django uses the base language. For example, if a user specifies ``de-at``
+  (Austrian German) but Django only has ``de`` available, Django uses
+  ``de``.
 
-    * Only languages listed in the ``LANGUAGES`` setting can be selected.
-      If you want to restrict the language selection to a subset of provided
-      languages (because your application doesn't provide all those languages),
-      set ``LANGUAGES`` to a list of languages. For example::
+* Only languages listed in the ``LANGUAGES`` setting can be selected.
+  If you want to restrict the language selection to a subset of provided
+  languages (because your application doesn't provide all those languages),
+  set ``LANGUAGES`` to a list of languages. For example::
 
-          LANGUAGES = (
-            ('de', _('German')),
-            ('en', _('English')),
-          )
+      LANGUAGES = (
+        ('de', _('German')),
+        ('en', _('English')),
+      )
 
-      This example restricts languages that are available for automatic
-      selection to German and English (and any sublanguage, like ``de-ch`` or
-      ``en-us``).
+  This example restricts languages that are available for automatic
+  selection to German and English (and any sublanguage, like ``de-ch`` or
+  ``en-us``).
 
-    * If you define a custom ``LANGUAGES`` setting, as explained in the
-      previous bullet, it's OK to mark the languages as translation strings
-      -- but use a "dummy" ``ugettext()`` function, not the one in
-      ``django.utils.translation``. You should *never* import
-      ``django.utils.translation`` from within your settings file, because that
-      module in itself depends on the settings, and that would cause a circular
-      import.
+* If you define a custom ``LANGUAGES`` setting, as explained in the
+  previous bullet, it's OK to mark the languages as translation strings
+  -- but use a "dummy" ``ugettext()`` function, not the one in
+  ``django.utils.translation``. You should *never* import
+  ``django.utils.translation`` from within your settings file, because that
+  module in itself depends on the settings, and that would cause a circular
+  import.
 
-      The solution is to use a "dummy" ``ugettext()`` function. Here's a sample
-      settings file::
+  The solution is to use a "dummy" ``ugettext()`` function. Here's a sample
+  settings file::
 
-          ugettext = lambda s: s
+      ugettext = lambda s: s
 
-          LANGUAGES = (
-              ('de', ugettext('German')),
-              ('en', ugettext('English')),
-          )
+      LANGUAGES = (
+          ('de', ugettext('German')),
+          ('en', ugettext('English')),
+      )
 
-      With this arrangement, ``django-admin.py makemessages`` will still find
-      and mark these strings for translation, but the translation won't happen
-      at runtime -- so you'll have to remember to wrap the languages in the
-      *real* ``ugettext()`` in any code that uses ``LANGUAGES`` at runtime.
+  With this arrangement, ``django-admin.py makemessages`` will still find
+  and mark these strings for translation, but the translation won't happen
+  at runtime -- so you'll have to remember to wrap the languages in the
+  *real* ``ugettext()`` in any code that uses ``LANGUAGES`` at runtime.
 
-    * The ``LocaleMiddleware`` can only select languages for which there is a
-      Django-provided base translation. If you want to provide translations
-      for your application that aren't already in the set of translations
-      in Django's source tree, you'll want to provide at least basic
-      translations for that language. For example, Django uses technical
-      message IDs to translate date formats and time formats -- so you will
-      need at least those translations for the system to work correctly.
+* The ``LocaleMiddleware`` can only select languages for which there is a
+  Django-provided base translation. If you want to provide translations
+  for your application that aren't already in the set of translations
+  in Django's source tree, you'll want to provide at least basic
+  translations for that language. For example, Django uses technical
+  message IDs to translate date formats and time formats -- so you will
+  need at least those translations for the system to work correctly.
 
-      A good starting point is to copy the English ``.po`` file and to
-      translate at least the technical messages -- maybe the validation
-      messages, too.
+  A good starting point is to copy the English ``.po`` file and to
+  translate at least the technical messages -- maybe the validation
+  messages, too.
 
-      Technical message IDs are easily recognized; they're all upper case. You
-      don't translate the message ID as with other messages, you provide the
-      correct local variant on the provided English value. For example, with
-      ``DATETIME_FORMAT`` (or ``DATE_FORMAT`` or ``TIME_FORMAT``), this would
-      be the format string that you want to use in your language. The format
-      is identical to the format strings used by the ``now`` template tag.
+  Technical message IDs are easily recognized; they're all upper case. You
+  don't translate the message ID as with other messages, you provide the
+  correct local variant on the provided English value. For example, with
+  ``DATETIME_FORMAT`` (or ``DATE_FORMAT`` or ``TIME_FORMAT``), this would
+  be the format string that you want to use in your language. The format
+  is identical to the format strings used by the ``now`` template tag.
 
 Once ``LocaleMiddleware`` determines the user's preference, it makes this
 preference available as ``request.LANGUAGE_CODE`` for each
@@ -674,13 +674,13 @@ Using Translations in Your Own Projects
 
 Django looks for translations by following this algorithm:
 
-    * First, it looks for a ``locale`` directory in the application directory
-      of the view that's being called. If it finds a translation for the
-      selected language, the translation will be installed.
-    * Next, it looks for a ``locale`` directory in the project directory. If it
-      finds a translation, the translation will be installed.
-    * Finally, it checks the Django-provided base translation in
-      ``django/conf/locale``.
+* First, it looks for a ``locale`` directory in the application directory
+  of the view that's being called. If it finds a translation for the
+  selected language, the translation will be installed.
+* Next, it looks for a ``locale`` directory in the project directory. If it
+  finds a translation, the translation will be installed.
+* Finally, it checks the Django-provided base translation in
+  ``django/conf/locale``.
 
 This way, you can write applications that include their own translations, and
 you can override base translations in your project path. Or, you can just build
@@ -689,11 +689,11 @@ message file. The choice is yours.
 
 All message file repositories are structured the same way. They are:
 
-    * ``$APPPATH/locale/<language>/LC_MESSAGES/django.(po|mo)``
-    * ``$PROJECTPATH/locale/<language>/LC_MESSAGES/django.(po|mo)``
-    * All paths listed in ``LOCALE_PATHS`` in your settings file are
-      searched in that order for ``<language>/LC_MESSAGES/django.(po|mo)``
-    * ``$PYTHONPATH/django/conf/locale/<language>/LC_MESSAGES/django.(po|mo)``
+* ``$APPPATH/locale/<language>/LC_MESSAGES/django.(po|mo)``
+* ``$PROJECTPATH/locale/<language>/LC_MESSAGES/django.(po|mo)``
+* All paths listed in ``LOCALE_PATHS`` in your settings file are
+  searched in that order for ``<language>/LC_MESSAGES/django.(po|mo)``
+* ``$PYTHONPATH/django/conf/locale/<language>/LC_MESSAGES/django.(po|mo)``
 
 To create message files, you use the same ``django-admin.py makemessages``
 tool as with the Django message files. You only need to be in the right place
@@ -745,11 +745,11 @@ language choice in a cookie that is by default named ``django_language``.
 After setting the language choice, Django redirects the user, following this
 algorithm:
 
-    * Django looks for a ``next`` parameter in the ``POST`` data.
-    * If that doesn't exist, or is empty, Django tries the URL in the
-      ``Referrer`` header.
-    * If that's empty -- say, if a user's browser suppresses that header --
-      then the user will be redirected to ``/`` (the site root) as a fallback.
+* Django looks for a ``next`` parameter in the ``POST`` data.
+* If that doesn't exist, or is empty, Django tries the URL in the
+  ``Referrer`` header.
+* If that's empty -- say, if a user's browser suppresses that header --
+  then the user will be redirected to ``/`` (the site root) as a fallback.
 
 Here's example HTML template code::
 
@@ -768,13 +768,13 @@ Translations and JavaScript
 
 Adding translations to JavaScript poses some problems:
 
-    * JavaScript code doesn't have access to a ``gettext`` implementation.
+* JavaScript code doesn't have access to a ``gettext`` implementation.
 
-    * JavaScript code doesn't have access to .po or .mo files; they need to be
-      delivered by the server.
+* JavaScript code doesn't have access to .po or .mo files; they need to be
+  delivered by the server.
 
-    * The translation catalogs for JavaScript should be kept as small as
-      possible.
+* The translation catalogs for JavaScript should be kept as small as
+  possible.
 
 Django provides an integrated solution for these problems: It passes the
 translations into JavaScript, so you can call ``gettext``, etc., from within
@@ -843,28 +843,28 @@ and even a string interpolation function::
 The interpolation syntax is borrowed from Python, so the ``interpolate``
 function supports both positional and named interpolation:
 
-    * Positional interpolation: ``obj`` contains a JavaScript Array object
-      whose elements values are then sequentially interpolated in their
-      corresponding ``fmt`` placeholders in the same order they appear.
-      For example::
+* Positional interpolation: ``obj`` contains a JavaScript Array object
+  whose elements values are then sequentially interpolated in their
+  corresponding ``fmt`` placeholders in the same order they appear.
+  For example::
 
-        fmts = ngettext('There is %s object. Remaining: %s',
-                'There are %s objects. Remaining: %s', 11);
-        s = interpolate(fmts, [11, 20]);
-        // s is 'There are 11 objects. Remaining: 20'
+    fmts = ngettext('There is %s object. Remaining: %s',
+            'There are %s objects. Remaining: %s', 11);
+    s = interpolate(fmts, [11, 20]);
+    // s is 'There are 11 objects. Remaining: 20'
 
-    * Named interpolation: This mode is selected by passing the optional
-      boolean ``named`` parameter as true. ``obj`` contains a JavaScript
-      object or associative array. For example::
+* Named interpolation: This mode is selected by passing the optional
+  boolean ``named`` parameter as true. ``obj`` contains a JavaScript
+  object or associative array. For example::
 
-        d = {
-            count: 10
-            total: 50
-        };
+    d = {
+        count: 10
+        total: 50
+    };
 
-        fmts = ngettext('Total: %(total)s, there is %(count)s object',
-        'there are %(count)s of a total of %(total)s objects', d.count);
-        s = interpolate(fmts, d, true);
+    fmts = ngettext('Total: %(total)s, there is %(count)s object',
+    'there are %(count)s of a total of %(total)s objects', d.count);
+    s = interpolate(fmts, d, true);
 
 You shouldn't go over the top with string interpolation, though: this is still
 JavaScript, so the code has to make repeated regular-expression substitutions.
@@ -892,15 +892,15 @@ Notes for Users Familiar with ``gettext``
 If you know ``gettext``, you might note these specialties in the way Django
 does translation:
 
-    * The string domain is ``django`` or ``djangojs``. This string domain is
-      used to differentiate between different programs that store their data
-      in a common message-file library (usually ``/usr/share/locale/``). The
-      ``django`` domain is used for python and template translation strings
-      and is loaded into the global translation catalogs. The ``djangojs``
-      domain is only used for JavaScript translation catalogs to make sure
-      that those are as small as possible.
-    * Django doesn't use ``xgettext`` alone. It uses Python wrappers around
-      ``xgettext`` and ``msgfmt``. This is mostly for convenience.
+* The string domain is ``django`` or ``djangojs``. This string domain is
+  used to differentiate between different programs that store their data
+  in a common message-file library (usually ``/usr/share/locale/``). The
+  ``django`` domain is used for python and template translation strings
+  and is loaded into the global translation catalogs. The ``djangojs``
+  domain is only used for JavaScript translation catalogs to make sure
+  that those are as small as possible.
+* Django doesn't use ``xgettext`` alone. It uses Python wrappers around
+  ``xgettext`` and ``msgfmt``. This is mostly for convenience.
 
 ``gettext`` on Windows
 ======================
@@ -910,26 +910,26 @@ message files (``.po``). Translation work itself just involves editing existing
 files of this type, but if you want to create your own message files, or want to
 test or compile a changed message file, you will need the ``gettext`` utilities:
 
-    * Download the following zip files from
-      http://sourceforge.net/projects/gettext
+* Download the following zip files from
+  http://sourceforge.net/projects/gettext
 
-      * ``gettext-runtime-X.bin.woe32.zip``
-      * ``gettext-tools-X.bin.woe32.zip``
-      * ``libiconv-X.bin.woe32.zip``
+  * ``gettext-runtime-X.bin.woe32.zip``
+  * ``gettext-tools-X.bin.woe32.zip``
+  * ``libiconv-X.bin.woe32.zip``
 
-    * Extract the 3 files in the same folder (i.e. ``C:\Program
-      Files\gettext-utils``)
+* Extract the 3 files in the same folder (i.e. ``C:\Program
+  Files\gettext-utils``)
 
-    * Update the system PATH:
+* Update the system PATH:
 
-      * ``Control Panel > System > Advanced > Environment Variables``
-      * In the ``System variables`` list, click ``Path``, click ``Edit``
-      * Add ``;C:\Program Files\gettext-utils\bin`` at the end of the
-        ``Variable value`` field
+  * ``Control Panel > System > Advanced > Environment Variables``
+  * In the ``System variables`` list, click ``Path``, click ``Edit``
+  * Add ``;C:\Program Files\gettext-utils\bin`` at the end of the
+    ``Variable value`` field
 
-You may also use ``gettext`` binaries you have obtained elsewhere, so long as 
+You may also use ``gettext`` binaries you have obtained elsewhere, so long as
 the ``xgettext --version`` command works properly. Some version 0.14.4 binaries
-have been found to not support this command. Do not attempt to use Django 
+have been found to not support this command. Do not attempt to use Django
 translation utilities with a ``gettext`` package if the command ``xgettext
 --version`` entered at a Windows command prompt causes a popup window saying
 "xgettext.exe has generated errors and will be closed by Windows".

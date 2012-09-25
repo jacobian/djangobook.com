@@ -3,7 +3,7 @@ Chapter 13: Generating Non-HTML Content
 =======================================
 
 Usually when we talk about developing Web sites, we're talking about producing
-HTML. Of course, there's a lot more to the Web than HTML; we use the Web 
+HTML. Of course, there's a lot more to the Web than HTML; we use the Web
 to distribute data in all sorts of formats: RSS, PDFs, images, and so forth.
 
 So far, we've focused on the common case of HTML production, but in this chapter
@@ -12,11 +12,11 @@ we'll take a detour and look at using Django to produce other types of content.
 Django has convenient built-in tools that you can use to produce some common
 non-HTML content:
 
-    * RSS/Atom syndication feeds
-    
-    * Sitemaps (an XML format originally developed by Google that gives hints to
-      search engines)
-                
+* RSS/Atom syndication feeds
+
+* Sitemaps (an XML format originally developed by Google that gives hints to
+  search engines)
+
 We'll examine each of those tools a little later, but first we'll cover the
 basic principles.
 
@@ -30,9 +30,9 @@ or an image...or anything, really.
 
 More formally, a Django view function *must*
 
-    * Accept an ``HttpRequest`` instance as its first argument
-    
-    * Return an ``HttpResponse`` instance
+* Accept an ``HttpRequest`` instance as its first argument
+
+* Return an ``HttpResponse`` instance
 
 The key to returning non-HTML content from a view lies in the ``HttpResponse``
 class, specifically the ``mimetype`` argument. By tweaking the MIME type, we
@@ -67,7 +67,7 @@ Producing CSV
 
 CSV is a simple data format usually used by spreadsheet software. It's basically
 a series of table rows, with each cell in the row separated by a comma (CSV
-stands for *comma-separated values*). For example, here's some data on "unruly" 
+stands for *comma-separated values*). For example, here's some data on "unruly"
 airline passengers in CSV format::
 
     Year,Unruly Airline Passengers
@@ -119,33 +119,33 @@ an ``HttpResponse`` instead::
         return response
 
 .. SL Tested ok
-    
+
 The code and comments should be pretty clear, but a few things deserve special
 mention:
 
-    * The response is given the ``text/csv`` MIME type (instead of the default
-      ``text/html``). This tells browsers that the document is a CSV file.
+* The response is given the ``text/csv`` MIME type (instead of the default
+  ``text/html``). This tells browsers that the document is a CSV file.
 
-    * The response gets an additional ``Content-Disposition`` header, which
-      contains the name of the CSV file. This header (well, the "attachment"
-      part) will instruct the browser to prompt for a location to save the
-      file instead of just displaying it. This file name is arbitrary; call
-      it whatever you want. It will be used by browsers in the "Save As"
-      dialog.
+* The response gets an additional ``Content-Disposition`` header, which
+  contains the name of the CSV file. This header (well, the "attachment"
+  part) will instruct the browser to prompt for a location to save the
+  file instead of just displaying it. This file name is arbitrary; call
+  it whatever you want. It will be used by browsers in the "Save As"
+  dialog.
 
-      To assign a header on an ``HttpResponse``, just treat the
-      ``HttpResponse`` as a dictionary and set a key/value.
+  To assign a header on an ``HttpResponse``, just treat the
+  ``HttpResponse`` as a dictionary and set a key/value.
 
-    * Hooking into the CSV-generation API is easy: just pass ``response`` as
-      the first argument to ``csv.writer``. The ``csv.writer`` function
-      expects a file-like object, and ``HttpResponse`` objects fit the bill.
+* Hooking into the CSV-generation API is easy: just pass ``response`` as
+  the first argument to ``csv.writer``. The ``csv.writer`` function
+  expects a file-like object, and ``HttpResponse`` objects fit the bill.
 
-    * For each row in your CSV file, call ``writer.writerow``, passing it an
-      iterable object such as a list or tuple.
+* For each row in your CSV file, call ``writer.writerow``, passing it an
+  iterable object such as a list or tuple.
 
-    * The CSV module takes care of quoting for you, so you don't have to worry
-      about escaping strings with quotes or commas in them. Just pass
-      information to ``writerow()``, and it will do the right thing.
+* The CSV module takes care of quoting for you, so you don't have to worry
+  about escaping strings with quotes or commas in them. Just pass
+  information to ``writerow()``, and it will do the right thing.
 
 This is the general pattern you'll use any time you need to return non-HTML
 content: create an ``HttpResponse`` response object (with a special MIME type),
@@ -163,7 +163,7 @@ digital equivalent of a printed document; indeed, PDFs are often used in
 distributing documents for the purpose of printing them.
 
 You can easily generate PDFs with Python and Django thanks to the excellent
-open source ReportLab library (http://www.reportlab.org/rl_toolkit.html). 
+open source ReportLab library (http://www.reportlab.org/rl_toolkit.html).
 The advantage of generating PDF files dynamically is that you can create
 customized PDFs for different purposes -- say, for different users or
 different pieces of content.
@@ -180,10 +180,10 @@ http://www.reportlab.org/downloads.html.
 
 .. note::
 
-    If you're using a modern Linux distribution, you might want to check your 
-    package management utility before installing ReportLab. Most 
+    If you're using a modern Linux distribution, you might want to check your
+    package management utility before installing ReportLab. Most
     package repositories have added ReportLab.
-    
+
     For example, if you're using Ubuntu, a simple
     ``apt-get install python-reportlab`` will do the trick nicely.
 
@@ -229,20 +229,20 @@ Here's a "Hello World" example::
 
 A few notes are in order:
 
-    * Here we use the ``application/pdf`` MIME type. This tells browsers that
-      the document is a PDF file, rather than an HTML file. If you leave off
-      this information, browsers will probably interpret the response as HTML,
-      which will result in scary gobbledygook in the browser window.
+* Here we use the ``application/pdf`` MIME type. This tells browsers that
+  the document is a PDF file, rather than an HTML file. If you leave off
+  this information, browsers will probably interpret the response as HTML,
+  which will result in scary gobbledygook in the browser window.
 
-    * Hooking into the ReportLab API is easy: just pass ``response`` as the
-      first argument to ``canvas.Canvas``. The ``Canvas`` class expects a
-      file-like object, and ``HttpResponse`` objects fit the bill.
+* Hooking into the ReportLab API is easy: just pass ``response`` as the
+  first argument to ``canvas.Canvas``. The ``Canvas`` class expects a
+  file-like object, and ``HttpResponse`` objects fit the bill.
 
-    * All subsequent PDF-generation methods are called on the PDF
-      object (in this case, ``p``), not on ``response``.
+* All subsequent PDF-generation methods are called on the PDF
+  object (in this case, ``p``), not on ``response``.
 
-    * Finally, it's important to call ``showPage()`` and ``save()`` on the PDF
-      file -- or else, you'll end up with a corrupted PDF file.
+* Finally, it's important to call ``showPage()`` and ``save()`` on the PDF
+  file -- or else, you'll end up with a corrupted PDF file.
 
 Complex PDFs
 ------------
@@ -281,7 +281,7 @@ Here's the previous "Hello World" example rewritten to use ``cStringIO``::
         return response
 
 .. SL Tested ok
-       
+
 Other Possibilities
 ===================
 
@@ -289,32 +289,32 @@ There's a whole host of other types of content you can generate in Python.
 Here are a few more ideas and some pointers to libraries you could use to
 implement them:
 
-    * *ZIP files*: Python's standard library ships with the
-      ``zipfile`` module, which can both read and write compressed ZIP files.
-      You could use it to provide on-demand archives of a bunch of files, or
-      perhaps compress large documents when requested. You could similarly
-      produce TAR files using the standard library's ``tarfile`` module.
+* *ZIP files*: Python's standard library ships with the
+  ``zipfile`` module, which can both read and write compressed ZIP files.
+  You could use it to provide on-demand archives of a bunch of files, or
+  perhaps compress large documents when requested. You could similarly
+  produce TAR files using the standard library's ``tarfile`` module.
 
-    * *Dynamic images*: The Python Imaging Library
-      (PIL; http://www.pythonware.com/products/pil/) is a fantastic toolkit for
-      producing images (PNG, JPEG, GIF, and a whole lot more). You could use
-      it to automatically scale down images into thumbnails, composite
-      multiple images into a single frame, or even do Web-based image
-      processing.
+* *Dynamic images*: The Python Imaging Library
+  (PIL; http://www.pythonware.com/products/pil/) is a fantastic toolkit for
+  producing images (PNG, JPEG, GIF, and a whole lot more). You could use
+  it to automatically scale down images into thumbnails, composite
+  multiple images into a single frame, or even do Web-based image
+  processing.
 
-    * *Plots and charts*: There are a number of powerful Python plotting and
-      charting libraries you could use to produce on-demand maps, charts,
-      plots, and graphs. We can't possibly list them all, so here are
-      a couple of the highlights:
-    
-        * ``matplotlib`` (http://matplotlib.sourceforge.net/) can be
-          used to produce the type of high-quality plots usually generated
-          with MatLab or Mathematica.
+* *Plots and charts*: There are a number of powerful Python plotting and
+  charting libraries you could use to produce on-demand maps, charts,
+  plots, and graphs. We can't possibly list them all, so here are
+  a couple of the highlights:
 
-        * ``pygraphviz`` (http://networkx.lanl.gov/pygraphviz/), an
-          interface to the Graphviz graph layout toolkit
-          (http://graphviz.org/), can be used for generating structured diagrams of
-          graphs and networks.
+* ``matplotlib`` (http://matplotlib.sourceforge.net/) can be
+  used to produce the type of high-quality plots usually generated
+  with MatLab or Mathematica.
+
+* ``pygraphviz`` (http://networkx.lanl.gov/pygraphviz/), an
+  interface to the Graphviz graph layout toolkit
+  (http://graphviz.org/), can be used for generating structured diagrams of
+  graphs and networks.
 
 In general, any Python library capable of writing to a file can be hooked into
 Django. The possibilities are immense.
@@ -351,7 +351,7 @@ Initialization
 
 To activate syndication feeds on your Django site, add this URLconf::
 
-    (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed', 
+    (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed',
         {'feed_dict': feeds}
     ),
 
@@ -363,7 +363,7 @@ extra argument to pass the syndication framework the feeds that should be
 published under that URL.
 
 Specifically, ``feed_dict`` should be a dictionary that maps a feed's slug
-(short URL label) to its ``Feed`` class. You can define the ``feed_dict`` 
+(short URL label) to its ``Feed`` class. You can define the ``feed_dict``
 in the URLconf itself. Here's a full example URLconf::
 
     from django.conf.urls.defaults import *
@@ -383,11 +383,11 @@ in the URLconf itself. Here's a full example URLconf::
 
 The preceding example registers two feeds:
 
-    * The feed represented by ``LatestEntries`` will live at
-      ``feeds/latest/``.
-      
-    * The feed represented by ``LatestEntriesByCategory`` will live at
-      ``feeds/categories/``.
+* The feed represented by ``LatestEntries`` will live at
+  ``feeds/latest/``.
+
+* The feed represented by ``LatestEntriesByCategory`` will live at
+  ``feeds/categories/``.
 
 Once that's set up, you'll need to define the ``Feed`` classes themselves.
 
@@ -418,64 +418,64 @@ given blog::
 
 The important things to notice here are as follows:
 
-    * The class subclasses ``django.contrib.syndication.feeds.Feed``.
-    
-    * ``title``, ``link``, and ``description`` correspond to the standard RSS
-      ``<title>``, ``<link>``, and ``<description>`` elements, respectively.
-      
-    * ``items()`` is simply a method that returns a list of objects that
-      should be included in the feed as ``<item>`` elements. Although this
-      example returns ``Entry`` objects using Django's database API,
-      ``items()`` doesn't have to return model instances.
+* The class subclasses ``django.contrib.syndication.feeds.Feed``.
+
+* ``title``, ``link``, and ``description`` correspond to the standard RSS
+  ``<title>``, ``<link>``, and ``<description>`` elements, respectively.
+
+* ``items()`` is simply a method that returns a list of objects that
+  should be included in the feed as ``<item>`` elements. Although this
+  example returns ``Entry`` objects using Django's database API,
+  ``items()`` doesn't have to return model instances.
 
 There's just one more step. In an RSS feed, each ``<item>`` has a ``<title>``,
 ``<link>``, and ``<description>``. We need to tell the framework what data to
 put into those elements.
 
-    * To specify the contents of ``<title>`` and ``<description>``, create
-      Django templates called ``feeds/latest_title.html`` and
-      ``feeds/latest_description.html``, where ``latest`` is the ``slug``
-      specified in the URLconf for the given feed. Note that the ``.html``
-      extension is required.
-      
-      The RSS system renders that template for each item, passing it two
-      template context variables:
+* To specify the contents of ``<title>`` and ``<description>``, create
+  Django templates called ``feeds/latest_title.html`` and
+  ``feeds/latest_description.html``, where ``latest`` is the ``slug``
+  specified in the URLconf for the given feed. Note that the ``.html``
+  extension is required.
 
-          * ``obj``: The current object (one of whichever objects you
-            returned in ``items()``).
-            
-          * ``site``: A ``django.models.core.sites.Site`` object representing the
-            current site. This is useful for ``{{ site.domain }}`` or ``{{
-            site.name }}``.
+  The RSS system renders that template for each item, passing it two
+  template context variables:
 
-      If you don't create a template for either the title or description, the
-      framework will use the template ``"{{ obj }}"`` by default -- that is,
-      the normal string representation of the object. (For model objects, this
-      will be the ``__unicode__()`` method.
+  * ``obj``: The current object (one of whichever objects you
+    returned in ``items()``).
 
-      You can also change the names of these two templates by specifying
-      ``title_template`` and ``description_template`` as attributes of your
-      ``Feed`` class.
-      
-    * To specify the contents of ``<link>``, you have two options. For each
-      item in ``items()``, Django first tries executing a
-      ``get_absolute_url()`` method on that object. If that method doesn't
-      exist, it tries calling a method ``item_link()`` in the ``Feed`` class,
-      passing it a single parameter, ``item``, which is the object itself.
-      
-      Both ``get_absolute_url()`` and ``item_link()`` should return the item's
-      URL as a normal Python string.
+  * ``site``: A ``django.models.core.sites.Site`` object representing the
+    current site. This is useful for ``{{ site.domain }}`` or ``{{
+    site.name }}``.
 
-    * For the previous ``LatestEntries`` example, we could have very simple feed
-      templates. ``latest_title.html`` contains::
+  If you don't create a template for either the title or description, the
+  framework will use the template ``"{{ obj }}"`` by default -- that is,
+  the normal string representation of the object. (For model objects, this
+  will be the ``__unicode__()`` method.
 
-            {{ obj.title }}
+  You can also change the names of these two templates by specifying
+  ``title_template`` and ``description_template`` as attributes of your
+  ``Feed`` class.
 
-      and ``latest_description.html`` contains::
+* To specify the contents of ``<link>``, you have two options. For each
+  item in ``items()``, Django first tries executing a
+  ``get_absolute_url()`` method on that object. If that method doesn't
+  exist, it tries calling a method ``item_link()`` in the ``Feed`` class,
+  passing it a single parameter, ``item``, which is the object itself.
 
-            {{ obj.description }}
-            
-      It's almost *too* easy...
+  Both ``get_absolute_url()`` and ``item_link()`` should return the item's
+  URL as a normal Python string.
+
+* For the previous ``LatestEntries`` example, we could have very simple feed
+  templates. ``latest_title.html`` contains::
+
+        {{ obj.title }}
+
+  and ``latest_description.html`` contains::
+
+        {{ obj.description }}
+
+  It's almost *too* easy...
 
 .. SL Tested ok
 
@@ -494,11 +494,11 @@ feeds that return items based on information in the feed's URL.
 
 Your tag-specific feeds could use URLs like this:
 
-    * ``http://example.com/feeds/tags/python/``:
-      Returns recent entries tagged with "python"
+* ``http://example.com/feeds/tags/python/``:
+  Returns recent entries tagged with "python"
 
-    * ``http://example.com/feeds/tags/cats/``:
-      Returns recent entries tagged with "cats"
+* ``http://example.com/feeds/tags/cats/``:
+  Returns recent entries tagged with "cats"
 
 The slug here is ``"tags"``. The syndication framework sees the extra URL
 bits after the slug -- ``'python'`` and ``'cats'`` -- and gives you a hook
@@ -534,44 +534,44 @@ An example makes this clear. Here's the code for these tag-specific feeds::
 Here's the basic algorithm of the RSS framework, given this class and a
 request to the URL ``/feeds/tags/python/``:
 
-    #. The framework gets the URL ``/feeds/tags/python/`` and notices there's an
-       extra bit of URL after the slug. It splits that remaining string by the
-       slash character (``"/"``) and calls the ``Feed`` class's
-       ``get_object()`` method, passing it the bits.
-       
-       In this case, bits is ``['python']``. For a request to
-       ``/feeds/tags/python/django/``, bits would be ``['python', 'django']``.
+#. The framework gets the URL ``/feeds/tags/python/`` and notices there's an
+   extra bit of URL after the slug. It splits that remaining string by the
+   slash character (``"/"``) and calls the ``Feed`` class's
+   ``get_object()`` method, passing it the bits.
 
-    #. ``get_object()`` is responsible for retrieving the given ``Tag`` object,
-       from the given ``bits``. 
-       
-       In this case, it uses the Django database API to
-       retrieve the ``Tag``. Note that ``get_object()`` should raise
-       ``django.core.exceptions.ObjectDoesNotExist`` if given invalid
-       parameters. There's no ``try``/``except`` around the
-       ``Tag.objects.get()`` call, because it's not necessary. That function
-       raises ``Tag.DoesNotExist`` on failure, and ``Tag.DoesNotExist`` is a
-       subclass of ``ObjectDoesNotExist``. Raising ``ObjectDoesNotExist`` in
-       ``get_object()`` tells Django to produce a 404 error for that request.
-      
-    #. To generate the feed's ``<title>``, ``<link>``, and ``<description>``,
-       Django uses the ``title()``, ``link()``, and ``description()`` methods.
-       In the previous example, they were simple string class attributes, but
-       this example illustrates that they can be either strings *or* methods.
-       For each of ``title``, ``link``, and ``description``, Django follows
-       this algorithm:
+   In this case, bits is ``['python']``. For a request to
+   ``/feeds/tags/python/django/``, bits would be ``['python', 'django']``.
 
-          #. It tries to call a method, passing the ``obj`` argument,
-             where ``obj`` is the object returned by ``get_object()``.
-          
-          #. Failing that, it tries to call a method with no arguments.
-          
-          #. Failing that, it uses the class attribute.
+#. ``get_object()`` is responsible for retrieving the given ``Tag`` object,
+   from the given ``bits``.
 
-    #. Finally, note that ``items()`` in this example also takes the ``obj``
-       argument. The algorithm for ``items`` is the same as described in the
-       previous step -- first, it tries ``items(obj)``, then ``items()``, and then
-       finally an ``items`` class attribute (which should be a list).
+   In this case, it uses the Django database API to
+   retrieve the ``Tag``. Note that ``get_object()`` should raise
+   ``django.core.exceptions.ObjectDoesNotExist`` if given invalid
+   parameters. There's no ``try``/``except`` around the
+   ``Tag.objects.get()`` call, because it's not necessary. That function
+   raises ``Tag.DoesNotExist`` on failure, and ``Tag.DoesNotExist`` is a
+   subclass of ``ObjectDoesNotExist``. Raising ``ObjectDoesNotExist`` in
+   ``get_object()`` tells Django to produce a 404 error for that request.
+
+#. To generate the feed's ``<title>``, ``<link>``, and ``<description>``,
+   Django uses the ``title()``, ``link()``, and ``description()`` methods.
+   In the previous example, they were simple string class attributes, but
+   this example illustrates that they can be either strings *or* methods.
+   For each of ``title``, ``link``, and ``description``, Django follows
+   this algorithm:
+
+   #. It tries to call a method, passing the ``obj`` argument,
+      where ``obj`` is the object returned by ``get_object()``.
+
+   #. Failing that, it tries to call a method with no arguments.
+
+   #. Failing that, it uses the class attribute.
+
+#. Finally, note that ``items()`` in this example also takes the ``obj``
+   argument. The algorithm for ``items`` is the same as described in the
+   previous step -- first, it tries ``items(obj)``, then ``items()``, and then
+   finally an ``items`` class attribute (which should be a list).
 
 Full documentation of all the methods and attributes of the ``Feed`` classes is
 always available from the official Django documentation
@@ -580,7 +580,7 @@ always available from the official Django documentation
 Specifying the Type of Feed
 ---------------------------
 
-By default, the syndication framework produces RSS 2.0. To change that, 
+By default, the syndication framework produces RSS 2.0. To change that,
 add a ``feed_type`` attribute to your ``Feed`` class::
 
     from django.utils.feedgenerator import Atom1Feed
@@ -599,9 +599,9 @@ available feed types are shown in Table 11-1.
     Feed Class                                           Format
     ===================================================  =====================
     ``django.utils.feedgenerator.Rss201rev2Feed``        RSS 2.01 (default)
-    
+
     ``django.utils.feedgenerator.RssUserland091Feed``    RSS 0.91
-    
+
     ``django.utils.feedgenerator.Atom1Feed``             Atom 1.0
     ===================================================  =====================
 
@@ -620,20 +620,20 @@ and ``item_enclosure_mime_type`` hooks, for example::
 
         def items(self):
             return Song.objects.all()[:30]
-            
+
         def item_enclosure_url(self, item):
             return item.song_url
-            
+
         def item_enclosure_length(self, item):
             return item.song_length
-            
+
         item_enclosure_mime_type = "audio/mpeg"
 
 .. SL Tested ok
 
 This assumes, of course, that you've created a ``Song`` object with ``song_url``
 and ``song_length`` (i.e., the size in bytes) fields.
-        
+
 Language
 --------
 
@@ -733,16 +733,16 @@ Installation
 
 To install the sitemap application, follow these steps:
 
-    #. Add ``'django.contrib.sitemaps'`` to your ``INSTALLED_APPS`` setting.
-    
-    #. Make sure
-       ``'django.template.loaders.app_directories.load_template_source'`` is
-       in your ``TEMPLATE_LOADERS`` setting. It's in there by default, so
-       you'll need to change this only if you've changed that setting.
-    
-    #. Make sure you've installed the sites framework (see Chapter 16).
+#. Add ``'django.contrib.sitemaps'`` to your ``INSTALLED_APPS`` setting.
 
-.. note:: 
+#. Make sure
+   ``'django.template.loaders.app_directories.load_template_source'`` is
+   in your ``TEMPLATE_LOADERS`` setting. It's in there by default, so
+   you'll need to change this only if you've changed that setting.
+
+#. Make sure you've installed the sites framework (see Chapter 16).
+
+.. note::
 
     The sitemap application doesn't install any database tables. The only
     reason it needs to go into ``INSTALLED_APPS`` is so the
@@ -783,7 +783,7 @@ events in your events calendar.
 
 In the simplest case, all these sections get lumped together into one
 ``sitemap.xml``, but it's also possible to use the framework to generate a
-sitemap index that references individual sitemap files, one per section 
+sitemap index that references individual sitemap files, one per section
 (as described shortly).
 
 ``Sitemap`` classes must subclass ``django.contrib.sitemaps.Sitemap``. They
@@ -817,45 +817,45 @@ about how this works.
 
 A ``Sitemap`` class can define the following methods/attributes:
 
-    * ``items`` (**required**): Provides list of objects. The framework
-      doesn't care what *type* of objects they are; all that matters is that
-      these objects get passed to the ``location()``, ``lastmod()``,
-      ``changefreq()``, and ``priority()`` methods.
+* ``items`` (**required**): Provides list of objects. The framework
+  doesn't care what *type* of objects they are; all that matters is that
+  these objects get passed to the ``location()``, ``lastmod()``,
+  ``changefreq()``, and ``priority()`` methods.
 
-    * ``location`` (optional): Gives the absolute URL for a given object.
-      Here, "absolute URL" means a URL that doesn't include the protocol or
-      domain. Here are some examples:
-        
-            * Good: ``'/foo/bar/'`` 
-            * Bad: ``'example.com/foo/bar/'`` 
-            * Bad: ``'http://example.com/foo/bar/'``
-        
-      If ``location`` isn't provided, the framework will call the
-      ``get_absolute_url()`` method on each object as returned by
-      ``items()``.
+* ``location`` (optional): Gives the absolute URL for a given object.
+  Here, "absolute URL" means a URL that doesn't include the protocol or
+  domain. Here are some examples:
 
-    * ``lastmod`` (optional): The object's "last modification" date, as a
-      Python ``datetime`` object.
+  * Good: ``'/foo/bar/'``
+  * Bad: ``'example.com/foo/bar/'``
+  * Bad: ``'http://example.com/foo/bar/'``
 
-    * ``changefreq`` (optional): How often the object changes. Possible values
-      (as given by the Sitemaps specification) are as follows:
+  If ``location`` isn't provided, the framework will call the
+  ``get_absolute_url()`` method on each object as returned by
+  ``items()``.
 
-            * ``'always'``
-            * ``'hourly'``
-            * ``'daily'``
-            * ``'weekly'``
-            * ``'monthly'``
-            * ``'yearly'``
-            * ``'never'``
+* ``lastmod`` (optional): The object's "last modification" date, as a
+  Python ``datetime`` object.
 
-    * ``priority`` (optional): A suggested indexing priority between ``0.0``
-      and ``1.0``. The default priority of a page is ``0.5``; see the
-      http://sitemaps.org/ documentation for more about how ``priority`` works.
+* ``changefreq`` (optional): How often the object changes. Possible values
+  (as given by the Sitemaps specification) are as follows:
+
+  * ``'always'``
+  * ``'hourly'``
+  * ``'daily'``
+  * ``'weekly'``
+  * ``'monthly'``
+  * ``'yearly'``
+  * ``'never'``
+
+* ``priority`` (optional): A suggested indexing priority between ``0.0``
+  and ``1.0``. The default priority of a page is ``0.5``; see the
+  http://sitemaps.org/ documentation for more about how ``priority`` works.
 
 Shortcuts
 ---------
 
-The sitemap framework provides a couple convenience classes for common cases. These 
+The sitemap framework provides a couple convenience classes for common cases. These
 are described in the sections that follow.
 
 FlatPageSitemap
@@ -904,8 +904,8 @@ Here's an example of a URLconf using both ``FlatPageSitemap`` and
         # ...
 
         # the sitemap
-        (r'^sitemap\.xml$', 
-         'django.contrib.sitemaps.views.sitemap', 
+        (r'^sitemap\.xml$',
+         'django.contrib.sitemaps.views.sitemap',
          {'sitemaps': sitemaps})
     )
 
@@ -916,21 +916,21 @@ The sitemap framework also has the ability to create a sitemap index that
 references individual sitemap files, one per each section defined in your
 ``sitemaps`` dictionary. The only differences in usage are as follows:
 
-    * You use two views in your URLconf:
-      ``django.contrib.sitemaps.views.index`` and
-      ``django.contrib.sitemaps.views.sitemap``.
-      
-    * The ``django.contrib.sitemaps.views.sitemap`` view should take a
-      ``section`` keyword argument.
+* You use two views in your URLconf:
+  ``django.contrib.sitemaps.views.index`` and
+  ``django.contrib.sitemaps.views.sitemap``.
+
+* The ``django.contrib.sitemaps.views.sitemap`` view should take a
+  ``section`` keyword argument.
 
 Here is what the relevant URLconf lines would look like for the previous example::
 
-    (r'^sitemap.xml$', 
-     'django.contrib.sitemaps.views.index', 
+    (r'^sitemap.xml$',
+     'django.contrib.sitemaps.views.index',
      {'sitemaps': sitemaps}),
-     
-    (r'^sitemap-(?P<section>.+).xml$', 
-     'django.contrib.sitemaps.views.sitemap', 
+
+    (r'^sitemap-(?P<section>.+).xml$',
+     'django.contrib.sitemaps.views.sitemap',
      {'sitemaps': sitemaps})
 
 This will automatically generate a ``sitemap.xml`` file that references both

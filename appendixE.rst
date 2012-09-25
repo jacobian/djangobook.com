@@ -107,13 +107,13 @@ Signal that this template extends a parent template.
 
 This tag can be used in two ways:
 
-   * ``{% extends "base.html" %}`` (with quotes) uses the literal value
-     ``"base.html"`` as the name of the parent template to extend.
+* ``{% extends "base.html" %}`` (with quotes) uses the literal value
+  ``"base.html"`` as the name of the parent template to extend.
 
-   * ``{% extends variable %}`` uses the value of ``variable``. If the variable
-     evaluates to a string, Django will use that string as the name of the
-     parent template. If the variable evaluates to a ``Template`` object,
-     Django will use that object as the parent template.
+* ``{% extends variable %}`` uses the value of ``variable``. If the variable
+  evaluates to a string, Django will use that string as the name of the
+  parent template. If the variable evaluates to a ``Template`` object,
+  Django will use that object as the parent template.
 
 See Chapter 4 for more information on template inheritance.
 
@@ -386,14 +386,14 @@ the variable ``template_name``::
 An included template is rendered with the context of the template that's
 including it. This example produces the output ``"Hello, John"``:
 
-    * Context: variable ``person`` is set to ``"john"``.
-    * Template::
+* Context: variable ``person`` is set to ``"john"``.
+* Template::
 
-        {% include "name_snippet.html" %}
+    {% include "name_snippet.html" %}
 
-    * The ``name_snippet.html`` template::
+* The ``name_snippet.html`` template::
 
-        Hello, {{ person }}
+    Hello, {{ person }}
 
 See also: ``{% ssi %}``.
 
@@ -508,7 +508,7 @@ is a list of people represented by dictionaries with ``first_name``,
     ]
 
 ...and you'd like to display a hierarchical list that is ordered by gender,
-like this:
+like this::
 
     * Male:
         * George Bush
@@ -544,10 +544,10 @@ attribute and calling the result ``gender_list``.
 ``{% regroup %}`` produces a list (in this case, ``gender_list``) of
 **group objects**. Each group object has two attributes:
 
-    * ``grouper`` -- the item that was grouped by (e.g., the string "Male" or
-      "Female").
-    * ``list`` -- a list of all items in this group (e.g., a list of all people
-      with gender='Male').
+* ``grouper`` -- the item that was grouped by (e.g., the string "Male" or
+  "Female").
+* ``list`` -- a list of all items in this group (e.g., a list of all people
+  with gender='Male').
 
 Note that ``{% regroup %}`` does not order its input! Our example relies on
 the fact that the ``people`` list was ordered by ``gender`` in the first place.
@@ -567,7 +567,7 @@ together):
     ]
 
 With this input for ``people``, the example ``{% regroup %}`` template code
-above would result in the following output:
+above would result in the following output::
 
     * Male:
         * Bill Clinton
@@ -856,11 +856,11 @@ escape
 
 Escapes a string's HTML. Specifically, it makes these replacements:
 
-    * ``<`` is converted to ``&lt;``
-    * ``>`` is converted to ``&gt;``
-    * ``'`` (single quote) is converted to ``&#39;``
-    * ``"`` (double quote) is converted to ``&quot;``
-    * ``&`` is converted to ``&amp;``
+* ``<`` is converted to ``&lt;``
+* ``>`` is converted to ``&gt;``
+* ``'`` (single quote) is converted to ``&#39;``
+* ``"`` (double quote) is converted to ``&quot;``
+* ``&`` is converted to ``&amp;``
 
 The escaping is only applied when the string is output, so it does not matter
 where in a chained sequence of filters you put ``escape``: it will always be

@@ -64,37 +64,37 @@ What Happens When You Save?
 
 When you save an object, Django performs the following steps:
 
-    #. **Emit a pre_save signal.** This provides a notification that
-       an object is about to be saved. You can register a listener that
-       will be invoked whenever this signal is emitted. Check the online
-       documentation for more on signals.
+#. **Emit a pre_save signal.** This provides a notification that
+   an object is about to be saved. You can register a listener that
+   will be invoked whenever this signal is emitted. Check the online
+   documentation for more on signals.
 
-    #. **Preprocess the data.** Each field on the object is asked to
-       perform any automated data modification that the field may need
-       to perform.
+#. **Preprocess the data.** Each field on the object is asked to
+   perform any automated data modification that the field may need
+   to perform.
 
-       Most fields do *no* preprocessing -- the field data is kept as is.
-       Preprocessing is only used on fields that have special behavior, 
-       like file fields.
+   Most fields do *no* preprocessing -- the field data is kept as is.
+   Preprocessing is only used on fields that have special behavior,
+   like file fields.
 
-    #. **Prepare the data for the database.** Each field is asked to provide
-       its current value in a data type that can be written to the database.
+#. **Prepare the data for the database.** Each field is asked to provide
+   its current value in a data type that can be written to the database.
 
-       Most fields require no data preparation. Simple data types, such as
-       integers and strings, are "ready to write" as a Python object. However,
-       more complex data types often require some modification. For example, 
-       ``DateFields`` use a Python ``datetime`` object to store data. 
-       Databases don't store ``datetime`` objects, so the field value
-       must be converted into an ISO-compliant date string for insertion
-       into the database.
+   Most fields require no data preparation. Simple data types, such as
+   integers and strings, are "ready to write" as a Python object. However,
+   more complex data types often require some modification. For example,
+   ``DateFields`` use a Python ``datetime`` object to store data.
+   Databases don't store ``datetime`` objects, so the field value
+   must be converted into an ISO-compliant date string for insertion
+   into the database.
 
-    #. **Insert the data into the database.** The preprocessed, prepared
-       data is then composed into an SQL statement for insertion into the
-       database.
+#. **Insert the data into the database.** The preprocessed, prepared
+   data is then composed into an SQL statement for insertion into the
+   database.
 
-    #. **Emit a post_save signal.** As with the ``pre_save`` signal, this
-       is used to provide notification that an object has been successfully
-       saved.
+#. **Emit a post_save signal.** As with the ``pre_save`` signal, this
+   is used to provide notification that an object has been successfully
+   saved.
 
 Autoincrementing Primary Keys
 ------------------------------
@@ -106,11 +106,11 @@ the section titled "AutoField" in Appendix A).
 If your model has an ``AutoField``, that autoincremented value will be
 calculated and saved as an attribute on your object the first time you call
 ``save()``::
-    
+
     >>> b2 = Blog(name='Cheddar Talk', tagline='Thoughts on cheese.')
     >>> b2.id     # Returns None, because b doesn't have an ID yet.
     None
-    
+
     >>> b2.save()
     >>> b2.id     # Returns the ID of your new object.
     14
@@ -164,16 +164,16 @@ doesn't hit the database until you explicitly call ``save()``.
     ``INSERT`` or ``UPDATE`` SQL statements. Specifically, when you call
     ``save()``, Django follows this algorithm:
 
-        * If the object's primary key attribute is set to a value that evaluates
-          to ``True`` (i.e., a value other than ``None`` or the empty string),
-          Django executes a ``SELECT`` query to determine whether a record with
-          the given primary key already exists.
+    * If the object's primary key attribute is set to a value that evaluates
+      to ``True`` (i.e., a value other than ``None`` or the empty string),
+      Django executes a ``SELECT`` query to determine whether a record with
+      the given primary key already exists.
 
-        * If the record with the given primary key does already exist, Django
-          executes an ``UPDATE`` query.
+    * If the record with the given primary key does already exist, Django
+      executes an ``UPDATE`` query.
 
-        * If the object's primary key attribute is *not* set, or if it's set but
-          a record doesn't exist, Django executes an ``INSERT``.
+    * If the object's primary key attribute is *not* set, or if it's set but
+      a record doesn't exist, Django executes an ``INSERT``.
 
     Because of this, you should be careful not to specify a primary key value
     explicitly when saving new objects if you cannot guarantee the primary key
@@ -305,37 +305,37 @@ long and Django won't actually run the query until the ``QuerySet`` is
 
 You can evaluate a ``QuerySet`` in any following ways:
 
-    * *Iterating*: A ``QuerySet`` is iterable, and it executes its database query the first
-      time you iterate over it. For example, the following ``QuerySet`` isn't evaluated
-      until it's iterated over in the ``for`` loop::
-        
-          qs = Entry.objects.filter(pub_date__year=2006)
-          qs = qs.filter(headline__icontains="bill")
-          for e in qs:
-              print e.headline
+* *Iterating*: A ``QuerySet`` is iterable, and it executes its database query the first
+  time you iterate over it. For example, the following ``QuerySet`` isn't evaluated
+  until it's iterated over in the ``for`` loop::
 
-      This prints all headlines from 2006 that contain "bill" but causes
-      only one database hit.
+      qs = Entry.objects.filter(pub_date__year=2006)
+      qs = qs.filter(headline__icontains="bill")
+      for e in qs:
+          print e.headline
 
-    * *Printing it*: A ``QuerySet`` is evaluated when you call ``repr()`` on it.
-      This is for convenience in the Python interactive interpreter, so you can
-      immediately see your results when using the API interactively.
+  This prints all headlines from 2006 that contain "bill" but causes
+  only one database hit.
 
-    * *Slicing*: As explained in the upcoming "Limiting QuerySets" section, 
-      a ``QuerySet`` can be sliced using Python's array-slicing syntax. 
-      Usually slicing a ``QuerySet`` returns another (unevaluated)``QuerySet``, 
-      but Django will execute the database query if you use the "step" 
-      parameter of slice syntax.
+* *Printing it*: A ``QuerySet`` is evaluated when you call ``repr()`` on it.
+  This is for convenience in the Python interactive interpreter, so you can
+  immediately see your results when using the API interactively.
 
-    * *Converting to a list*: You can force evaluation of a ``QuerySet`` by calling
-      ``list()`` on it, for example::
+* *Slicing*: As explained in the upcoming "Limiting QuerySets" section,
+  a ``QuerySet`` can be sliced using Python's array-slicing syntax.
+  Usually slicing a ``QuerySet`` returns another (unevaluated)``QuerySet``,
+  but Django will execute the database query if you use the "step"
+  parameter of slice syntax.
 
-          >>> entry_list = list(Entry.objects.all())
+* *Converting to a list*: You can force evaluation of a ``QuerySet`` by calling
+  ``list()`` on it, for example::
 
-      Be warned, though, that this could have a large memory overhead, because
-      Django will load each element of the list into memory. In contrast,
-      iterating over a ``QuerySet`` will take advantage of your database to load
-      data and instantiate objects only as you need them.
+      >>> entry_list = list(Entry.objects.all())
+
+  Be warned, though, that this could have a large memory overhead, because
+  Django will load each element of the list into memory. In contrast,
+  iterating over a ``QuerySet`` will take advantage of your database to load
+  data and instantiate objects only as you need them.
 
 .. admonition:: Filtered QuerySets Are Unique
 
@@ -490,11 +490,11 @@ of your model. The ``kind`` argument must be either ``"year"``, ``"month"``, or
 ``"day"``. Each ``datetime.datetime`` object in the result list is "truncated"
 to the given ``type``:
 
-    * ``"year"`` returns a list of all distinct year values for the field.
-    
-    * ``"month"`` returns a list of all distinct year/month values for the field.
-    
-    * ``"day"`` returns a list of all distinct year/month/day values for the field.
+* ``"year"`` returns a list of all distinct year values for the field.
+
+* ``"month"`` returns a list of all distinct year/month values for the field.
+
+* ``"day"`` returns a list of all distinct year/month/day values for the field.
 
 ``order``, which defaults to ``'ASC'``, should be either ``'ASC'`` or
 ``'DESC'``. This specifies how to order the results.
@@ -503,16 +503,16 @@ Here are a few examples::
 
     >>> Entry.objects.dates('pub_date', 'year')
     [datetime.datetime(2005, 1, 1)]
-    
+
     >>> Entry.objects.dates('pub_date', 'month')
     [datetime.datetime(2005, 2, 1), datetime.datetime(2005, 3, 1)]
-    
+
     >>> Entry.objects.dates('pub_date', 'day')
     [datetime.datetime(2005, 2, 20), datetime.datetime(2005, 3, 20)]
-    
+
     >>> Entry.objects.dates('pub_date', 'day', order='DESC')
     [datetime.datetime(2005, 3, 20), datetime.datetime(2005, 2, 20)]
-    
+
     >>> Entry.objects.filter(headline__contains='Lennon').dates('pub_date', 'day')
     [datetime.datetime(2005, 3, 20)]
 
@@ -609,13 +609,13 @@ The ``DoesNotExist`` exception inherits from
 create(\*\*kwargs)
 ~~~~~~~~~~~~~~~~~~
 
-This is a convenience method for creating an object and saving it all in one step. 
+This is a convenience method for creating an object and saving it all in one step.
 It lets you compress two common steps::
 
     >>> p = Person(first_name="Bruce", last_name="Springsteen")
     >>> p.save()
 
-into a single line:: 
+into a single line::
 
     >>> p = Person.objects.create(first_name="Bruce", last_name="Springsteen")
 
@@ -640,7 +640,7 @@ This pattern gets quite unwieldy as the number of fields in a model increases. T
 previous example can be rewritten using ``get_or_create()`` like so::
 
     obj, created = Person.objects.get_or_create(
-        first_name = 'John', 
+        first_name = 'John',
         last_name  = 'Lennon',
         defaults   = {'birthday': date(1940, 10, 9)}
     )
@@ -667,12 +667,12 @@ If you have a field named ``defaults`` and want to use it as an exact lookup in
 ``get_or_create()``, just use ``'defaults__exact'`` like so::
 
     Foo.objects.get_or_create(
-        defaults__exact = 'bar', 
+        defaults__exact = 'bar',
         defaults={'defaults': 'bar'}
     )
 
 .. note::
-      
+
     As mentioned earlier, ``get_or_create()`` is mostly useful in scripts that
     need to parse data and create new records if existing ones aren't available.
     But if you need to use ``get_or_create()`` in a view, please make sure to
@@ -684,7 +684,7 @@ count()
 ~~~~~~~
 
 Returns an integer representing the number of objects in the database matching
-the ``QuerySet``. ``count()`` never raises exceptions. Here's an example:: 
+the ``QuerySet``. ``count()`` never raises exceptions. Here's an example::
 
     # Returns the total number of entries in the database.
     >>> Entry.objects.count()
@@ -723,7 +723,7 @@ latest(field_name=None)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Returns the latest object in the table, by date, using the ``field_name``
-provided as the date field. This example returns the latest ``Entry`` in the 
+provided as the date field. This example returns the latest ``Entry`` in the
 table, according to the ``pub_date`` field::
 
     >>> Entry.objects.latest('pub_date')
@@ -762,7 +762,7 @@ exact
 Performs an exact match::
 
     >>> Entry.objects.get(headline__exact="Man bites dog")
-    
+
 This matches any object with the exact headline "Man bites dog".
 
 If you don't provide a lookup type -- that is, if your keyword argument doesn't
@@ -778,7 +778,7 @@ This is for convenience, because ``exact`` lookups are the common case.
 iexact
 ------
 
-Performs a case-insensitive exact match:: 
+Performs a case-insensitive exact match::
 
     >>> Blog.objects.get(name__iexact='beatles blog')
 
@@ -833,7 +833,7 @@ Unlike ``contains``, ``icontains`` *will* match ``'today lennon honored'``.
 gt, gte, lt, and lte
 --------------------
 
-These represent greater than, greater than or equal to, less than, and less 
+These represent greater than, greater than or equal to, less than, and less
 than or equal to::
 
     >>> Entry.objects.filter(id__gt=4)
@@ -872,7 +872,7 @@ istartswith
 Performs a case-insensitive starts-with::
 
     >>> Entry.objects.filter(headline__istartswith='will')
-    
+
 This will return the headlines "Will he run?", "Willbur named judge", and
 "will found in crypt", but not "Who is Will?"
 
@@ -950,7 +950,7 @@ combined with ``pk`` to perform a query on the primary key of a model::
 
     # Get blogs entries  with id 1, 4, and 7
     >>> Blog.objects.filter(pk__in=[1,4,7])
-    
+
     # Get all blog entries with id > 14
     >>> Blog.objects.filter(pk__gt=14)
 
@@ -980,7 +980,7 @@ For example, this ``Q`` object encapsulates a single ``LIKE`` query::
     Q(question__startswith='What')
 
 ``Q`` objects can be combined using the ``&`` and ``|`` operators. When an
-operator is used on two ``Q`` objects, it yields a new ``Q`` object. For example, 
+operator is used on two ``Q`` objects, it yields a new ``Q`` object. For example,
 this statement yields a single ``Q`` object that represents the
 OR of two ``"question__startswith"`` queries::
 
@@ -1158,56 +1158,56 @@ be accessed from an instance::
 In addition to the ``QuerySet`` methods defined in the "Retrieving Objects" section,
 the ``ForeignKey`` ``Manager`` has these additional methods:
 
-    * ``add(obj1, obj2, ...)``: Adds the specified model objects to the related
-      object set, for example::
+* ``add(obj1, obj2, ...)``: Adds the specified model objects to the related
+  object set, for example::
 
-          b = Blog.objects.get(id=1)
-          e = Entry.objects.get(id=234)
-          b.entry_set.add(e) # Associates Entry e with Blog b.
+      b = Blog.objects.get(id=1)
+      e = Entry.objects.get(id=234)
+      b.entry_set.add(e) # Associates Entry e with Blog b.
 
-    * ``create(**kwargs)``: Creates a new object, saves it, and puts it in the
-      related object set. It returns the newly created object::
+* ``create(**kwargs)``: Creates a new object, saves it, and puts it in the
+  related object set. It returns the newly created object::
 
-          b = Blog.objects.get(id=1)
-          e = b.entry_set.create(headline='Hello', body_text='Hi', pub_date=datetime.date(2005, 1, 1))
-          # No need to call e.save() at this point -- it's already been saved.
+      b = Blog.objects.get(id=1)
+      e = b.entry_set.create(headline='Hello', body_text='Hi', pub_date=datetime.date(2005, 1, 1))
+      # No need to call e.save() at this point -- it's already been saved.
 
-      This is equivalent to (but much simpler than) the following::
+  This is equivalent to (but much simpler than) the following::
 
-          b = Blog.objects.get(id=1)
-          e = Entry(blog=b, headline='Hello', body_text='Hi', pub_date=datetime.date(2005, 1, 1))
-          e.save()
+      b = Blog.objects.get(id=1)
+      e = Entry(blog=b, headline='Hello', body_text='Hi', pub_date=datetime.date(2005, 1, 1))
+      e.save()
 
-      Note that there's no need to specify the keyword argument of the model
-      that defines the relationship. In the preceding example, we don't pass the
-      parameter ``blog`` to ``create()``. Django figures out that the new
-      ``Entry`` object's ``blog`` field should be set to ``b``.
+  Note that there's no need to specify the keyword argument of the model
+  that defines the relationship. In the preceding example, we don't pass the
+  parameter ``blog`` to ``create()``. Django figures out that the new
+  ``Entry`` object's ``blog`` field should be set to ``b``.
 
-    * ``remove(obj1, obj2, ...)``: Removes the specified model objects from the
-      related object set::
+* ``remove(obj1, obj2, ...)``: Removes the specified model objects from the
+  related object set::
 
-          b = Blog.objects.get(id=1)
-          e = Entry.objects.get(id=234)
-          b.entry_set.remove(e) # Disassociates Entry e from Blog b.
+      b = Blog.objects.get(id=1)
+      e = Entry.objects.get(id=234)
+      b.entry_set.remove(e) # Disassociates Entry e from Blog b.
 
-      In order to prevent database inconsistency, this method only exists on
-      ``ForeignKey`` objects where ``null=True``. If the related field can't be
-      set to ``None`` (``NULL``), then an object can't be removed from a
-      relation without being added to another. In the preceding example, removing
-      ``e`` from ``b.entry_set()`` is equivalent to doing ``e.blog = None``,
-      and because the ``blog`` ``ForeignKey`` doesn't have ``null=True``, this
-      is invalid.
+  In order to prevent database inconsistency, this method only exists on
+  ``ForeignKey`` objects where ``null=True``. If the related field can't be
+  set to ``None`` (``NULL``), then an object can't be removed from a
+  relation without being added to another. In the preceding example, removing
+  ``e`` from ``b.entry_set()`` is equivalent to doing ``e.blog = None``,
+  and because the ``blog`` ``ForeignKey`` doesn't have ``null=True``, this
+  is invalid.
 
-    * ``clear()``: Removes all objects from the related object set::
+* ``clear()``: Removes all objects from the related object set::
 
-          b = Blog.objects.get(id=1)
-          b.entry_set.clear()
+      b = Blog.objects.get(id=1)
+      b.entry_set.clear()
 
-      Note this doesn't delete the related objects -- it just disassociates
-      them.
+  Note this doesn't delete the related objects -- it just disassociates
+  them.
 
-      Just like ``remove()``, ``clear()`` is only available on ``ForeignKey``s
-      where ``null=True``.
+  Just like ``remove()``, ``clear()`` is only available on ``ForeignKey``s
+  where ``null=True``.
 
 To assign the members of a related set in one fell swoop, just assign to it
 from any iterable object, for example::
@@ -1260,7 +1260,7 @@ preceding example, if the ``ManyToManyField`` in ``Entry`` had specified
     relationship on only one end. But how is this possible, given that a model
     class doesn't know which other model classes are related to it until those
     other model classes are loaded?
-    
+
     The answer lies in the ``INSTALLED_APPS`` setting. The first time any model
     is loaded, Django iterates over every model in ``INSTALLED_APPS`` and
     creates the backward relationships in memory as needed. Essentially, one of
@@ -1291,7 +1291,7 @@ deletes the object and has no return value::
     e.delete()
 
 You can also delete objects in bulk. Every ``QuerySet`` has a ``delete()``
-method, which deletes all members of that ``QuerySet``. For example, this 
+method, which deletes all members of that ``QuerySet``. For example, this
 deletes all ``Entry`` objects with a ``pub_date`` year of 2005::
 
     Entry.objects.filter(pub_date__year=2005).delete()

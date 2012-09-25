@@ -31,20 +31,20 @@ set to ``True``. Many internal parts of Django check this setting and change
 their behavior if ``DEBUG`` mode is on. For example, if ``DEBUG`` is set to
 ``True``, then:
 
-    * All database queries will be saved in memory as the object
-      ``django.db.connection.queries``. As you can imagine, this eats up
-      memory!
+* All database queries will be saved in memory as the object
+  ``django.db.connection.queries``. As you can imagine, this eats up
+  memory!
 
-    * Any 404 error will be rendered by Django's special 404 error page
-      (covered in Chapter 3) rather than returning a proper 404 response. This
-      page contains potentially sensitive information and should *not* be
-      exposed to the public Internet.
+* Any 404 error will be rendered by Django's special 404 error page
+  (covered in Chapter 3) rather than returning a proper 404 response. This
+  page contains potentially sensitive information and should *not* be
+  exposed to the public Internet.
 
-    * Any uncaught exception in your Django application -- from basic Python
-      syntax errors to database errors to template syntax errors -- will be
-      rendered by the Django pretty error page that you've likely come to know
-      and love. This page contains even *more* sensitive information than the
-      404 page and should *never* be exposed to the public.
+* Any uncaught exception in your Django application -- from basic Python
+  syntax errors to database errors to template syntax errors -- will be
+  rendered by the Django pretty error page that you've likely come to know
+  and love. This page contains even *more* sensitive information than the
+  404 page and should *never* be exposed to the public.
 
 In short, setting ``DEBUG`` to ``True`` tells Django to assume only trusted
 developers are using your site. The Internet is full of untrustworthy
@@ -184,14 +184,14 @@ makes this very easy by allowing you to use multiple settings files.
 If you'd like to organize your settings files into "production" and
 "development" settings, you can accomplish this in one of three ways:
 
-    * Set up two full-blown, independent settings files.
+* Set up two full-blown, independent settings files.
 
-    * Set up a "base" settings file (say, for development) and a second (say,
-      production) settings file that merely imports from the first one and
-      defines whatever overrides it needs to define.
+* Set up a "base" settings file (say, for development) and a second (say,
+  production) settings file that merely imports from the first one and
+  defines whatever overrides it needs to define.
 
-    * Use only a single settings file that has Python logic to change the
-      settings based on context.
+* Use only a single settings file that has Python logic to change the
+  settings based on context.
 
 We'll take these one at a time.
 
@@ -306,15 +306,15 @@ Django requires Apache 2.x and mod_python 3.x.
     available if you need to learn more about Apache. A few of them we like
     are:
 
-        * The free online Apache documentation, available via
-          http://www.djangoproject.com/r/apache/docs/
+    * The free online Apache documentation, available via
+      http://www.djangoproject.com/r/apache/docs/
 
-        * *Pro Apache, Third Edition* (Apress, 2004) by Peter Wainwright,
-          available via http://www.djangoproject.com/r/books/pro-apache/
+    * *Pro Apache, Third Edition* (Apress, 2004) by Peter Wainwright,
+      available via http://www.djangoproject.com/r/books/pro-apache/
 
-        * *Apache: The Definitive Guide, Third Edition* (O'Reilly, 2002) by Ben
-          Laurie and Peter Laurie, available via
-          http://www.djangoproject.com/r/books/pro-apache/
+    * *Apache: The Definitive Guide, Third Edition* (O'Reilly, 2002) by Ben
+      Laurie and Peter Laurie, available via
+      http://www.djangoproject.com/r/books/pro-apache/
 
 Basic Configuration
 -------------------
@@ -485,16 +485,16 @@ Handling a Segmentation Fault
 Sometimes, Apache segfaults when you install Django. When this happens, it's
 almost *always* one of two causes mostly unrelated to Django itself:
 
-    * It may be that your Python code is importing the ``pyexpat`` module
-      (used for XML parsing), which may conflict with the version embedded in
-      Apache. For full information, see "Expat Causing Apache Crash" at
-      http://www.djangoproject.com/r/articles/expat-apache-crash/.
+* It may be that your Python code is importing the ``pyexpat`` module
+  (used for XML parsing), which may conflict with the version embedded in
+  Apache. For full information, see "Expat Causing Apache Crash" at
+  http://www.djangoproject.com/r/articles/expat-apache-crash/.
 
-    * It may be because you're running mod_python and mod_php in the same
-      Apache instance, with MySQL as your database backend. In some cases, this
-      causes a known mod_python issue due to version conflicts in PHP and the
-      Python MySQL back-end. There's full information in a mod_python FAQ entry,
-      accessible via http://www.djangoproject.com/r/articles/php-modpython-faq/.
+* It may be because you're running mod_python and mod_php in the same
+  Apache instance, with MySQL as your database backend. In some cases, this
+  causes a known mod_python issue due to version conflicts in PHP and the
+  Python MySQL back-end. There's full information in a mod_python FAQ entry,
+  accessible via http://www.djangoproject.com/r/articles/php-modpython-faq/.
 
 If you continue to have problems setting up mod_python, a good thing to do is
 get a bare-bones mod_python site working, without the Django framework. This is
@@ -604,18 +604,18 @@ socket or host/port you specified when starting the FastCGI server.
 
 A few examples should help explain this:
 
-    * Running a threaded server on a TCP port::
+* Running a threaded server on a TCP port::
 
-        ./manage.py runfcgi method=threaded host=127.0.0.1 port=3033
+    ./manage.py runfcgi method=threaded host=127.0.0.1 port=3033
 
-    * Running a preforked server on a Unix domain socket::
+* Running a preforked server on a Unix domain socket::
 
-        ./manage.py runfcgi method=prefork socket=/home/user/mysite.sock pidfile=django.pid
+    ./manage.py runfcgi method=prefork socket=/home/user/mysite.sock pidfile=django.pid
 
-    * Run without daemonizing (backgrounding) the process (good for
-      debugging)::
+* Run without daemonizing (backgrounding) the process (good for
+  debugging)::
 
-        ./manage.py runfcgi daemonize=false socket=/tmp/mysite.sock
+    ./manage.py runfcgi daemonize=false socket=/tmp/mysite.sock
 
 Stopping the FastCGI Daemon
 ```````````````````````````
@@ -664,10 +664,10 @@ Once you've completed the setup, point Apache at your Django FastCGI instance by
 editing the ``httpd.conf`` (Apache configuration) file. You'll need to do two
 things:
 
-    * Use the ``FastCGIExternalServer`` directive to specify the location of
-      your FastCGI server.
+* Use the ``FastCGIExternalServer`` directive to specify the location of
+  your FastCGI server.
 
-    * Use ``mod_rewrite`` to point URLs at FastCGI as appropriate.
+* Use ``mod_rewrite`` to point URLs at FastCGI as appropriate.
 
 Specifying the Location of the FastCGI Server
 `````````````````````````````````````````````
@@ -977,23 +977,23 @@ Going Big
 
 At this point, the next few steps are pretty much derivatives of the last one:
 
-    * As you need more database performance, you might want to add replicated
-      database servers. MySQL includes built-in replication; PostgreSQL
-      users should look into Slony (http://www.djangoproject.com/r/slony/)
-      and pgpool (http://www.djangoproject.com/r/pgpool/) for replication and
-      connection pooling, respectively.
+* As you need more database performance, you might want to add replicated
+  database servers. MySQL includes built-in replication; PostgreSQL
+  users should look into Slony (http://www.djangoproject.com/r/slony/)
+  and pgpool (http://www.djangoproject.com/r/pgpool/) for replication and
+  connection pooling, respectively.
 
-    * If the single load balancer isn't enough, you can add more load
-      balancer machines out front and distribute among them using
-      round-robin DNS.
+* If the single load balancer isn't enough, you can add more load
+  balancer machines out front and distribute among them using
+  round-robin DNS.
 
-    * If a single media server doesn't suffice, you can add more media
-      servers and distribute the load with your load-balancing cluster.
+* If a single media server doesn't suffice, you can add more media
+  servers and distribute the load with your load-balancing cluster.
 
-    * If you need more cache storage, you can add dedicated cache servers.
+* If you need more cache storage, you can add dedicated cache servers.
 
-    * At any stage, if a cluster isn't performing well, you can add more
-      servers to the cluster.
+* At any stage, if a cluster isn't performing well, you can add more
+  servers to the cluster.
 
 After a few of these iterations, a large-scale architecture might look like Figure 12-5.
 

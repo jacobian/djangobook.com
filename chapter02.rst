@@ -92,9 +92,9 @@ as you do with most Python libraries.
 
 Here's how that process looks on Unix systems:
 
-    #. ``tar xzvf Django-1.0.2-final.tar.gz``
-    #. ``cd Django-*``
-    #. ``sudo python setup.py install``
+#. ``tar xzvf Django-1.0.2-final.tar.gz``
+#. ``cd Django-*``
+#. ``sudo python setup.py install``
 
 On Windows, we recommend using 7-Zip (http://www.djangoproject.com/r/7zip/)
 to unzip ``.tar.gz`` files. Once you've unzipped the file, start up a DOS
@@ -129,37 +129,37 @@ production sites on trunk, so they have an incentive to keep it stable.
 
 To grab the latest Django trunk, follow these steps:
 
-    #. Make sure you have a Subversion client installed. You can get the
-       software free from http://subversion.tigris.org/, and you can find
-       excellent documentation at http://svnbook.red-bean.com/.
-       
-       (If you're on a Mac with OS X 10.5 or later, you're in luck; Subversion
-       should already be installed. You can verify this by typing
-       ``svn --version`` in the Terminal.)
+#. Make sure you have a Subversion client installed. You can get the
+   software free from http://subversion.tigris.org/, and you can find
+   excellent documentation at http://svnbook.red-bean.com/.
 
-    #. Check out the trunk using the command ``svn co
-       http://code.djangoproject.com/svn/django/trunk djtrunk``.
+   (If you're on a Mac with OS X 10.5 or later, you're in luck; Subversion
+   should already be installed. You can verify this by typing
+   ``svn --version`` in the Terminal.)
 
-    #. Locate your Python installation's ``site-packages`` directory. Usually
-       it's in a place like ``/usr/lib/python2.4/site-packages``. If you have
-       no idea, type this command from a command prompt::
-       
-           python -c 'import sys, pprint; pprint.pprint(sys.path)'
+#. Check out the trunk using the command ``svn co
+   http://code.djangoproject.com/svn/django/trunk djtrunk``.
 
-       The resulting output should include your ``site-packages`` directory.
+#. Locate your Python installation's ``site-packages`` directory. Usually
+   it's in a place like ``/usr/lib/python2.4/site-packages``. If you have
+   no idea, type this command from a command prompt::
 
-    #  Within the ``site-packages`` directory, create a file called
-       ``django.pth`` and edit it to contain the full path to your ``djtrunk``
-       directory to it. For example, the file could just contain this line::
+       python -c 'import sys, pprint; pprint.pprint(sys.path)'
 
-           /home/me/code/djtrunk
+   The resulting output should include your ``site-packages`` directory.
 
-    #. Place ``djtrunk/django/bin`` on your system PATH. This directory
-       includes management utilities such as ``django-admin.py``.
+#  Within the ``site-packages`` directory, create a file called
+   ``django.pth`` and edit it to contain the full path to your ``djtrunk``
+   directory to it. For example, the file could just contain this line::
+
+       /home/me/code/djtrunk
+
+#. Place ``djtrunk/django/bin`` on your system PATH. This directory
+   includes management utilities such as ``django-admin.py``.
 
 .. admonition:: Tip:
 
-    If ``.pth`` files are new to you, you can learn more about them at 
+    If ``.pth`` files are new to you, you can learn more about them at
     http://www.djangoproject.com/r/python/site-module/.
 
 After downloading from Subversion and following the preceding steps, there's no
@@ -242,10 +242,10 @@ book assume you have a working database set up.
 
 Django supports four database engines:
 
-    * PostgreSQL (http://www.postgresql.org/)
-    * SQLite 3 (http://www.sqlite.org/)
-    * MySQL (http://www.mysql.com/)
-    * Oracle (http://www.oracle.com/)
+* PostgreSQL (http://www.postgresql.org/)
+* SQLite 3 (http://www.sqlite.org/)
+* MySQL (http://www.mysql.com/)
+* Oracle (http://www.oracle.com/)
 
 For the most part, all the engines here work equally well with the core Django
 framework. (A notable exception is Django's optional GIS support, which is much
@@ -256,16 +256,16 @@ speed and stability.
 
 Setting up the database is a two-step process:
 
-    * First, you'll need to install and configure the database server itself.
-      This process is beyond the scope of this book, but each of the four
-      database backends has rich documentation on its Web site. (If you're on
-      a shared hosting provider, odds are that they've set this up for you
-      already.)
+* First, you'll need to install and configure the database server itself.
+  This process is beyond the scope of this book, but each of the four
+  database backends has rich documentation on its Web site. (If you're on
+  a shared hosting provider, odds are that they've set this up for you
+  already.)
 
-    * Second, you'll need to install the Python library for your particular
-      database backend. This is a third-party bit of code that allows Python to
-      interface with the database. We outline the specific, per-database
-      requirements in the following sections.
+* Second, you'll need to install the Python library for your particular
+  database backend. This is a third-party bit of code that allows Python to
+  interface with the database. We outline the specific, per-database
+  requirements in the following sections.
 
 If you're just playing around with Django and don't want to install a database
 server, consider using SQLite. SQLite is unique in the list of supported
@@ -406,22 +406,22 @@ The ``startproject`` command creates a directory containing four files::
 
 These files are as follows:
 
-    * ``__init__.py``: A file required for Python to treat the ``mysite``
-      directory as a package (i.e., a group of Python modules). It's an empty
-      file, and generally you won't add anything to it.
+* ``__init__.py``: A file required for Python to treat the ``mysite``
+  directory as a package (i.e., a group of Python modules). It's an empty
+  file, and generally you won't add anything to it.
 
-    * ``manage.py``: A command-line utility that lets you interact with this
-      Django project in various ways. Type ``python manage.py help`` to get a
-      feel for what it can do. You should never have to edit this file; it's
-      created in this directory purely for convenience.
+* ``manage.py``: A command-line utility that lets you interact with this
+  Django project in various ways. Type ``python manage.py help`` to get a
+  feel for what it can do. You should never have to edit this file; it's
+  created in this directory purely for convenience.
 
-    * ``settings.py``: Settings/configuration for this Django project. Take a
-      look at it to get an idea of the types of settings available, along with
-      their default values.
+* ``settings.py``: Settings/configuration for this Django project. Take a
+  look at it to get an idea of the types of settings available, along with
+  their default values.
 
-    * ``urls.py``: The URLs for this Django project. Think of this as the
-      "table of contents" of your Django-powered site. At the moment, it's
-      empty.
+* ``urls.py``: The URLs for this Django project. Think of this as the
+  "table of contents" of your Django-powered site. At the moment, it's
+  empty.
 
 Despite their small size, these files already constitute a working Django
 application.
@@ -492,6 +492,4 @@ What's Next?
 ============
 
 Now that you have everything installed and the development server running,
-you're ready to `learn the basics`_ of serving Web pages with Django.
-
-.. _learn the basics: ../chapter03/
+you're ready to :doc:`learn the basics <chapter03>` of serving Web pages with Django.

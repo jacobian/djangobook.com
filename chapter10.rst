@@ -13,7 +13,7 @@ Related Objects
 Recall our book models from Chapter 5::
 
     from django.db import models
-    
+
     class Publisher(models.Model):
         name = models.CharField(max_length=30)
         address = models.CharField(max_length=50)
@@ -123,16 +123,16 @@ the change in your database manually. This section explains how to do that.
 When dealing with schema changes, it's important to keep a few things in mind
 about how Django's database layer works:
 
-    * Django will complain loudly if a model contains a field that has not yet
-      been created in the database table. This will cause an error the first
-      time you use the Django database API to query the given table (i.e., it
-      will happen at code execution time, not at compilation time).
+* Django will complain loudly if a model contains a field that has not yet
+  been created in the database table. This will cause an error the first
+  time you use the Django database API to query the given table (i.e., it
+  will happen at code execution time, not at compilation time).
 
-    * Django does *not* care if a database table contains columns that are not
-      defined in the model.
+* Django does *not* care if a database table contains columns that are not
+  defined in the model.
 
-    * Django does *not* care if a database contains a table that is not
-      represented by a model.
+* Django does *not* care if a database contains a table that is not
+  represented by a model.
 
 Making schema changes is a matter of changing the various pieces -- the Python
 code and the database itself -- in the right order.
@@ -158,34 +158,34 @@ testing/development environment, right?) Here are the detailed steps to take.
 
 First, take these steps in the development environment (i.e., not on the production server):
 
-    1. Add the field to your model.
+1. Add the field to your model.
 
-    2. Run ``manage.py sqlall [yourapp]`` to see the new ``CREATE TABLE``
-       statement for the model. Note the column definition for the new field.
+2. Run ``manage.py sqlall [yourapp]`` to see the new ``CREATE TABLE``
+   statement for the model. Note the column definition for the new field.
 
-    3. Start your database's interactive shell (e.g., ``psql`` or ``mysql``, or
-       you can use ``manage.py dbshell``). Execute an ``ALTER TABLE`` statement
-       that adds your new column.
+3. Start your database's interactive shell (e.g., ``psql`` or ``mysql``, or
+   you can use ``manage.py dbshell``). Execute an ``ALTER TABLE`` statement
+   that adds your new column.
 
-    4. Launch the Python interactive shell with ``manage.py shell``
-       and verify that the new field was added properly by importing the model
-       and selecting from the table (e.g., ``MyModel.objects.all()[:5]``).
-       If you updated the database correctly, the statement should work without
-       errors.
+4. Launch the Python interactive shell with ``manage.py shell``
+   and verify that the new field was added properly by importing the model
+   and selecting from the table (e.g., ``MyModel.objects.all()[:5]``).
+   If you updated the database correctly, the statement should work without
+   errors.
 
 Then on the production server perform these steps:
 
-    1. Start your database's interactive shell.
-    
-    2. Execute the ``ALTER TABLE`` statement you used in step 3 of the
-       development environment steps.
+1. Start your database's interactive shell.
 
-    3. Add the field to your model. If you're using source-code revision
-       control and you checked in your change in development environment step
-       1, now is the time to update the code (e.g., ``svn update``, with
-       Subversion) on the production server.
+2. Execute the ``ALTER TABLE`` statement you used in step 3 of the
+   development environment steps.
 
-    4. Restart the Web server for the code changes to take effect.
+3. Add the field to your model. If you're using source-code revision
+   control and you checked in your change in development environment step
+   1, now is the time to update the code (e.g., ``svn update``, with
+   Subversion) on the production server.
+
+4. Restart the Web server for the code changes to take effect.
 
 For example, let's walk through what we'd do if we added a ``num_pages`` field
 to the ``Book`` model from Chapter 5. First, we'd alter the
@@ -202,7 +202,7 @@ model in our development environment to look like this:
 
         def __unicode__(self):
             return self.title
-            
+
 .. SL Tested ok
 
 (Note: Read the section "Making Fields Optional" in Chapter 6, plus the
@@ -271,11 +271,11 @@ Removing Fields
 Removing a field from a model is a lot easier than adding one. To remove a
 field, just follow these steps:
 
-    1. Remove the field from your model and restart the Web server.
+1. Remove the field from your model and restart the Web server.
 
-    2. Remove the column from your database, using a command like this::
+2. Remove the column from your database, using a command like this::
 
-           ALTER TABLE books_book DROP COLUMN num_pages;
+       ALTER TABLE books_book DROP COLUMN num_pages;
 
 .. SL Tested ok
 
@@ -288,13 +288,13 @@ Removing Many-to-Many Fields
 Because many-to-many fields are different than normal fields, the removal
 process is different:
 
-    1. Remove the ``ManyToManyField`` from your model and restart the Web
-       server.
+1. Remove the ``ManyToManyField`` from your model and restart the Web
+   server.
 
-    2. Remove the many-to-many table from your database, using a command like
-       this::
-       
-           DROP TABLE books_book_authors;
+2. Remove the many-to-many table from your database, using a command like
+   this::
+
+       DROP TABLE books_book_authors;
 
 As in the previous section, make sure to do it in this order.
 
@@ -304,16 +304,16 @@ Removing Models
 Removing a model entirely is as easy as removing a field. To remove a model,
 just follow these steps:
 
-    1. Remove the model from your ``models.py`` file and restart the Web server.
-    
-    2. Remove the table from your database, using a command like this::
-    
-           DROP TABLE books_book;
+1. Remove the model from your ``models.py`` file and restart the Web server.
 
-       Note that you might need to remove any dependent tables from your
-       database first -- e.g., any tables that have foreign keys to
-       ``books_book``.
-           
+2. Remove the table from your database, using a command like this::
+
+       DROP TABLE books_book;
+
+   Note that you might need to remove any dependent tables from your
+   database first -- e.g., any tables that have foreign keys to
+   ``books_book``.
+
 As in the previous sections, make sure to do it in this order.
 
 Managers
@@ -348,7 +348,7 @@ demonstrates how managers work.)
 .. parsed-literal::
 
     # models.py
-    
+
     from django.db import models
 
     # ... Author and Publisher models here ...
@@ -377,17 +377,17 @@ With this manager in place, we can now do this::
 
 Here are some notes about the code:
 
-    * We've created a ``BookManager`` class that extends
-      ``django.db.models.Manager``. This has a single method,
-      ``title_count()``, which does the calculation. Note that the method uses
-      ``self.filter()``, where ``self`` refers to the manager itself.
+* We've created a ``BookManager`` class that extends
+  ``django.db.models.Manager``. This has a single method,
+  ``title_count()``, which does the calculation. Note that the method uses
+  ``self.filter()``, where ``self`` refers to the manager itself.
 
-    * We've assigned ``BookManager()`` to the ``objects`` attribute on the
-      model. This has the effect of replacing the "default" manager for the
-      model, which is called ``objects`` and is automatically created if you
-      don't specify a custom manager. We call it ``objects`` rather than
-      something else, so as to be consistent with automatically created
-      managers.
+* We've assigned ``BookManager()`` to the ``objects`` attribute on the
+  model. This has the effect of replacing the "default" manager for the
+  model, which is called ``objects`` and is automatically created if you
+  don't specify a custom manager. We call it ``objects`` rather than
+  something else, so as to be consistent with automatically created
+  managers.
 
 Why would we want to add a method such as ``title_count()``? To encapsulate
 commonly executed queries so that we don't have to duplicate code.
@@ -581,7 +581,7 @@ manager method like this::
                 FROM people_person
                 WHERE last_name = %s""", [last_name])
             return [row[0] for row in cursor.fetchone()]
-    
+
     class Person(models.Model):
         first_name = models.CharField(max_length=50)
         last_name = models.CharField(max_length=50)

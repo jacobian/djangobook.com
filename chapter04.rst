@@ -15,21 +15,21 @@ Although this technique was convenient for the purpose of explaining how views
 work, it's not a good idea to hard-code HTML directly in your views. Here's
 why:
 
-    * Any change to the design of the page requires a change to
-      the Python code. The design of a site tends to change far more frequently
-      than the underlying Python code, so it would be convenient if
-      the design could change without needing to modify the Python code.
+* Any change to the design of the page requires a change to
+  the Python code. The design of a site tends to change far more frequently
+  than the underlying Python code, so it would be convenient if
+  the design could change without needing to modify the Python code.
 
-    * Writing Python code and designing HTML are two different disciplines, and
-      most professional Web development environments split these
-      responsibilities between separate people (or even separate departments).
-      Designers and HTML/CSS coders shouldn't be required to edit Python code
-      to get their job done.
+* Writing Python code and designing HTML are two different disciplines, and
+  most professional Web development environments split these
+  responsibilities between separate people (or even separate departments).
+  Designers and HTML/CSS coders shouldn't be required to edit Python code
+  to get their job done.
 
-    * It's most efficient if programmers can work on Python code and designers
-      can work on templates at the same time, rather than one person waiting
-      for the other to finish editing a single file that contains both Python
-      and HTML.
+* It's most efficient if programmers can work on Python code and designers
+  can work on templates at the same time, rather than one person waiting
+  for the other to finish editing a single file that contains both Python
+  and HTML.
 
 For these reasons, it's much cleaner and more maintainable to separate the
 design of the page from the Python code itself. We can do this with Django's
@@ -83,34 +83,34 @@ as a form letter::
 This template is basic HTML with some variables and template tags thrown in.
 Let's step through it:
 
-    * Any text surrounded by a pair of braces (e.g., ``{{ person_name }}``) is a
-      *variable*. This means "insert the value of the variable with the given
-      name." (How do we specify the values of the variables? We'll get to that in
-      a moment.)
+* Any text surrounded by a pair of braces (e.g., ``{{ person_name }}``) is a
+  *variable*. This means "insert the value of the variable with the given
+  name." (How do we specify the values of the variables? We'll get to that in
+  a moment.)
 
-    * Any text that's surrounded by curly braces and percent signs (e.g., ``{%
-      if ordered_warranty %}``) is a *template tag*. The definition of a tag is
-      quite broad: a tag just tells the template system to "do something."
+* Any text that's surrounded by curly braces and percent signs (e.g., ``{%
+  if ordered_warranty %}``) is a *template tag*. The definition of a tag is
+  quite broad: a tag just tells the template system to "do something."
 
-      This example template contains a ``for`` tag (``{% for item in item_list
-      %}``) and an ``if`` tag (``{% if ordered_warranty %}``).
+  This example template contains a ``for`` tag (``{% for item in item_list
+  %}``) and an ``if`` tag (``{% if ordered_warranty %}``).
 
-      A ``for`` tag works very much like a ``for`` statement in Python, letting
-      you loop over each item in a sequence. An ``if`` tag, as you may expect,
-      acts as a logical "if" statement. In this particular case, the tag checks
-      whether the value of the ``ordered_warranty`` variable evaluates to
-      ``True``. If it does, the template system will display everything between
-      the ``{% if ordered_warranty %}`` and ``{% else %}``. If not, the
-      template system will display everything between ``{% else %}`` and
-      ``{% endif %}``. Note that the ``{% else %}`` is optional.
+  A ``for`` tag works very much like a ``for`` statement in Python, letting
+  you loop over each item in a sequence. An ``if`` tag, as you may expect,
+  acts as a logical "if" statement. In this particular case, the tag checks
+  whether the value of the ``ordered_warranty`` variable evaluates to
+  ``True``. If it does, the template system will display everything between
+  the ``{% if ordered_warranty %}`` and ``{% else %}``. If not, the
+  template system will display everything between ``{% else %}`` and
+  ``{% endif %}``. Note that the ``{% else %}`` is optional.
 
-    * Finally, the second paragraph of this template contains an example of a
-      *filter*, which is the most convenient way to alter the formatting of a
-      variable. In this example, ``{{ ship_date|date:"F j, Y" }}``, we're passing the
-      ``ship_date`` variable to the ``date`` filter, giving the ``date`` filter
-      the argument ``"F j, Y"``. The ``date`` filter formats dates in a given
-      format, as specified by that argument. Filters are attached using a pipe
-      character (``|``), as a reference to Unix pipes.
+* Finally, the second paragraph of this template contains an example of a
+  *filter*, which is the most convenient way to alter the formatting of a
+  variable. In this example, ``{{ ship_date|date:"F j, Y" }}``, we're passing the
+  ``ship_date`` variable to the ``date`` filter, giving the ``date`` filter
+  the argument ``"F j, Y"``. The ``date`` filter formats dates in a given
+  format, as specified by that argument. Filters are attached using a pipe
+  character (``|``), as a reference to Unix pipes.
 
 Each Django template has access to several built-in tags and filters, many of
 which are discussed in the sections that follow. Appendix F contains the full
@@ -131,13 +131,13 @@ in Django views.)
 
 Here is the most basic way you can use Django's template system in Python code:
 
-    1. Create a ``Template`` object by providing the raw template code as a
-       string.
+1. Create a ``Template`` object by providing the raw template code as a
+   string.
 
-    2. Call the ``render()`` method of the ``Template`` object with a given
-       set of variables (the *context*). This returns a fully rendered
-       template as a string, with all of the variables and template tags
-       evaluated according to the context.
+2. Call the ``render()`` method of the ``Template`` object with a given
+   set of variables (the *context*). This returns a fully rendered
+   template as a string, with all of the variables and template tags
+   evaluated according to the context.
 
 In code, here's what that looks like::
 
@@ -221,12 +221,12 @@ The term "block tag" here refers to ``{% notatag %}``. "Block tag" and
 The system raises a ``TemplateSyntaxError`` exception for any of the following
 cases:
 
-    * Invalid tags
-    * Invalid arguments to valid tags
-    * Invalid filters
-    * Invalid arguments to valid filters
-    * Invalid template syntax
-    * Unclosed tags (for tags that require closing tags)
+* Invalid tags
+* Invalid arguments to valid tags
+* Invalid filters
+* Invalid arguments to valid filters
+* Invalid template syntax
+* Unclosed tags (for tags that require closing tags)
 
 Rendering a Template
 --------------------
@@ -299,44 +299,44 @@ similar to the example in the beginning of this chapter::
 
 Let's step through this code one statement at a time:
 
-    * First, we import the classes ``Template`` and ``Context``, which both
-      live in the module ``django.template``.
+* First, we import the classes ``Template`` and ``Context``, which both
+  live in the module ``django.template``.
 
-    * We save the raw text of our template into the variable
-      ``raw_template``. Note that we use triple quote marks to designate the
-      string, because it wraps over multiple lines; in contrast, strings
-      within single quote marks cannot be wrapped over multiple lines.
+* We save the raw text of our template into the variable
+  ``raw_template``. Note that we use triple quote marks to designate the
+  string, because it wraps over multiple lines; in contrast, strings
+  within single quote marks cannot be wrapped over multiple lines.
 
-    * Next, we create a template object, ``t``, by passing ``raw_template`` to
-      the ``Template`` class constructor.
+* Next, we create a template object, ``t``, by passing ``raw_template`` to
+  the ``Template`` class constructor.
 
-    * We import the ``datetime`` module from Python's standard library,
-      because we'll need it in the following statement.
+* We import the ``datetime`` module from Python's standard library,
+  because we'll need it in the following statement.
 
-    * Then, we create a ``Context`` object, ``c``. The ``Context``
-      constructor takes a Python dictionary, which maps variable names to
-      values. Here, for example, we specify that the ``person_name``
-      is ``'John Smith'``, ``company`` is ``'Outdoor Equipment'``, and so forth.
+* Then, we create a ``Context`` object, ``c``. The ``Context``
+  constructor takes a Python dictionary, which maps variable names to
+  values. Here, for example, we specify that the ``person_name``
+  is ``'John Smith'``, ``company`` is ``'Outdoor Equipment'``, and so forth.
 
-    * Finally, we call the ``render()`` method on our template object, passing
-      it the context. This returns the rendered template -- i.e., it replaces
-      template variables with the actual values of the variables, and it
-      executes any template tags.
+* Finally, we call the ``render()`` method on our template object, passing
+  it the context. This returns the rendered template -- i.e., it replaces
+  template variables with the actual values of the variables, and it
+  executes any template tags.
 
-      Note that the "You didn't order a warranty" paragraph was displayed
-      because the ``ordered_warranty`` variable evaluated to ``False``. Also
-      note the date, ``April 2, 2009``, which is displayed according to the
-      format string ``'F j, Y'``. (We'll explain format strings for the
-      ``date`` filter in a little while.)
+  Note that the "You didn't order a warranty" paragraph was displayed
+  because the ``ordered_warranty`` variable evaluated to ``False``. Also
+  note the date, ``April 2, 2009``, which is displayed according to the
+  format string ``'F j, Y'``. (We'll explain format strings for the
+  ``date`` filter in a little while.)
 
-      If you're new to Python, you may wonder why this output includes
-      newline characters (``'\n'``) rather than displaying the line breaks.
-      That's happening because of a subtlety in the Python interactive
-      interpreter: the call to ``t.render(c)`` returns a string, and by default
-      the interactive interpreter displays the *representation* of the string,
-      rather than the printed value of the string. If you want to see the
-      string with line breaks displayed as true line breaks rather than ``'\n'``
-      characters, use the ``print`` statement: ``print t.render(c)``.
+  If you're new to Python, you may wonder why this output includes
+  newline characters (``'\n'``) rather than displaying the line breaks.
+  That's happening because of a subtlety in the Python interactive
+  interpreter: the call to ``t.render(c)`` returns a string, and by default
+  the interactive interpreter displays the *representation* of the string,
+  rather than the printed value of the string. If you want to see the
+  string with line breaks displayed as true line breaks rather than ``'\n'``
+  characters, use the ``print`` statement: ``print t.render(c)``.
 
 Those are the fundamentals of using the Django template system: just write a
 template string, create a ``Template`` object, create a ``Context``, and call
@@ -465,10 +465,10 @@ Dot lookups can be summarized like this: when the template system
 encounters a dot in a variable name, it tries the following lookups, in this
 order:
 
-    * Dictionary lookup (e.g., ``foo["bar"]``)
-    * Attribute lookup (e.g., ``foo.bar``)
-    * Method call (e.g., ``foo.bar()``)
-    * List-index lookup (e.g., ``foo[2]``)
+* Dictionary lookup (e.g., ``foo["bar"]``)
+* Attribute lookup (e.g., ``foo.bar``)
+* Method call (e.g., ``foo.bar()``)
+* List-index lookup (e.g., ``foo[2]``)
 
 The system uses the first lookup type that works. It's short-circuit logic.
 
@@ -489,56 +489,56 @@ Method Call Behavior
 Method calls are slightly more complex than the other lookup types. Here are
 some things to keep in mind:
 
-    * If, during the method lookup, a method raises an exception, the exception
-      will be propagated, unless the exception has an attribute
-      ``silent_variable_failure`` whose value is ``True``. If the exception
-      *does* have a ``silent_variable_failure`` attribute, the variable will
-      render as an empty string, for example::
+* If, during the method lookup, a method raises an exception, the exception
+  will be propagated, unless the exception has an attribute
+  ``silent_variable_failure`` whose value is ``True``. If the exception
+  *does* have a ``silent_variable_failure`` attribute, the variable will
+  render as an empty string, for example::
 
-            >>> t = Template("My name is {{ person.first_name }}.")
-            >>> class PersonClass3:
-            ...     def first_name(self):
-            ...         raise AssertionError, "foo"
-            >>> p = PersonClass3()
-            >>> t.render(Context({"person": p}))
-            Traceback (most recent call last):
-            ...
-            AssertionError: foo
+        >>> t = Template("My name is {{ person.first_name }}.")
+        >>> class PersonClass3:
+        ...     def first_name(self):
+        ...         raise AssertionError, "foo"
+        >>> p = PersonClass3()
+        >>> t.render(Context({"person": p}))
+        Traceback (most recent call last):
+        ...
+        AssertionError: foo
 
-            >>> class SilentAssertionError(AssertionError):
-            ...     silent_variable_failure = True
-            >>> class PersonClass4:
-            ...     def first_name(self):
-            ...         raise SilentAssertionError
-            >>> p = PersonClass4()
-            >>> t.render(Context({"person": p}))
-            u'My name is .'
+        >>> class SilentAssertionError(AssertionError):
+        ...     silent_variable_failure = True
+        >>> class PersonClass4:
+        ...     def first_name(self):
+        ...         raise SilentAssertionError
+        >>> p = PersonClass4()
+        >>> t.render(Context({"person": p}))
+        u'My name is .'
 
-    * A method call will only work if the method has no required arguments.
-      Otherwise, the system will move to the next lookup type (list-index
-      lookup).
+* A method call will only work if the method has no required arguments.
+  Otherwise, the system will move to the next lookup type (list-index
+  lookup).
 
-    * Obviously, some methods have side effects, and it would be foolish at
-      best, and possibly even a security hole, to allow the template system to
-      access them.
+* Obviously, some methods have side effects, and it would be foolish at
+  best, and possibly even a security hole, to allow the template system to
+  access them.
 
-      Say, for instance, you have a ``BankAccount`` object that has a
-      ``delete()`` method. If a template includes something like
-      ``{{ account.delete }}``, where ``account`` is a ``BankAccount`` object,
-      the object would be deleted when the template is rendered!
+  Say, for instance, you have a ``BankAccount`` object that has a
+  ``delete()`` method. If a template includes something like
+  ``{{ account.delete }}``, where ``account`` is a ``BankAccount`` object,
+  the object would be deleted when the template is rendered!
 
-      To prevent this, set the function attribute ``alters_data`` on the
-      method::
+  To prevent this, set the function attribute ``alters_data`` on the
+  method::
 
-          def delete(self):
-              # Delete the account
-          delete.alters_data = True
+      def delete(self):
+          # Delete the account
+      delete.alters_data = True
 
-      The template system won't execute any method marked in this way.
-      Continuing the above example, if a template includes
-      ``{{ account.delete }}`` and the ``delete()`` method has the
-      ``alters_data=True``, then the ``delete()`` method will not be executed
-      when the template is rendered. Instead, it will fail silently.
+  The template system won't execute any method marked in this way.
+  Continuing the above example, if a template includes
+  ``{{ account.delete }}`` and the ``delete()`` method has the
+  ``alters_data=True``, then the ``delete()`` method will not be executed
+  when the template is rendered. Instead, it will fail silently.
 
 How Invalid Variables Are Handled
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -618,15 +618,15 @@ An ``{% else %}`` tag is optional::
    In Python and in the Django template system, these objects evaluate to
    ``False`` in a Boolean context:
 
-       * An empty list (``[]``)
-       * An empty tuple (``()``)
-       * An empty dictionary (``{}``)
-       * An empty string (``''``)
-       * Zero (``0``)
-       * The special object ``None``
-       * The object ``False`` (obviously)
-       * Custom objects that define their own Boolean context behavior
-         (this is advanced Python usage)
+   * An empty list (``[]``)
+   * An empty tuple (``()``)
+   * An empty dictionary (``{}``)
+   * An empty string (``''``)
+   * Zero (``0``)
+   * The special object ``None``
+   * The object ``False`` (obviously)
+   * Custom objects that define their own Boolean context behavior
+     (this is advanced Python usage)
 
    Everything else evaluates to ``True``.
 
@@ -757,68 +757,68 @@ Within each ``{% for %}`` loop, you get access to a template variable called
 ``forloop``. This variable has a few attributes that give you information about
 the progress of the loop:
 
-    * ``forloop.counter`` is always set to an integer representing the number
-      of times the loop has been entered. This is one-indexed, so the first
-      time through the loop, ``forloop.counter`` will be set to ``1``.
-      Here's an example::
+* ``forloop.counter`` is always set to an integer representing the number
+  of times the loop has been entered. This is one-indexed, so the first
+  time through the loop, ``forloop.counter`` will be set to ``1``.
+  Here's an example::
 
-          {% for item in todo_list %}
-              <p>{{ forloop.counter }}: {{ item }}</p>
+      {% for item in todo_list %}
+          <p>{{ forloop.counter }}: {{ item }}</p>
+      {% endfor %}
+
+* ``forloop.counter0`` is like ``forloop.counter``, except it's
+  zero-indexed. Its value will be set to ``0`` the first time through the
+  loop.
+
+* ``forloop.revcounter`` is always set to an integer representing the
+  number of remaining items in the loop. The first time through the loop,
+  ``forloop.revcounter`` will be set to the total number of items in the
+  sequence you're traversing. The last time through the loop,
+  ``forloop.revcounter`` will be set to ``1``.
+
+* ``forloop.revcounter0`` is like ``forloop.revcounter``, except it's
+  zero-indexed. The first time through the loop, ``forloop.revcounter0``
+  will be set to the number of elements in the sequence minus 1. The last
+  time through the loop, it will be set to ``0``.
+
+* ``forloop.first`` is a Boolean value set to ``True`` if this is the first
+  time through the loop. This is convenient for special-casing::
+
+      {% for object in objects %}
+          {% if forloop.first %}<li class="first">{% else %}<li>{% endif %}
+          {{ object }}
+          </li>
+      {% endfor %}
+
+* ``forloop.last`` is a Boolean value set to ``True`` if this is the last
+  time through the loop. A common use for this is to put pipe
+  characters between a list of links::
+
+      {% for link in links %}{{ link }}{% if not forloop.last %} | {% endif %}{% endfor %}
+
+  The above template code might output something like this::
+
+      Link1 | Link2 | Link3 | Link4
+
+  Another common use for this is to put a comma between words in a list::
+
+      Favorite places:
+      {% for p in places %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
+
+*  ``forloop.parentloop`` is a reference to the ``forloop`` object for the
+   *parent* loop, in case of nested loops. Here's an example::
+
+      {% for country in countries %}
+          <table>
+          {% for city in country.city_list %}
+              <tr>
+              <td>Country #{{ forloop.parentloop.counter }}</td>
+              <td>City #{{ forloop.counter }}</td>
+              <td>{{ city }}</td>
+              </tr>
           {% endfor %}
-
-    * ``forloop.counter0`` is like ``forloop.counter``, except it's
-      zero-indexed. Its value will be set to ``0`` the first time through the
-      loop.
-
-    * ``forloop.revcounter`` is always set to an integer representing the
-      number of remaining items in the loop. The first time through the loop,
-      ``forloop.revcounter`` will be set to the total number of items in the
-      sequence you're traversing. The last time through the loop,
-      ``forloop.revcounter`` will be set to ``1``.
-
-    * ``forloop.revcounter0`` is like ``forloop.revcounter``, except it's
-      zero-indexed. The first time through the loop, ``forloop.revcounter0``
-      will be set to the number of elements in the sequence minus 1. The last
-      time through the loop, it will be set to ``0``.
-
-    * ``forloop.first`` is a Boolean value set to ``True`` if this is the first
-      time through the loop. This is convenient for special-casing::
-
-          {% for object in objects %}
-              {% if forloop.first %}<li class="first">{% else %}<li>{% endif %}
-              {{ object }}
-              </li>
-          {% endfor %}
-
-    * ``forloop.last`` is a Boolean value set to ``True`` if this is the last
-      time through the loop. A common use for this is to put pipe
-      characters between a list of links::
-
-          {% for link in links %}{{ link }}{% if not forloop.last %} | {% endif %}{% endfor %}
-
-      The above template code might output something like this::
-
-          Link1 | Link2 | Link3 | Link4
-
-      Another common use for this is to put a comma between words in a list::
-
-          Favorite places:
-          {% for p in places %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
-
-    * ``forloop.parentloop`` is a reference to the ``forloop`` object for the
-      *parent* loop, in case of nested loops. Here's an example::
-
-          {% for country in countries %}
-              <table>
-              {% for city in country.city_list %}
-                  <tr>
-                  <td>Country #{{ forloop.parentloop.counter }}</td>
-                  <td>City #{{ forloop.counter }}</td>
-                  <td>{{ city }}</td>
-                  </tr>
-              {% endfor %}
-              </table>
-          {% endfor %}
+          </table>
+      {% endfor %}
 
 The magic ``forloop`` variable is only available within loops. After the
 template parser has reached ``{% endfor %}``, ``forloop`` disappears.
@@ -944,22 +944,22 @@ This displays the first 30 words of the ``bio`` variable.
 
 The following are a few of the most important filters. Appendix F covers the rest.
 
-    * ``addslashes``: Adds a backslash before any backslash, single quote, or
-      double quote. This is useful if the produced text is included in
-      a JavaScript string.
+* ``addslashes``: Adds a backslash before any backslash, single quote, or
+  double quote. This is useful if the produced text is included in
+  a JavaScript string.
 
-    * ``date``: Formats a ``date`` or ``datetime`` object according to a
-      format string given in the parameter, for example::
+* ``date``: Formats a ``date`` or ``datetime`` object according to a
+  format string given in the parameter, for example::
 
-          {{ pub_date|date:"F j, Y" }}
+      {{ pub_date|date:"F j, Y" }}
 
-      Format strings are defined in Appendix F.
+  Format strings are defined in Appendix F.
 
-    * ``length``: Returns the length of the value. For a list, this returns the
-      number of elements. For a string, this returns the number of characters.
-      (Python experts, take note that this works on any Python object that
-      knows how to determine its length -- i.e., any object that has a
-      ``__len__()`` method.)
+* ``length``: Returns the length of the value. For a list, this returns the
+  number of elements. For a string, this returns the number of characters.
+  (Python experts, take note that this works on any Python object that
+  knows how to determine its length -- i.e., any object that has a
+  ``__len__()`` method.)
 
 Philosophies and Limitations
 ============================
@@ -989,45 +989,45 @@ language works. The template system has roots in how Web development is done at
 World Online and the combined experience of Django's creators. Here are a few of
 those philosophies:
 
-    * *Business logic should be separated from presentation logic*. Django's
-      developers see a  template system as a tool that controls presentation and
-      presentation-related logic -- and that's it. The template system shouldn't
-      support functionality that goes beyond this basic goal.
+* *Business logic should be separated from presentation logic*. Django's
+  developers see a  template system as a tool that controls presentation and
+  presentation-related logic -- and that's it. The template system shouldn't
+  support functionality that goes beyond this basic goal.
 
-      For that reason, it's impossible to call Python code directly within
-      Django templates. All "programming" is fundamentally limited to the scope
-      of what template tags can do. It *is* possible to write custom template
-      tags that do arbitrary things, but the out-of-the-box Django template
-      tags intentionally do not allow for arbitrary Python code execution.
+  For that reason, it's impossible to call Python code directly within
+  Django templates. All "programming" is fundamentally limited to the scope
+  of what template tags can do. It *is* possible to write custom template
+  tags that do arbitrary things, but the out-of-the-box Django template
+  tags intentionally do not allow for arbitrary Python code execution.
 
-    * *Syntax should be decoupled from HTML/XML*. Although Django's template
-      system is used primarily to produce HTML, it's intended to be just as
-      usable for non-HTML formats, such as plain text. Some other template
-      languages are XML based, placing all template logic within XML tags or
-      attributes, but Django deliberately avoids this limitation. Requiring
-      valid XML to write templates introduces a world of human mistakes and
-      hard-to-understand error messages, and using an XML engine to parse
-      templates incurs an unacceptable level of overhead in template processing.
+* *Syntax should be decoupled from HTML/XML*. Although Django's template
+  system is used primarily to produce HTML, it's intended to be just as
+  usable for non-HTML formats, such as plain text. Some other template
+  languages are XML based, placing all template logic within XML tags or
+  attributes, but Django deliberately avoids this limitation. Requiring
+  valid XML to write templates introduces a world of human mistakes and
+  hard-to-understand error messages, and using an XML engine to parse
+  templates incurs an unacceptable level of overhead in template processing.
 
-    * *Designers are assumed to be comfortable with HTML code*. The template
-      system isn't designed so that templates necessarily are displayed nicely
-      in WYSIWYG editors such as Dreamweaver. That is too severe a limitation
-      and wouldn't allow the syntax to be as friendly as it is. Django expects
-      template authors to be comfortable editing HTML directly.
+* *Designers are assumed to be comfortable with HTML code*. The template
+  system isn't designed so that templates necessarily are displayed nicely
+  in WYSIWYG editors such as Dreamweaver. That is too severe a limitation
+  and wouldn't allow the syntax to be as friendly as it is. Django expects
+  template authors to be comfortable editing HTML directly.
 
-    * *Designers are assumed not to be Python programmers*. The template system
-      authors recognize that Web page templates are most often written by
-      *designers*, not *programmers*, and therefore should not assume Python
-      knowledge.
+* *Designers are assumed not to be Python programmers*. The template system
+  authors recognize that Web page templates are most often written by
+  *designers*, not *programmers*, and therefore should not assume Python
+  knowledge.
 
-      However, the system also intends to accommodate small teams in which the
-      templates *are* created by Python programmers. It offers a way to extend
-      the system's syntax by writing raw Python code. (More on this in Chapter
-      9.)
+  However, the system also intends to accommodate small teams in which the
+  templates *are* created by Python programmers. It offers a way to extend
+  the system's syntax by writing raw Python code. (More on this in Chapter
+  9.)
 
-    * *The goal is not to invent a programming language*. The goal is to offer
-      just enough programming-esque functionality, such as branching and
-      looping, that is essential for making presentation-related decisions.
+* *The goal is not to invent a programming language*. The goal is to offer
+  just enough programming-esque functionality, such as branching and
+  looping, that is essential for making presentation-related decisions.
 
 Using Templates in Views
 ========================
@@ -1085,17 +1085,17 @@ template was saved as the file ``/home/djangouser/templates/mytemplate.html``::
 
 This approach, however, is inelegant for these reasons:
 
-    * It doesn't handle the case of a missing file. If the file
-      ``mytemplate.html`` doesn't exist or isn't readable, the ``open()`` call
-      will raise an ``IOError`` exception.
+* It doesn't handle the case of a missing file. If the file
+  ``mytemplate.html`` doesn't exist or isn't readable, the ``open()`` call
+  will raise an ``IOError`` exception.
 
-    * It hard-codes your template location. If you were to use this
-      technique for every view function, you'd be duplicating the template
-      locations. Not to mention it involves a lot of typing!
+* It hard-codes your template location. If you were to use this
+  technique for every view function, you'd be duplicating the template
+  locations. Not to mention it involves a lot of typing!
 
-    * It includes a lot of boring boilerplate code. You've got better things to
-      do than to write calls to ``open()``, ``fp.read()``, and ``fp.close()``
-      each time you load a template.
+* It includes a lot of boring boilerplate code. You've got better things to
+  do than to write calls to ``open()``, ``fp.read()``, and ``fp.close()``
+  each time you load a template.
 
 To solve these issues, we'll use *template loading* and *template directories*.
 
@@ -1131,64 +1131,64 @@ to ``TEMPLATE_DIRS``, like so::
 
 There are a few things to note:
 
-    * You can specify any directory you want, as long as the directory and
-      templates within that directory are readable by the user account under
-      which your Web server runs. If you can't think of an appropriate
-      place to put your templates, we recommend creating a ``templates``
-      directory within your project (i.e., within the ``mysite`` directory you
-      created in Chapter 2).
+* You can specify any directory you want, as long as the directory and
+  templates within that directory are readable by the user account under
+  which your Web server runs. If you can't think of an appropriate
+  place to put your templates, we recommend creating a ``templates``
+  directory within your project (i.e., within the ``mysite`` directory you
+  created in Chapter 2).
 
-    * If your ``TEMPLATE_DIRS`` contains only one directory, don't forget the
-      comma at the end of the directory string!
+* If your ``TEMPLATE_DIRS`` contains only one directory, don't forget the
+  comma at the end of the directory string!
 
-      Bad::
+  Bad::
 
-          # Missing comma!
-          TEMPLATE_DIRS = (
-              '/home/django/mysite/templates'
-          )
+      # Missing comma!
+      TEMPLATE_DIRS = (
+          '/home/django/mysite/templates'
+      )
 
-      Good::
+  Good::
 
-          # Comma correctly in place.
-          TEMPLATE_DIRS = (
-              '/home/django/mysite/templates',
-          )
+      # Comma correctly in place.
+      TEMPLATE_DIRS = (
+          '/home/django/mysite/templates',
+      )
 
-      The reason for this is that Python requires commas within single-element
-      tuples to disambiguate the tuple from a parenthetical expression. This is
-      a common newbie gotcha.
+  The reason for this is that Python requires commas within single-element
+  tuples to disambiguate the tuple from a parenthetical expression. This is
+  a common newbie gotcha.
 
-    * If you're on Windows, include your drive letter and use Unix-style
-      forward slashes rather than backslashes, as follows::
+* If you're on Windows, include your drive letter and use Unix-style
+  forward slashes rather than backslashes, as follows::
 
-          TEMPLATE_DIRS = (
-              'C:/www/django/templates',
-          )
+      TEMPLATE_DIRS = (
+          'C:/www/django/templates',
+      )
 
-    * It's simplest to use absolute paths (i.e., directory paths that start at
-      the root of the filesystem). If you want to be a bit more flexible and
-      decoupled, though, you can take advantage of the fact that Django
-      settings files are just Python code by constructing the contents of
-      ``TEMPLATE_DIRS`` dynamically. For example::
+* It's simplest to use absolute paths (i.e., directory paths that start at
+  the root of the filesystem). If you want to be a bit more flexible and
+  decoupled, though, you can take advantage of the fact that Django
+  settings files are just Python code by constructing the contents of
+  ``TEMPLATE_DIRS`` dynamically. For example::
 
-          import os.path
+      import os.path
 
-          TEMPLATE_DIRS = (
-              os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),
-          )
+      TEMPLATE_DIRS = (
+          os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),
+      )
 
-      This example uses the "magic" Python variable ``__file__``, which is
-      automatically set to the file name of the Python module in which the code
-      lives. It gets the name of the directory that contains ``settings.py``
-      (``os.path.dirname``), then joins that with ``templates`` in a
-      cross-platform way (``os.path.join``), then ensures that everything uses
-      forward slashes instead of backslashes (in case of Windows).
+  This example uses the "magic" Python variable ``__file__``, which is
+  automatically set to the file name of the Python module in which the code
+  lives. It gets the name of the directory that contains ``settings.py``
+  (``os.path.dirname``), then joins that with ``templates`` in a
+  cross-platform way (``os.path.join``), then ensures that everything uses
+  forward slashes instead of backslashes (in case of Windows).
 
-      While we're on the topic of dynamic Python code in settings files, we
-      should point out that it's very important to avoid Python errors in your
-      settings file. If you introduce a syntax error, or a runtime error, your
-      Django-powered site will likely crash.
+  While we're on the topic of dynamic Python code in settings files, we
+  should point out that it's very important to avoid Python errors in your
+  settings file. If you introduce a syntax error, or a runtime error, your
+  Django-powered site will likely crash.
 
 With ``TEMPLATE_DIRS`` set, the next step is to change the view code to
 use Django's template-loading functionality rather than hard-coding the
@@ -1281,16 +1281,16 @@ Here's the ongoing ``current_datetime`` example rewritten to use
 
 What a difference! Let's step through the code changes:
 
-    * We no longer have to import ``get_template``, ``Template``, ``Context``,
-      or ``HttpResponse``. Instead, we import
-      ``django.shortcuts.render_to_response``. The ``import datetime`` remains.
+* We no longer have to import ``get_template``, ``Template``, ``Context``,
+  or ``HttpResponse``. Instead, we import
+  ``django.shortcuts.render_to_response``. The ``import datetime`` remains.
 
-    * Within the ``current_datetime`` function, we still calculate ``now``, but
-      the template loading, context creation, template rendering, and
-      ``HttpResponse`` creation are all taken care of by the
-      ``render_to_response()`` call. Because ``render_to_response()`` returns
-      an ``HttpResponse`` object, we can simply ``return`` that value in the
-      view.
+* Within the ``current_datetime`` function, we still calculate ``now``, but
+  the template loading, context creation, template rendering, and
+  ``HttpResponse`` creation are all taken care of by the
+  ``render_to_response()`` call. Because ``render_to_response()`` returns
+  an ``HttpResponse`` object, we can simply ``return`` that value in the
+  view.
 
 The first argument to ``render_to_response()`` is the name of the template to
 use. The second argument, if given, should be a dictionary to use in creating a
@@ -1381,11 +1381,11 @@ expect.
 If, in an ``{% include %}`` tag, a template with the given name isn't found,
 Django will do one of two things:
 
-    * If ``DEBUG`` is set to ``True``, you'll see the
-      ``TemplateDoesNotExist`` exception on a Django error page.
+* If ``DEBUG`` is set to ``True``, you'll see the
+  ``TemplateDoesNotExist`` exception on a Django error page.
 
-    * If ``DEBUG`` is set to ``False``, the tag will fail
-      silently, displaying nothing in the place of the tag.
+* If ``DEBUG`` is set to ``False``, the tag will fail
+  silently, displaying nothing in the place of the tag.
 
 Template Inheritance
 ====================
@@ -1554,56 +1554,56 @@ variables from the context.
 You can use as many levels of inheritance as needed. One common way of using
 inheritance is the following three-level approach:
 
-    1. Create a ``base.html`` template that holds the main look and feel of
-       your site. This is the stuff that rarely, if ever, changes.
+1. Create a ``base.html`` template that holds the main look and feel of
+   your site. This is the stuff that rarely, if ever, changes.
 
-    2. Create a ``base_SECTION.html`` template for each "section" of your site
-       (e.g., ``base_photos.html`` and ``base_forum.html``). These templates
-       extend ``base.html`` and include section-specific styles/design.
+2. Create a ``base_SECTION.html`` template for each "section" of your site
+   (e.g., ``base_photos.html`` and ``base_forum.html``). These templates
+   extend ``base.html`` and include section-specific styles/design.
 
-    3. Create individual templates for each type of page, such as a forum page
-       or a photo gallery. These templates extend the appropriate section
-       template.
+3. Create individual templates for each type of page, such as a forum page
+   or a photo gallery. These templates extend the appropriate section
+   template.
 
 This approach maximizes code reuse and makes it easy to add items to shared
 areas, such as section-wide navigation.
 
 Here are some guidelines for working with template inheritance:
 
-    * If you use ``{% extends %}`` in a template, it must be the first
-      template tag in that template. Otherwise, template inheritance won't
-      work.
+* If you use ``{% extends %}`` in a template, it must be the first
+  template tag in that template. Otherwise, template inheritance won't
+  work.
 
-    * Generally, the more ``{% block %}`` tags in your base templates, the
-      better. Remember, child templates don't have to define all parent blocks,
-      so you can fill in reasonable defaults in a number of blocks, and then
-      define only the ones you need in the child templates. It's better to have
-      more hooks than fewer hooks.
+* Generally, the more ``{% block %}`` tags in your base templates, the
+  better. Remember, child templates don't have to define all parent blocks,
+  so you can fill in reasonable defaults in a number of blocks, and then
+  define only the ones you need in the child templates. It's better to have
+  more hooks than fewer hooks.
 
-    * If you find yourself duplicating code in a number of templates, it
-      probably means you should move that code to a ``{% block %}`` in a
-      parent template.
+* If you find yourself duplicating code in a number of templates, it
+  probably means you should move that code to a ``{% block %}`` in a
+  parent template.
 
-    * If you need to get the content of the block from the parent template,
-      use ``{{ block.super }}``, which is a "magic" variable providing the
-      rendered text of the parent template. This is useful if you want to add
-      to the contents of a parent block instead of completely overriding it.
+* If you need to get the content of the block from the parent template,
+  use ``{{ block.super }}``, which is a "magic" variable providing the
+  rendered text of the parent template. This is useful if you want to add
+  to the contents of a parent block instead of completely overriding it.
 
-    * You may not define multiple ``{% block %}`` tags with the same name in
-      the same template. This limitation exists because a block tag works in
-      "both" directions. That is, a block tag doesn't just provide a hole to
-      fill, it also defines the content that fills the hole in the *parent*.
-      If there were two similarly named ``{% block %}`` tags in a template,
-      that template's parent wouldn't know which one of the blocks' content to
-      use.
+* You may not define multiple ``{% block %}`` tags with the same name in
+  the same template. This limitation exists because a block tag works in
+  "both" directions. That is, a block tag doesn't just provide a hole to
+  fill, it also defines the content that fills the hole in the *parent*.
+  If there were two similarly named ``{% block %}`` tags in a template,
+  that template's parent wouldn't know which one of the blocks' content to
+  use.
 
-    * The template name you pass to ``{% extends %}`` is loaded using the same
-      method that ``get_template()`` uses. That is, the template name is
-      appended to your ``TEMPLATE_DIRS`` setting.
+* The template name you pass to ``{% extends %}`` is loaded using the same
+  method that ``get_template()`` uses. That is, the template name is
+  appended to your ``TEMPLATE_DIRS`` setting.
 
-    * In most cases, the argument to ``{% extends %}`` will be a string, but it
-      can also be a variable, if you don't know the name of the parent template
-      until runtime. This lets you do some cool, dynamic stuff.
+* In most cases, the argument to ``{% extends %}`` will be a string, but it
+  can also be a variable, if you don't know the name of the parent template
+  until runtime. This lets you do some cool, dynamic stuff.
 
 What's next?
 ============
@@ -1614,6 +1614,5 @@ Many modern Web sites are *database-driven*: the content of the Web site is
 stored in a relational database. This allows a clean separation of data and logic
 (in the same way views and templates allow the separation of logic and display.)
 
-The `next chapter`_ covers the tools Django gives you to interact with a database.
-
-.. _next chapter: ../chapter05/
+The :doc:`next chapter <chapter05>` covers the tools Django gives you to
+interact with a database.

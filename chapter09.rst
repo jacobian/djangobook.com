@@ -23,37 +23,37 @@ Template Language Review
 
 First, let's quickly review a number of terms introduced in Chapter 4:
 
-    * A *template* is a text document, or a normal Python string, that is
-      marked up using the Django template language. A template can contain
-      template tags and variables.
+* A *template* is a text document, or a normal Python string, that is
+  marked up using the Django template language. A template can contain
+  template tags and variables.
 
-    * A *template tag* is a symbol within a template that does something. This
-      definition is deliberately vague. For example, a template tag can produce
-      content, serve as a control structure (an ``if`` statement or ``for``
-      loop), grab content from a database, or enable access to other template
-      tags.
-  
-      Template tags are surrounded by ``{%`` and ``%}``::
-  
-          {% if is_logged_in %}
-              Thanks for logging in!
-          {% else %}
-              Please log in.
-          {% endif %}
+* A *template tag* is a symbol within a template that does something. This
+  definition is deliberately vague. For example, a template tag can produce
+  content, serve as a control structure (an ``if`` statement or ``for``
+  loop), grab content from a database, or enable access to other template
+  tags.
 
-    * A *variable* is a symbol within a template that outputs a value.
+  Template tags are surrounded by ``{%`` and ``%}``::
 
-      Variable tags are surrounded by ``{{`` and ``}}``::
+      {% if is_logged_in %}
+          Thanks for logging in!
+      {% else %}
+          Please log in.
+      {% endif %}
 
-          My first name is {{ first_name }}. My last name is {{ last_name }}.
+* A *variable* is a symbol within a template that outputs a value.
 
-    * A *context* is a name -> value mapping (similar to a Python
-      dictionary) that is passed to a template.
+  Variable tags are surrounded by ``{{`` and ``}}``::
 
-    * A template *renders* a context by replacing the variable "holes" with
-      values from the context and executing all template tags.
+      My first name is {{ first_name }}. My last name is {{ last_name }}.
 
-For more details about the basics of these terms, refer back to Chapter 4. 
+* A *context* is a name -> value mapping (similar to a Python
+  dictionary) that is passed to a template.
+
+* A template *renders* a context by replacing the variable "holes" with
+  values from the context and executing all template tags.
+
+For more details about the basics of these terms, refer back to Chapter 4.
 
 The rest of this chapter discusses ways of extending the template engine. First,
 though, let's take a quick look at a few internals left out of Chapter 4 for
@@ -141,25 +141,25 @@ written with context processors::
 
 Let's step through this code:
 
-    * First, we define a function ``custom_proc``. This is a context processor
-      -- it takes an ``HttpRequest`` object and returns a dictionary of
-      variables to use in the template context. That's all it does.
+* First, we define a function ``custom_proc``. This is a context processor
+  -- it takes an ``HttpRequest`` object and returns a dictionary of
+  variables to use in the template context. That's all it does.
 
-    * We've changed the two view functions to use ``RequestContext`` instead
-      of ``Context``. There are two differences in how the context is
-      constructed. One, ``RequestContext`` requires the first argument to be an
-      ``HttpRequest`` object -- the one that was passed into the view function
-      in the first place (``request``). Two, ``RequestContext`` takes an
-      optional ``processors`` argument, which is a list or tuple of context
-      processor functions to use. Here, we pass in ``custom_proc``, the custom
-      processor we defined above.
+* We've changed the two view functions to use ``RequestContext`` instead
+  of ``Context``. There are two differences in how the context is
+  constructed. One, ``RequestContext`` requires the first argument to be an
+  ``HttpRequest`` object -- the one that was passed into the view function
+  in the first place (``request``). Two, ``RequestContext`` takes an
+  optional ``processors`` argument, which is a list or tuple of context
+  processor functions to use. Here, we pass in ``custom_proc``, the custom
+  processor we defined above.
 
-    * Each view no longer has to include ``app``, ``user`` or ``ip_address`` in
-      its context construction, because those are provided by ``custom_proc``.
+* Each view no longer has to include ``app``, ``user`` or ``ip_address`` in
+  its context construction, because those are provided by ``custom_proc``.
 
-    * Each view *still* has the flexibility to introduce any custom template
-      variables it might need. In this example, the ``message`` template
-      variable is set differently in each view.
+* Each view *still* has the flexibility to introduce any custom template
+  variables it might need. In this example, the ``message`` template
+  variable is set differently in each view.
 
 In Chapter 4, we introduced the ``render_to_response()`` shortcut, which saves
 you from having to call ``loader.get_template()``, then create a ``Context``,
@@ -236,17 +236,17 @@ django.core.context_processors.auth
 If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
 ``RequestContext`` will contain these variables:
 
-    * ``user``: A ``django.contrib.auth.models.User`` instance representing the
-      current logged-in user (or an ``AnonymousUser`` instance, if the client
-      isn't logged in).
+* ``user``: A ``django.contrib.auth.models.User`` instance representing the
+  current logged-in user (or an ``AnonymousUser`` instance, if the client
+  isn't logged in).
 
-    * ``messages``: A list of messages (as strings) for the current logged-in
-      user. Behind the scenes, this variable calls
-      ``request.user.get_and_delete_messages()`` for every request. That method
-      collects the user's messages and deletes them from the database.
+* ``messages``: A list of messages (as strings) for the current logged-in
+  user. Behind the scenes, this variable calls
+  ``request.user.get_and_delete_messages()`` for every request. That method
+  collects the user's messages and deletes them from the database.
 
-    * ``perms``: An instance of ``django.core.context_processors.PermWrapper``,
-      which represents the permissions the current logged-in user has.
+* ``perms``: An instance of ``django.core.context_processors.PermWrapper``,
+  which represents the permissions the current logged-in user has.
 
 See Chapter 14 for more information on users, permissions, and messages.
 
@@ -257,21 +257,21 @@ This processor pushes debugging information down to the template layer. If
 ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
 ``RequestContext`` will contain these variables:
 
-    * ``debug``: The value of your ``DEBUG`` setting (either ``True`` or
-      ``False``). You can use this variable in templates to test whether you're
-      in debug mode.
+* ``debug``: The value of your ``DEBUG`` setting (either ``True`` or
+  ``False``). You can use this variable in templates to test whether you're
+  in debug mode.
 
-    * ``sql_queries``: A list of ``{'sql': ..., 'time': ...}`` dictionaries
-      representing every SQL query that has happened so far during the request
-      and how long it took. The list is in the order in which the queries were
-      issued.
+* ``sql_queries``: A list of ``{'sql': ..., 'time': ...}`` dictionaries
+  representing every SQL query that has happened so far during the request
+  and how long it took. The list is in the order in which the queries were
+  issued.
 
 Because debugging information is sensitive, this context processor will only
 add variables to the context if both of the following conditions are true:
 
-    * The ``DEBUG`` setting is ``True``.
-    
-    * The request came from an IP address in the ``INTERNAL_IPS`` setting.
+* The ``DEBUG`` setting is ``True``.
+
+* The request came from an IP address in the ``INTERNAL_IPS`` setting.
 
 Astute readers will notice that the ``debug`` template variable will never have
 the value ``False`` because, if ``DEBUG`` is ``False``, then the ``debug``
@@ -283,10 +283,10 @@ django.core.context_processors.i18n
 If this processor is enabled, every ``RequestContext`` will contain these
 variables:
 
-    * ``LANGUAGES``: The value of the ``LANGUAGES`` setting.
+* ``LANGUAGES``: The value of the ``LANGUAGES`` setting.
 
-    * ``LANGUAGE_CODE``: ``request.LANGUAGE_CODE`` if it exists; otherwise, the
-      value of the ``LANGUAGE_CODE`` setting.
+* ``LANGUAGE_CODE``: ``request.LANGUAGE_CODE`` if it exists; otherwise, the
+  value of the ``LANGUAGE_CODE`` setting.
 
 Appendix D provides more information about these two settings.
 
@@ -307,22 +307,22 @@ Guidelines for Writing Your Own Context Processors
 
 Here are a few tips for rolling your own:
 
-    * Make each context processor responsible for the smallest subset of
-      functionality possible. It's easy to use multiple processors, so you
-      might as well split functionality into logical pieces for future reuse.
+* Make each context processor responsible for the smallest subset of
+  functionality possible. It's easy to use multiple processors, so you
+  might as well split functionality into logical pieces for future reuse.
 
-    * Keep in mind that any context processor in ``TEMPLATE_CONTEXT_PROCESSORS``
-      will be available in *every* template powered by that settings file, so
-      try to pick variable names that are unlikely to conflict with variable
-      names your templates might be using independently. As variable names are
-      case-sensitive, it's not a bad idea to use all caps for variables that a
-      processor provides.
+* Keep in mind that any context processor in ``TEMPLATE_CONTEXT_PROCESSORS``
+  will be available in *every* template powered by that settings file, so
+  try to pick variable names that are unlikely to conflict with variable
+  names your templates might be using independently. As variable names are
+  case-sensitive, it's not a bad idea to use all caps for variables that a
+  processor provides.
 
-    * It doesn't matter where on the filesystem they live, as long as they're
-      on your Python path so you can point to them from the
-      ``TEMPLATE_CONTEXT_PROCESSORS`` setting. With that said, the convention
-      is to save them in a file called ``context_processors.py`` within your
-      app or project.
+* It doesn't matter where on the filesystem they live, as long as they're
+  on your Python path so you can point to them from the
+  ``TEMPLATE_CONTEXT_PROCESSORS`` setting. With that said, the convention
+  is to save them in a file called ``context_processors.py`` within your
+  app or project.
 
 Automatic HTML Escaping
 =======================
@@ -346,6 +346,8 @@ With this name value, the template would be rendered as::
 
 Similarly, what if the name contained a ``'<'`` symbol, like this?
 
+::
+
     <b>username
 
 That would result in a rendered template like this::
@@ -361,25 +363,25 @@ Cross Site Scripting (XSS) attack. (For more on security, see Chapter 20.)
 
 To avoid this problem, you have two options:
 
-    * One, you can make sure to run each untrusted variable through the
-      ``escape`` filter, which converts potentially harmful HTML characters to
-      unharmful ones. This was the default solution in Django for its first few
-      years, but the problem is that it puts the onus on *you*, the developer /
-      template author, to ensure you're escaping everything. It's easy to forget
-      to escape data.
+* One, you can make sure to run each untrusted variable through the
+  ``escape`` filter, which converts potentially harmful HTML characters to
+  unharmful ones. This was the default solution in Django for its first few
+  years, but the problem is that it puts the onus on *you*, the developer /
+  template author, to ensure you're escaping everything. It's easy to forget
+  to escape data.
 
-    * Two, you can take advantage of Django's automatic HTML escaping. The
-      remainder of this section describes how auto-escaping works.
+* Two, you can take advantage of Django's automatic HTML escaping. The
+  remainder of this section describes how auto-escaping works.
 
 By default in Django, every template automatically escapes the output
 of every variable tag. Specifically, these five characters are
 escaped:
 
-    * ``<`` is converted to ``&lt;``
-    * ``>`` is converted to ``&gt;``
-    * ``'`` (single quote) is converted to ``&#39;``
-    * ``"`` (double quote) is converted to ``&quot;``
-    * ``&`` is converted to ``&amp;``
+* ``<`` is converted to ``&lt;``
+* ``>`` is converted to ``&gt;``
+* ``'`` (single quote) is converted to ``&#39;``
+* ``"`` (double quote) is converted to ``&quot;``
+* ``&`` is converted to ``&amp;``
 
 Again, we stress that this behavior is on by default. If you're using Django's
 template system, you're protected.
@@ -509,16 +511,16 @@ custom *template loaders* to load templates from other sources.
 
 Django has two ways to load templates:
 
-    * ``django.template.loader.get_template(template_name)``: ``get_template``
-      returns the compiled template (a ``Template`` object) for the template
-      with the given name. If the template doesn't exist, a
-      ``TemplateDoesNotExist`` exception will be raised.
+* ``django.template.loader.get_template(template_name)``: ``get_template``
+  returns the compiled template (a ``Template`` object) for the template
+  with the given name. If the template doesn't exist, a
+  ``TemplateDoesNotExist`` exception will be raised.
 
-    * ``django.template.loader.select_template(template_name_list)``:
-      ``select_template`` is just like ``get_template``, except it takes a list
-      of template names. Of the list, it returns the first template that exists.
-      If none of the templates exist, a ``TemplateDoesNotExist`` exception will
-      be raised.
+* ``django.template.loader.select_template(template_name_list)``:
+  ``select_template`` is just like ``get_template``, except it takes a list
+  of template names. Of the list, it returns the first template that exists.
+  If none of the templates exist, a ``TemplateDoesNotExist`` exception will
+  be raised.
 
 As covered in Chapter 4, each of these functions by default uses your
 ``TEMPLATE_DIRS`` setting to load templates. Internally, however, these
@@ -529,37 +531,37 @@ the ``TEMPLATE_LOADERS`` setting. ``TEMPLATE_LOADERS`` should be a tuple of
 strings, where each string represents a template loader. These template loaders
 ship with Django:
 
-    * ``django.template.loaders.filesystem.load_template_source``: This loader
-      loads templates from the filesystem, according to ``TEMPLATE_DIRS``. It is
-      enabled by default.
+* ``django.template.loaders.filesystem.load_template_source``: This loader
+  loads templates from the filesystem, according to ``TEMPLATE_DIRS``. It is
+  enabled by default.
 
-    * ``django.template.loaders.app_directories.load_template_source``: This
-      loader loads templates from Django applications on the filesystem. For
-      each application in ``INSTALLED_APPS``, the loader looks for a
-      ``templates`` subdirectory. If the directory exists, Django looks for
-      templates there.
+* ``django.template.loaders.app_directories.load_template_source``: This
+  loader loads templates from Django applications on the filesystem. For
+  each application in ``INSTALLED_APPS``, the loader looks for a
+  ``templates`` subdirectory. If the directory exists, Django looks for
+  templates there.
 
-      This means you can store templates with your individual applications,
-      making it easy to distribute Django applications with default templates.
-      For example, if ``INSTALLED_APPS`` contains ``('myproject.polls',
-      'myproject.music')``, then ``get_template('foo.html')`` will look for
-      templates in this order:
+  This means you can store templates with your individual applications,
+  making it easy to distribute Django applications with default templates.
+  For example, if ``INSTALLED_APPS`` contains ``('myproject.polls',
+  'myproject.music')``, then ``get_template('foo.html')`` will look for
+  templates in this order:
 
-            * ``/path/to/myproject/polls/templates/foo.html``
-            * ``/path/to/myproject/music/templates/foo.html``
+  * ``/path/to/myproject/polls/templates/foo.html``
+  * ``/path/to/myproject/music/templates/foo.html``
 
-      Note that the loader performs an optimization when it is first imported:
-      it caches a list of which ``INSTALLED_APPS`` packages have a ``templates``
-      subdirectory.
-      
-      This loader is enabled by default.
+  Note that the loader performs an optimization when it is first imported:
+  it caches a list of which ``INSTALLED_APPS`` packages have a ``templates``
+  subdirectory.
 
-    * ``django.template.loaders.eggs.load_template_source``: This loader is just
-      like ``app_directories``, except it loads templates from Python eggs
-      rather than from the filesystem. This loader is disabled by default;
-      you'll need to enable it if you're using eggs to distribute your
-      application. (Python eggs are a way of compressing Python code into a
-      single file.)
+  This loader is enabled by default.
+
+* ``django.template.loaders.eggs.load_template_source``: This loader is just
+  like ``app_directories``, except it loads templates from Python eggs
+  rather than from the filesystem. This loader is disabled by default;
+  you'll need to enable it if you're using eggs to distribute your
+  application. (Python eggs are a way of compressing Python code into a
+  single file.)
 
 Django uses the template loaders in order according to the ``TEMPLATE_LOADERS``
 setting. It uses each loader until a loader finds a match.
@@ -585,39 +587,39 @@ into.
 
 Creating a template library is a two-step process:
 
-    * First, decide which Django application should house the template library.
-      If you've created an app via ``manage.py startapp``, you can put it in
-      there, or you can create another app solely for the template library.
-      We'd recommend the latter, because your filters might be useful to you
-      in future projects.
+* First, decide which Django application should house the template library.
+  If you've created an app via ``manage.py startapp``, you can put it in
+  there, or you can create another app solely for the template library.
+  We'd recommend the latter, because your filters might be useful to you
+  in future projects.
 
-      Whichever route you take, make sure to add the app to your
-      ``INSTALLED_APPS`` setting. We'll explain this shortly.
+  Whichever route you take, make sure to add the app to your
+  ``INSTALLED_APPS`` setting. We'll explain this shortly.
 
-    * Second, create a ``templatetags`` directory in the appropriate Django
-      application's package. It should be on the same level as ``models.py``,
-      ``views.py``, and so forth. For example::
+* Second, create a ``templatetags`` directory in the appropriate Django
+  application's package. It should be on the same level as ``models.py``,
+  ``views.py``, and so forth. For example::
 
-          books/
-              __init__.py
-              models.py
-              templatetags/
-              views.py
+      books/
+          __init__.py
+          models.py
+          templatetags/
+          views.py
 
-      Create two empty files in the ``templatetags`` directory: an ``__init__.py``
-      file (to indicate to Python that this is a package containing Python code)
-      and a file that will contain your custom tag/filter definitions. The name
-      of the latter file is what you'll use to load the tags later. For example,
-      if your custom tags/filters are in a file called ``poll_extras.py``, you'd
-      write the following in a template::
+  Create two empty files in the ``templatetags`` directory: an ``__init__.py``
+  file (to indicate to Python that this is a package containing Python code)
+  and a file that will contain your custom tag/filter definitions. The name
+  of the latter file is what you'll use to load the tags later. For example,
+  if your custom tags/filters are in a file called ``poll_extras.py``, you'd
+  write the following in a template::
 
-          {% load poll_extras %}
+      {% load poll_extras %}
 
-      The ``{% load %}`` tag looks at your ``INSTALLED_APPS`` setting and only
-      allows the loading of template libraries within installed Django
-      applications. This is a security feature; it allows you to host Python
-      code for many template libraries on a single computer without enabling
-      access to all of them for every Django installation.
+  The ``{% load %}`` tag looks at your ``INSTALLED_APPS`` setting and only
+  allows the loading of template libraries within installed Django
+  applications. This is a security feature; it allows you to host Python
+  code for many template libraries on a single computer without enabling
+  access to all of them for every Django installation.
 
 If you write a template library that isn't tied to any particular models/views,
 it's valid and quite normal to have a Django application package that contains
@@ -653,10 +655,10 @@ Writing Custom Template Filters
 
 Custom filters are just Python functions that take one or two arguments:
 
-    * The value of the variable (input)
-    
-    * The value of the argument, which can have a default value or be left out
-      altogether
+* The value of the variable (input)
+
+* The value of the argument, which can have a default value or be left out
+  altogether
 
 For example, in the filter ``{{ var|foo:"bar" }}``, the filter ``foo`` would be
 passed the contents of the variable ``var`` and the argument ``"bar"``.
@@ -693,8 +695,8 @@ When you've written your filter definition, you need to register it with your
 
 The ``Library.filter()`` method takes two arguments:
 
-    * The name of the filter (a string)
-    * The filter function itself
+* The name of the filter (a string)
+* The filter function itself
 
 If you're using Python 2.4 or above, you can use ``register.filter()`` as a
 decorator instead::
@@ -750,10 +752,10 @@ objects. For example, consider this template::
 In compiled template form, this template is represented as this list of
 nodes:
 
-    * Text node: ``"Hello, "``
-    * Variable node: ``person.name``
-    * Text node: ``".\n\n"``
-    * IfEqual node: ``name.birthday`` and ``today``
+* Text node: ``"Hello, "``
+* Variable node: ``person.name``
+* Text node: ``".\n\n"``
+* IfEqual node: ``name.birthday`` and ``today``
 
 When you call ``render()`` on a compiled template, the template calls
 ``render()`` on each ``Node`` in its node list, with the given context. The
@@ -773,14 +775,14 @@ returning a ``Node`` instance based on the contents of the tag.
 
 For example, let's write a template tag, ``{% current_time %}``, that displays
 the current date/time, formatted according to a parameter given in the tag, in
-``strftime`` syntax (see ``http://www.djangoproject.com/r/python/strftime/``). 
-It's a good idea to decide the tag syntax before anything else. In our case, 
+``strftime`` syntax (see ``http://www.djangoproject.com/r/python/strftime/``).
+It's a good idea to decide the tag syntax before anything else. In our case,
 let's say the tag should be used like this::
 
     <p>The time is {% current_time "%Y-%m-%d %I:%M %p" %}.</p>
-    
+
 .. note::
-    
+
     Yes, this template tag is redundant--Django's default ``{% now %}`` tag does
     the same task with simpler syntax. This template tag is presented here just
     for example purposes.
@@ -803,37 +805,37 @@ object::
 
 There's a lot going here:
 
-    * Each template tag compilation function takes two arguments, ``parser``
-      and ``token``. ``parser`` is the template parser object. We don't use it
-      in this example. ``token`` is the token currently being parsed by the
-      parser.
+* Each template tag compilation function takes two arguments, ``parser``
+  and ``token``. ``parser`` is the template parser object. We don't use it
+  in this example. ``token`` is the token currently being parsed by the
+  parser.
 
-    * ``token.contents`` is a string of the raw contents of the tag. In our
-      example, it's ``'current_time "%Y-%m-%d %I:%M %p"'``.
+* ``token.contents`` is a string of the raw contents of the tag. In our
+  example, it's ``'current_time "%Y-%m-%d %I:%M %p"'``.
 
-    * The ``token.split_contents()`` method separates the arguments on spaces
-      while keeping quoted strings together. Avoid using
-      ``token.contents.split()`` (which just uses Python's standard
-      string-splitting semantics). It's not as robust, as it naively splits on
-      *all* spaces, including those within quoted strings.
+* The ``token.split_contents()`` method separates the arguments on spaces
+  while keeping quoted strings together. Avoid using
+  ``token.contents.split()`` (which just uses Python's standard
+  string-splitting semantics). It's not as robust, as it naively splits on
+  *all* spaces, including those within quoted strings.
 
-    * This function is responsible for raising
-      ``django.template.TemplateSyntaxError``, with helpful messages, for any
-      syntax error.
+* This function is responsible for raising
+  ``django.template.TemplateSyntaxError``, with helpful messages, for any
+  syntax error.
 
-    * Don't hard-code the tag's name in your error messages, because that
-      couples the tag's name to your function. ``token.split_contents()[0]``
-      will *always* be the name of your tag -- even when the tag has no
-      arguments.
+* Don't hard-code the tag's name in your error messages, because that
+  couples the tag's name to your function. ``token.split_contents()[0]``
+  will *always* be the name of your tag -- even when the tag has no
+  arguments.
 
-    * The function returns a ``CurrentTimeNode`` (which we'll create shortly)
-      containing everything the node needs to know about this tag. In this
-      case, it just passes the argument ``"%Y-%m-%d %I:%M %p"``. The
-      leading and trailing quotes from the template tag are removed with
-      ``format_string[1:-1]``.
+* The function returns a ``CurrentTimeNode`` (which we'll create shortly)
+  containing everything the node needs to know about this tag. In this
+  case, it just passes the argument ``"%Y-%m-%d %I:%M %p"``. The
+  leading and trailing quotes from the template tag are removed with
+  ``format_string[1:-1]``.
 
-    * Template tag compilation functions *must* return a ``Node`` subclass;
-      any other return value is an error.
+* Template tag compilation functions *must* return a ``Node`` subclass;
+  any other return value is an error.
 
 Writing the Template Node
 -------------------------
@@ -843,11 +845,11 @@ has a ``render()`` method. Continuing the preceding example, we need to define
 ``CurrentTimeNode``::
 
     import datetime
-    
+
     class CurrentTimeNode(template.Node):
         def __init__(self, format_string):
             self.format_string = str(format_string)
-        
+
         def render(self, context):
             now = datetime.datetime.now()
             return now.strftime(self.format_string)
@@ -873,8 +875,8 @@ its ``tag()`` method. For example::
 
 The ``tag()`` method takes two arguments:
 
-    * The name of the template tag (string).
-    * The compilation function.
+* The name of the template tag (string).
+* The compilation function.
 
 As with filter registration, it is also possible to use ``register.tag`` as a
 decorator in Python 2.4 and above::
@@ -905,7 +907,7 @@ returning it::
     class CurrentTimeNode2(template.Node):
         def __init__(self, format_string):
             self.format_string = str(format_string)
-            
+
         def render(self, context):
             now = datetime.datetime.now()
             context['current_time'] = now.strftime(self.format_string)
@@ -927,7 +929,7 @@ Here's how you'd use this new version of the tag::
 But there's a problem with ``CurrentTimeNode2``: the variable name
 ``current_time`` is hard-coded. This means you'll need to make sure your
 template doesn't use ``{{ current_time }}`` anywhere else, because
-``{% current_time2 %}`` will blindly overwrite that variable's value. 
+``{% current_time2 %}`` will blindly overwrite that variable's value.
 
 A cleaner solution is to make the template tag specify the name of the variable
 to be set, like so::
@@ -944,7 +946,7 @@ To do so, you'll need to refactor both the compilation function and the
         def __init__(self, format_string, var_name):
             self.format_string = str(format_string)
             self.var_name = var_name
-            
+
         def render(self, context):
             now = datetime.datetime.now()
             context[self.var_name] = now.strftime(self.format_string)
@@ -958,14 +960,14 @@ To do so, you'll need to refactor both the compilation function and the
         except ValueError:
             msg = '%r tag requires arguments' % token.contents[0]
             raise template.TemplateSyntaxError(msg)
-            
+
         m = re.search(r'(.*?) as (\w+)', arg)
         if m:
             fmt, var_name = m.groups()
         else:
             msg = '%r tag had invalid arguments' % tag_name
             raise template.TemplateSyntaxError(msg)
-        
+
         if not (fmt[0] == fmt[-1] and fmt[0] in ('"', "'")):
             msg = "%r tag's argument should be in quotes" % tag_name
             raise template.TemplateSyntaxError(msg)
@@ -1016,7 +1018,7 @@ Parsing Until Another Template Tag and Saving Contents
 ------------------------------------------------------
 
 In the previous example, ``do_comment()`` discarded everything between
-``{% comment %}`` and ``{% endcomment %}``. It's also 
+``{% comment %}`` and ``{% endcomment %}``. It's also
 possible to do something with the code between template tags instead.
 
 For example, here's a custom template tag, ``{% upper %}``, that capitalizes
@@ -1037,7 +1039,7 @@ pass the resulting ``nodelist`` to ``Node``::
     class UpperNode(template.Node):
         def __init__(self, nodelist):
             self.nodelist = nodelist
-            
+
         def render(self, context):
             output = self.nodelist.render(context)
             return output.upper()
@@ -1085,19 +1087,19 @@ In Python 2.4, the decorator syntax also works::
 
 Notice a couple of things to notice about the ``simple_tag`` helper function:
 
-    * Only the (single) argument is passed into our function.
+* Only the (single) argument is passed into our function.
 
-    * Checking for the required number of arguments has already been
-      done by the time our function is called, so we don't need to do that.
+* Checking for the required number of arguments has already been
+  done by the time our function is called, so we don't need to do that.
 
-    * The quotes around the argument (if any) have already been stripped away,
-      so we receive a plain Unicode string.
+* The quotes around the argument (if any) have already been stripped away,
+  so we receive a plain Unicode string.
 
 Inclusion Tags
 --------------
 
 Another common template tag is the type that displays some data by
-rendering *another* template. For example, Django's admin interface uses 
+rendering *another* template. For example, Django's admin interface uses
 custom template tags to display the buttons along the bottom of the
 "add/change" form pages. Those buttons always look the same, but the link
 targets change depending on the object being edited. They're a perfect case
@@ -1136,7 +1138,7 @@ example, the template is very simple::
     </ul>
 
 Finally, we create and register the inclusion tag by calling the
-``inclusion_tag()`` method on a ``Library`` object. 
+``inclusion_tag()`` method on a ``Library`` object.
 
 Following our example, if the preceding template is in a file called
 ``book_snippet.html``, we register the tag like this::
@@ -1210,9 +1212,9 @@ If the loader is unable to load a template, it should raise
 
 Each loader function should also have an ``is_usable`` function attribute.
 This is a Boolean that informs the template engine whether this loader
-is available in the current Python installation. For example, the eggs loader 
-(which is capable of loading templates from Python eggs) sets ``is_usable`` 
-to ``False`` if the ``pkg_resources`` module isn't installed, because 
+is available in the current Python installation. For example, the eggs loader
+(which is capable of loading templates from Python eggs) sets ``is_usable``
+to ``False`` if the ``pkg_resources`` module isn't installed, because
 ``pkg_resources`` is necessary to read data from eggs.
 
 An example should help clarify all of this. Here's a template loader function
@@ -1226,9 +1228,9 @@ expects each item on that path to be a ZIP file containing templates::
 
     def load_template_source(template_name, template_dirs=None):
         "Template loader that loads templates from a ZIP file."
-    
+
         template_zipfiles = getattr(settings, "TEMPLATE_ZIP_FILES", [])
-    
+
         # Try each ZIP file in TEMPLATE_ZIP_FILES.
         for fname in template_zipfiles:
             try:
@@ -1251,7 +1253,7 @@ expects each item on that path to be a ZIP file containing templates::
 
 The only step left if we want to use this loader is to add it to the
 ``TEMPLATE_LOADERS`` setting. If we put this code in a package called
-``mysite.zip_loader``, then we add 
+``mysite.zip_loader``, then we add
 ``mysite.zip_loader.load_template_source`` to ``TEMPLATE_LOADERS``.
 
 Configuring the Template System in Standalone Mode

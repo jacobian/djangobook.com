@@ -69,14 +69,14 @@ After installing Memcached itself, you'll need to install the Memcached Python
 bindings, which are not bundled with Django directly. Two versions of this are
 available. Choose and install *one* of the following modules:
 
-    * The fastest available option is a module called ``cmemcache``, available
-      at http://gijsbert.org/cmemcache/ .
+* The fastest available option is a module called ``cmemcache``, available
+  at http://gijsbert.org/cmemcache/ .
 
-    * If you can't install ``cmemcache``, you can install ``python-memcached``,
-      available at ftp://ftp.tummy.com/pub/python-memcached/ . If that URL is
-      no longer valid, just go to the Memcached Web site
-      (http://www.danga.com/memcached/) and get the Python bindings from the
-      "Client APIs" section.
+* If you can't install ``cmemcache``, you can install ``python-memcached``,
+  available at ftp://ftp.tummy.com/pub/python-memcached/ . If that URL is
+  no longer valid, just go to the Memcached Web site
+  (http://www.danga.com/memcached/) and get the Python bindings from the
+  "Client APIs" section.
 
 To use Memcached with Django, set ``CACHE_BACKEND`` to
 ``memcached://ip:port/``, where ``ip`` is the IP address of the Memcached
@@ -219,21 +219,21 @@ CACHE_BACKEND Arguments
 Each cache backend may take arguments. They're given in query-string style on
 the ``CACHE_BACKEND`` setting. Valid arguments are as follows:
 
-    * ``timeout``: The default timeout, in seconds, to use for the cache.
-      This argument defaults to 300 seconds (5 minutes).
+* ``timeout``: The default timeout, in seconds, to use for the cache.
+  This argument defaults to 300 seconds (5 minutes).
 
-    * ``max_entries``: For the ``locmem``, ``filesystem`` and ``database``
-      backends, the maximum number of entries allowed in the cache before old
-      values are deleted. This argument defaults to 300.
+* ``max_entries``: For the ``locmem``, ``filesystem`` and ``database``
+  backends, the maximum number of entries allowed in the cache before old
+  values are deleted. This argument defaults to 300.
 
-    * ``cull_percentage``: The percentage of entries that are culled when
-      ``max_entries`` is reached. The actual ratio is ``1/cull_percentage``, so
-      set ``cull_percentage=2`` to cull half of the entries when ``max_entries``
-      is reached.
+* ``cull_percentage``: The percentage of entries that are culled when
+  ``max_entries`` is reached. The actual ratio is ``1/cull_percentage``, so
+  set ``cull_percentage=2`` to cull half of the entries when ``max_entries``
+  is reached.
 
-      A value of ``0`` for ``cull_percentage`` means that the entire cache will
-      be dumped when ``max_entries`` is reached. This makes culling *much*
-      faster at the expense of more cache misses.
+  A value of ``0`` for ``cull_percentage`` means that the entire cache will
+  be dumped when ``max_entries`` is reached. This makes culling *much*
+  faster at the expense of more cache misses.
 
 In this example, ``timeout`` is set to ``60``::
 
@@ -287,14 +287,14 @@ user-specific pages (include Django's admin interface). Note that if you use
 Additionally, the cache middleware automatically sets a few headers in each
 ``HttpResponse``:
 
-    * Sets the ``Last-Modified`` header to the current date/time when a fresh
-      (uncached) version of the page is requested.
+* Sets the ``Last-Modified`` header to the current date/time when a fresh
+  (uncached) version of the page is requested.
 
-    * Sets the ``Expires`` header to the current date/time plus the defined
-      ``CACHE_MIDDLEWARE_SECONDS``.
+* Sets the ``Expires`` header to the current date/time plus the defined
+  ``CACHE_MIDDLEWARE_SECONDS``.
 
-    * Sets the ``Cache-Control`` header to give a max age for the page --
-      again, from the ``CACHE_MIDDLEWARE_SECONDS`` setting.
+* Sets the ``Cache-Control`` header to give a max age for the page --
+  again, from the ``CACHE_MIDDLEWARE_SECONDS`` setting.
 
 See Chapter 17 for more on middleware.
 
@@ -422,11 +422,11 @@ The Low-Level Cache API
 Sometimes, caching an entire rendered page doesn't gain you very much and is,
 in fact, inconvenient overkill.
 
-Perhaps, for instance, your site includes a view whose results depend on 
+Perhaps, for instance, your site includes a view whose results depend on
 several expensive queries, the results of which change at different intervals.
-In this case, it would not be ideal to use the full-page caching that the 
-per-site or per-view cache strategies offer, because you wouldn't want to 
-cache the entire result (since some of the data changes often), but you'd still 
+In this case, it would not be ideal to use the full-page caching that the
+per-site or per-view cache strategies offer, because you wouldn't want to
+cache the entire result (since some of the data changes often), but you'd still
 want to cache the results that rarely change.
 
 For cases like this, Django exposes a simple, low-level cache API. You can use
@@ -530,21 +530,21 @@ reaches your Web site.
 
 Here are a few examples of upstream caches:
 
-    * Your ISP may cache certain pages, so if you requested a page from
-      http://example.com/, your ISP would send you the page without having to
-      access example.com directly. The maintainers of example.com have no
-      knowledge of this caching; the ISP sits between example.com and your Web
-      browser, handling all of the caching transparently.
+* Your ISP may cache certain pages, so if you requested a page from
+  http://example.com/, your ISP would send you the page without having to
+  access example.com directly. The maintainers of example.com have no
+  knowledge of this caching; the ISP sits between example.com and your Web
+  browser, handling all of the caching transparently.
 
-    * Your Django Web site may sit behind a *proxy cache*, such as Squid Web
-      Proxy Cache (http://www.squid-cache.org/), that caches pages for
-      performance. In this case, each request first would be handled by the
-      proxy, and it would be passed to your application only if needed.
+* Your Django Web site may sit behind a *proxy cache*, such as Squid Web
+  Proxy Cache (http://www.squid-cache.org/), that caches pages for
+  performance. In this case, each request first would be handled by the
+  proxy, and it would be passed to your application only if needed.
 
-    * Your Web browser caches pages, too. If a Web page sends out the
-      appropriate headers, your browser will use the local cached copy for
-      subsequent requests to that page, without even contacting the Web page
-      again to see whether it has changed.
+* Your Web browser caches pages, too. If a Web page sends out the
+  appropriate headers, your browser will use the local cached copy for
+  subsequent requests to that page, without even contacting the Web page
+  again to see whether it has changed.
 
 Upstream caching is a nice efficiency boost, but there's a danger to it:
 Many Web pages' contents differ based on authentication and a host of other
@@ -670,12 +670,12 @@ scenes.
 There are a few other ways to control cache parameters. For example, HTTP
 allows applications to do the following:
 
-    * Define the maximum time a page should be cached.
+* Define the maximum time a page should be cached.
 
-    * Specify whether a cache should always check for newer versions, only
-      delivering the cached content when there are no changes. (Some caches
-      might deliver cached content even if the server page changed, simply
-      because the cache copy isn't yet expired.)
+* Specify whether a cache should always check for newer versions, only
+  delivering the cached content when there are no changes. (Some caches
+  might deliver cached content even if the server page changed, simply
+  because the cache copy isn't yet expired.)
 
 In Django, use the ``cache_control`` view decorator to specify these cache
 parameters. In this example, ``cache_control`` tells caches to revalidate the
@@ -690,14 +690,14 @@ cache on every access and to store cached versions for, at most, 3,600 seconds::
 Any valid ``Cache-Control`` HTTP directive is valid in ``cache_control()``.
 Here's a full list:
 
-    * ``public=True``
-    * ``private=True``
-    * ``no_cache=True``
-    * ``no_transform=True``
-    * ``must_revalidate=True``
-    * ``proxy_revalidate=True``
-    * ``max_age=num_seconds``
-    * ``s_maxage=num_seconds``
+* ``public=True``
+* ``private=True``
+* ``no_cache=True``
+* ``no_transform=True``
+* ``must_revalidate=True``
+* ``proxy_revalidate=True``
+* ``max_age=num_seconds``
+* ``s_maxage=num_seconds``
 
 (Note that the caching middleware already sets the cache header's max-age with
 the value of the ``CACHE_MIDDLEWARE_SETTINGS`` setting. If you use a custom
@@ -721,12 +721,12 @@ Other Optimizations
 Django comes with a few other pieces of middleware that can help optimize your
 apps' performance:
 
-    * ``django.middleware.http.ConditionalGetMiddleware`` adds support for
-      modern browsers to conditionally GET responses based on the ``ETag`` 
-      and ``Last-Modified`` headers.
+* ``django.middleware.http.ConditionalGetMiddleware`` adds support for
+  modern browsers to conditionally GET responses based on the ``ETag``
+  and ``Last-Modified`` headers.
 
-    * ``django.middleware.gzip.GZipMiddleware`` compresses responses for all 
-      moderns browsers, saving bandwidth and transfer time.
+* ``django.middleware.gzip.GZipMiddleware`` compresses responses for all
+  moderns browsers, saving bandwidth and transfer time.
 
 Order of MIDDLEWARE_CLASSES
 ===========================
@@ -742,9 +742,9 @@ response phase. Thus, you need to make sure that ``UpdateCacheMiddleware``
 appears *before* any other middleware that might add something to the ``Vary``
 header. The following middleware modules do so:
 
-    * ``SessionMiddleware`` adds ``Cookie``
-    * ``GZipMiddleware`` adds ``Accept-Encoding``
-    * ``LocaleMiddleware`` adds ``Accept-Language``
+* ``SessionMiddleware`` adds ``Cookie``
+* ``GZipMiddleware`` adds ``Accept-Encoding``
+* ``LocaleMiddleware`` adds ``Accept-Language``
 
 ``FetchFromCacheMiddleware``, on the other hand, runs during the request phase,
 where middleware is applied first-to-last, so an item at the top of the list

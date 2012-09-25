@@ -31,68 +31,68 @@ elsewhere.
 
 ``django.contrib`` consists of these packages:
 
-    * ``admin``: The Django admin site. See Chapter 6.
+* ``admin``: The Django admin site. See Chapter 6.
 
-    * ``admindocs``: Auto-documentation for the Django admin site. This book
-      doesn't cover this feature; check the official Django documentation.
+* ``admindocs``: Auto-documentation for the Django admin site. This book
+  doesn't cover this feature; check the official Django documentation.
 
-    * ``auth``: Django's authentication framework. See Chapter 14.
+* ``auth``: Django's authentication framework. See Chapter 14.
 
-    * ``comments``: A comments application. This book doesn't cover this
-      feature; check the official Django documentation.
+* ``comments``: A comments application. This book doesn't cover this
+  feature; check the official Django documentation.
 
-    * ``contenttypes``: A framework for hooking into "types" of content, where
-      each installed Django model is a separate content type. This framework is
-      used internally by other "contrib" applications and is mostly intended for very
-      advanced Django developers. Those developers should find out more about
-      this application by reading the source code in ``django/contrib/contenttypes``.
+* ``contenttypes``: A framework for hooking into "types" of content, where
+  each installed Django model is a separate content type. This framework is
+  used internally by other "contrib" applications and is mostly intended for very
+  advanced Django developers. Those developers should find out more about
+  this application by reading the source code in ``django/contrib/contenttypes``.
 
-    * ``csrf``: Protection against Cross-Site Request Forgery (CSRF). See
-      the later section titled "CSRF Protection."
+* ``csrf``: Protection against Cross-Site Request Forgery (CSRF). See
+  the later section titled "CSRF Protection."
 
-    * ``databrowse``: A Django application that lets you browse your data. This
-      book doesn't cover this feature; check the official Django documentation.
+* ``databrowse``: A Django application that lets you browse your data. This
+  book doesn't cover this feature; check the official Django documentation.
 
-    * ``flatpages``: A framework for managing simple "flat" HTML content in a
-      database. See the later section titled "Flatpages."
+* ``flatpages``: A framework for managing simple "flat" HTML content in a
+  database. See the later section titled "Flatpages."
 
-    * ``formtools``: A number of useful higher-level libraries for dealing with
-      common patterns in forms. This book doesn't cover this feature; check the
-      official Django documentation.
+* ``formtools``: A number of useful higher-level libraries for dealing with
+  common patterns in forms. This book doesn't cover this feature; check the
+  official Django documentation.
 
-    * ``gis``: Extensions to Django that provide for GIS (Geographic
-      Information Systems) support. These, for example, allow your Django
-      models to store geographic data and perform geographic queries. This is
-      a large, complex library and isn't covered in this book. See
-      http://geodjango.org/ for documentation.
+* ``gis``: Extensions to Django that provide for GIS (Geographic
+  Information Systems) support. These, for example, allow your Django
+  models to store geographic data and perform geographic queries. This is
+  a large, complex library and isn't covered in this book. See
+  http://geodjango.org/ for documentation.
 
-    * ``humanize``: A set of Django template filters useful for adding a
-      "human touch" to data. See the later section titled "Humanizing Data."
+* ``humanize``: A set of Django template filters useful for adding a
+  "human touch" to data. See the later section titled "Humanizing Data."
 
-    * ``localflavor``: Assorted pieces of code that are useful for particular
-      countries or cultures. For example, this includes ways to validate U.S.
-      ZIP codes or Icelandic identification numbers.
+* ``localflavor``: Assorted pieces of code that are useful for particular
+  countries or cultures. For example, this includes ways to validate U.S.
+  ZIP codes or Icelandic identification numbers.
 
-    * ``markup``: A set of Django template filters that implement a number of
-      common markup languages. See the later section titled "Markup Filters."
+* ``markup``: A set of Django template filters that implement a number of
+  common markup languages. See the later section titled "Markup Filters."
 
-    * ``redirects``: A framework for managing redirects. See the later section titled
-      "Redirects."
+* ``redirects``: A framework for managing redirects. See the later section titled
+  "Redirects."
 
-    * ``sessions``: Django's session framework. See Chapter 14.
+* ``sessions``: Django's session framework. See Chapter 14.
 
-    * ``sitemaps``: A framework for generating sitemap XML files. See Chapter 13.
+* ``sitemaps``: A framework for generating sitemap XML files. See Chapter 13.
 
-    * ``sites``: A framework that lets you operate multiple Web sites from the
-      same database and Django installation. See the next section, "Sites."
+* ``sites``: A framework that lets you operate multiple Web sites from the
+  same database and Django installation. See the next section, "Sites."
 
-    * ``syndication``: A framework for generating syndication feeds in RSS and
-      Atom. See Chapter 13.
+* ``syndication``: A framework for generating syndication feeds in RSS and
+  Atom. See Chapter 13.
 
-    * ``webdesign``: Django add-ons that are particularly useful to Web
-      *designers* (as opposed to developers). As of this writing, this included
-      only a single template tag, ``{% lorem %}``. Check the Django
-      documentation for information.
+* ``webdesign``: Django add-ons that are particularly useful to Web
+  *designers* (as opposed to developers). As of this writing, this included
+  only a single template tag, ``{% lorem %}``. Check the Django
+  documentation for information.
 
 The rest of this chapter goes into detail a number of ``django.contrib``
 packages that we haven't yet covered in this book.
@@ -150,31 +150,31 @@ How to Use the Sites Framework
 The sites framework is more a series of conventions than a framework. The
 whole thing is based on two simple concepts:
 
-    * The ``Site`` model, found in ``django.contrib.sites``, has ``domain`` and
-      ``name`` fields.
+* The ``Site`` model, found in ``django.contrib.sites``, has ``domain`` and
+  ``name`` fields.
 
-    * The ``SITE_ID`` setting specifies the database ID of the ``Site`` object
-      associated with that particular settings file.
+* The ``SITE_ID`` setting specifies the database ID of the ``Site`` object
+  associated with that particular settings file.
 
 How you use these two concepts is up to you, but Django uses them in a couple
 of ways automatically via simple conventions.
 
 To install the sites application, follow these steps:
 
-    1. Add ``'django.contrib.sites'`` to your ``INSTALLED_APPS``.
+1. Add ``'django.contrib.sites'`` to your ``INSTALLED_APPS``.
 
-    2. Run the command ``manage.py syncdb`` to install the ``django_site``
-       table into your database. This will also create a default site object,
-       with the domain ``example.com``.
+2. Run the command ``manage.py syncdb`` to install the ``django_site``
+   table into your database. This will also create a default site object,
+   with the domain ``example.com``.
 
-    3. Change the ``example.com`` site to your own domain, and add any other
-       ``Site`` objects, either through the Django admin site or via the Python
-       API. Create a ``Site`` object for each site/domain that this Django
-       project powers.
+3. Change the ``example.com`` site to your own domain, and add any other
+   ``Site`` objects, either through the Django admin site or via the Python
+   API. Create a ``Site`` object for each site/domain that this Django
+   project powers.
 
-    4. Define the ``SITE_ID`` setting in each of your settings files. This
-       value should be the database ID of the ``Site`` object for the site
-       powered by that settings file.
+4. Define the ``SITE_ID`` setting in each of your settings files. This
+   value should be the database ID of the ``Site`` object for the site
+   powered by that settings file.
 
 The Sites Framework's Capabilities
 ----------------------------------
@@ -410,31 +410,31 @@ to its ID in your ``SITE_ID`` setting.
 
 Here's how Django uses the sites framework:
 
-    * In the redirects framework (see the later section "Redirects"), each
-      redirect object is associated with a particular site. When Django searches
-      for a redirect, it takes into account the current ``SITE_ID``.
+* In the redirects framework (see the later section "Redirects"), each
+  redirect object is associated with a particular site. When Django searches
+  for a redirect, it takes into account the current ``SITE_ID``.
 
-    * In the comments framework, each comment is associated with a particular
-      site. When a comment is posted, its ``site`` is set to the current
-      ``SITE_ID``, and when comments are listed via the appropriate template
-      tag, only the comments for the current site are displayed.
+* In the comments framework, each comment is associated with a particular
+  site. When a comment is posted, its ``site`` is set to the current
+  ``SITE_ID``, and when comments are listed via the appropriate template
+  tag, only the comments for the current site are displayed.
 
-    * In the flatpages framework (see the later section "Flatpages"), each
-      flatpage is associated with a particular site. When a flatpage is created,
-      you specify its ``site``, and the flatpage middleware checks the current
-      ``SITE_ID`` in retrieving flatpages to display.
+* In the flatpages framework (see the later section "Flatpages"), each
+  flatpage is associated with a particular site. When a flatpage is created,
+  you specify its ``site``, and the flatpage middleware checks the current
+  ``SITE_ID`` in retrieving flatpages to display.
 
-    * In the syndication framework (see Chapter 13), the templates for
-      ``title`` and ``description`` automatically have access to a variable
-      ``{{ site }}``, which is the ``Site`` object representing the current
-      site. Also, the hook for providing item URLs will use the
-      ``domain`` from the current ``Site`` object if you don't specify a
-      fully qualified domain.
+* In the syndication framework (see Chapter 13), the templates for
+  ``title`` and ``description`` automatically have access to a variable
+  ``{{ site }}``, which is the ``Site`` object representing the current
+  site. Also, the hook for providing item URLs will use the
+  ``domain`` from the current ``Site`` object if you don't specify a
+  fully qualified domain.
 
-    * In the authentication framework (see Chapter 14), the
-      ``django.contrib.auth.views.login`` view passes the current ``Site`` name
-      to the template as ``{{ site_name }}`` and the current ``Site`` object as
-      ``{{ site }}``.
+* In the authentication framework (see Chapter 14), the
+  ``django.contrib.auth.views.login`` view passes the current ``Site`` name
+  to the template as ``{{ site_name }}`` and the current ``Site`` object as
+  ``{{ site }}``.
 
 Flatpages
 =========
@@ -464,15 +464,15 @@ Using Flatpages
 
 To install the flatpages application, follow these steps:
 
-    1. Add ``'django.contrib.flatpages'`` to your ``INSTALLED_APPS``.
-       ``django.contrib.flatpages`` depends on ``django.contrib.sites``, so make
-       sure the both packages are in ``INSTALLED_APPS``.
+1. Add ``'django.contrib.flatpages'`` to your ``INSTALLED_APPS``.
+   ``django.contrib.flatpages`` depends on ``django.contrib.sites``, so make
+   sure the both packages are in ``INSTALLED_APPS``.
 
-    2. Add ``'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'``
-       to your ``MIDDLEWARE_CLASSES`` setting.
+2. Add ``'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'``
+   to your ``MIDDLEWARE_CLASSES`` setting.
 
-    3. Run the command ``manage.py syncdb`` to install the two required tables
-       into your database.
+3. Run the command ``manage.py syncdb`` to install the two required tables
+   into your database.
 
 The flatpages application creates two tables in your database: ``django_flatpage``
 and ``django_flatpage_sites``. ``django_flatpage`` simply maps a URL to a title
@@ -496,33 +496,33 @@ The application comes with a single ``FlatPage`` model, defined in
 
 Let's examine these fields one at a time:
 
-    * ``url``: The URL at which this flatpage lives, excluding the domain
-      name but including the leading slash (e.g., ``/about/contact/``).
+* ``url``: The URL at which this flatpage lives, excluding the domain
+  name but including the leading slash (e.g., ``/about/contact/``).
 
-    * ``title``: The title of the flatpage. The framework doesn't do anything
-      special with this. It's your responsibility to display it in your
-      template.
+* ``title``: The title of the flatpage. The framework doesn't do anything
+  special with this. It's your responsibility to display it in your
+  template.
 
-    * ``content``: The content of the flatpage (i.e., the HTML of the page).
-      The framework doesn't do anything special with this. It's your
-      responsibility to display it in the template.
+* ``content``: The content of the flatpage (i.e., the HTML of the page).
+  The framework doesn't do anything special with this. It's your
+  responsibility to display it in the template.
 
-    * ``enable_comments``: Whether to enable comments on this flatpage. The
-      framework doesn't do anything special with this. You can check this value
-      in your template and display a comment form if needed.
+* ``enable_comments``: Whether to enable comments on this flatpage. The
+  framework doesn't do anything special with this. You can check this value
+  in your template and display a comment form if needed.
 
-    * ``template_name``: The name of the template to use for rendering this
-      flatpage. This is optional; if it's not given or if this template doesn't
-      exist, the framework will fall back to the template
-      ``flatpages/default.html``.
+* ``template_name``: The name of the template to use for rendering this
+  flatpage. This is optional; if it's not given or if this template doesn't
+  exist, the framework will fall back to the template
+  ``flatpages/default.html``.
 
-    * ``registration_required``: Whether registration is required for viewing
-      this flatpage. This integrates with Django's authentication/user
-      framework, which is explained further in Chapter 14.
+* ``registration_required``: Whether registration is required for viewing
+  this flatpage. This integrates with Django's authentication/user
+  framework, which is explained further in Chapter 14.
 
-    * ``sites``: The sites that this flatpage lives on. This integrates with
-      Django's sites framework, which is explained in the "Sites" section of
-      this chapter.
+* ``sites``: The sites that this flatpage lives on. This integrates with
+  Django's sites framework, which is explained in the "Sites" section of
+  this chapter.
 
 You can create flatpages through either the Django admin interface or the
 Django database API. For more information on this, see the section
@@ -628,13 +628,13 @@ Using the Redirects Framework
 
 To install the redirects application, follow these steps:
 
-    1. Add ``'django.contrib.redirects'`` to your ``INSTALLED_APPS``.
+1. Add ``'django.contrib.redirects'`` to your ``INSTALLED_APPS``.
 
-    2. Add ``'django.contrib.redirects.middleware.RedirectFallbackMiddleware'``
-       to your ``MIDDLEWARE_CLASSES`` setting.
+2. Add ``'django.contrib.redirects.middleware.RedirectFallbackMiddleware'``
+   to your ``MIDDLEWARE_CLASSES`` setting.
 
-    3. Run the command ``manage.py syncdb`` to install the single required
-       table into your database.
+3. Run the command ``manage.py syncdb`` to install the single required
+   table into your database.
 
 ``manage.py syncdb`` creates a ``django_redirect`` table in your database. This
 is a simple lookup table with ``site_id``, ``old_path``, and ``new_path`` fields.
@@ -650,14 +650,14 @@ Specifically, it checks for a redirect with the given ``old_path`` with a site
 ID that corresponds to the ``SITE_ID`` setting. (See the earlier section "Sites"
 for more information on ``SITE_ID`` and the sites framework.) Then it follows these steps:
 
-    * If it finds a match, and ``new_path`` is not empty, it redirects to
-      ``new_path``.
+* If it finds a match, and ``new_path`` is not empty, it redirects to
+  ``new_path``.
 
-    * If it finds a match, and ``new_path`` is empty, it sends a 410 ("Gone")
-      HTTP header and an empty (contentless) response.
+* If it finds a match, and ``new_path`` is empty, it sends a 410 ("Gone")
+  HTTP header and an empty (contentless) response.
 
-    * If it doesn't find a match, the request continues to be processed as
-      usual.
+* If it doesn't find a match, the request continues to be processed as
+  usual.
 
 The middleware only gets activated for 404 errors -- not for 500 errors or responses of any
 other status code.
@@ -791,23 +791,23 @@ needs to process the response *after* ``SessionMiddleware``, so
 (because the response middleware is processed last-to-first). Also, it must
 process the response before the response gets compressed or otherwise mangled,
 so ``CsrfMiddleware`` must come after ``GZipMiddleware``. Once you've added
-that to your ``MIDDLEWARE_CLASSES`` setting, you're done.  See the section 
+that to your ``MIDDLEWARE_CLASSES`` setting, you're done.  See the section
 "Order of MIDDLEWARE_CLASSES" in Chapter 15 for more explanation.
 
 In case you're interested, here's how ``CsrfMiddleware`` works. It does these
 two things:
 
-    1. It modifies outgoing requests by adding a hidden form field to all
-       ``POST`` forms, with the name ``csrfmiddlewaretoken`` and a value that
-       is a hash of the session ID plus a secret key. The middleware does *not*
-       modify the response if there's no session ID set, so the performance
-       penalty is negligible for requests that don't use sessions.
+1. It modifies outgoing requests by adding a hidden form field to all
+   ``POST`` forms, with the name ``csrfmiddlewaretoken`` and a value that
+   is a hash of the session ID plus a secret key. The middleware does *not*
+   modify the response if there's no session ID set, so the performance
+   penalty is negligible for requests that don't use sessions.
 
-    2. On all incoming ``POST`` requests that have the session cookie set, it
-       checks that ``csrfmiddlewaretoken`` is present and correct. If it
-       isn't, the user will get a 403 ``HTTP`` error. The content of the 403
-       error page is the message "Cross Site Request Forgery detected. Request
-       aborted."
+2. On all incoming ``POST`` requests that have the session cookie set, it
+   checks that ``csrfmiddlewaretoken`` is present and correct. If it
+   isn't, the user will get a 403 ``HTTP`` error. The content of the 403
+   error page is the message "Cross Site Request Forgery detected. Request
+   aborted."
 
 This ensures that only forms originating from your Web site can be used to POST
 data back.
@@ -861,9 +861,9 @@ it returns the numeral. This follows Associated Press style.
 
 Examples:
 
-    * 1 becomes "one".
-    * 2 becomes "two".
-    * 10 becomes "10".
+* 1 becomes "one".
+* 2 becomes "two".
+* 10 becomes "10".
 
 You can pass in either an integer or a string representation of an integer.
 
@@ -874,10 +874,10 @@ This filter converts an integer to a string containing commas every three digits
 
 Examples:
 
-    * 4500 becomes "4,500".
-    * 45000 becomes "45,000".
-    * 450000 becomes "450,000".
-    * 4500000 becomes "4,500,000".
+* 4500 becomes "4,500".
+* 45000 becomes "45,000".
+* 450000 becomes "450,000".
+* 4500000 becomes "4,500,000".
 
 You can pass in either an integer or a string representation of an integer.
 
@@ -889,9 +889,9 @@ numbers over 1 million.
 
 Examples:
 
-    * 1000000 becomes "1.0 million".
-    * 1200000 becomes "1.2 million".
-    * 1200000000 becomes "1.2 billion".
+* 1000000 becomes "1.0 million".
+* 1200000 becomes "1.2 million".
+* 1200000000 becomes "1.2 billion".
 
 Values up to 1 quadrillion (1,000,000,000,000,000) are supported.
 
@@ -904,10 +904,10 @@ This filter converts an integer to its ordinal as a string.
 
 Examples:
 
-    * 1 becomes "1st".
-    * 2 becomes "2nd".
-    * 3 becomes "3rd".
-    * 254 becomes "254th".
+* 1 becomes "1st".
+* 2 becomes "2nd".
+* 3 becomes "3rd".
+* 254 becomes "254th".
 
 You can pass in either an integer or a string representation of an integer.
 
@@ -917,13 +917,13 @@ Markup Filters
 The package ``django.contrib.markup`` includes a handful of Django template
 filters, each of which implements a common markup languages:
 
-    * ``textile``: Implements Textile
-      (http://en.wikipedia.org/wiki/Textile_%28markup_language%29)
+* ``textile``: Implements Textile
+  (http://en.wikipedia.org/wiki/Textile_%28markup_language%29)
 
-    * ``markdown``: Implements Markdown (http://en.wikipedia.org/wiki/Markdown)
+* ``markdown``: Implements Markdown (http://en.wikipedia.org/wiki/Markdown)
 
-    * ``restructuredtext``: Implements ReStructured Text
-      (http://en.wikipedia.org/wiki/ReStructuredText)
+* ``restructuredtext``: Implements ReStructured Text
+  (http://en.wikipedia.org/wiki/ReStructuredText)
 
 In each case, the filter expects formatted markup as a string and returns a
 string representing the marked-up text. For example, the ``textile`` filter converts

@@ -85,27 +85,27 @@ read. It's also simple to deploy: just save this code in a file that ends with
 But despite its simplicity, this approach has a number of problems and
 annoyances. Ask yourself these questions:
 
-    * What happens when multiple parts of your application need to connect to
-      the database? Surely that database-connecting code shouldn't need to be
-      duplicated in each individual CGI script. The pragmatic thing to do would
-      be to refactor it into a shared function.
+* What happens when multiple parts of your application need to connect to
+  the database? Surely that database-connecting code shouldn't need to be
+  duplicated in each individual CGI script. The pragmatic thing to do would
+  be to refactor it into a shared function.
 
-    * Should a developer really have to worry about printing the
-      "Content-Type" line and remembering to close the database connection?
-      This sort of boilerplate reduces programmer productivity and introduces
-      opportunities for mistakes. These setup- and teardown-related tasks would
-      best be handled by some common infrastructure.
+* Should a developer really have to worry about printing the
+  "Content-Type" line and remembering to close the database connection?
+  This sort of boilerplate reduces programmer productivity and introduces
+  opportunities for mistakes. These setup- and teardown-related tasks would
+  best be handled by some common infrastructure.
 
-    * What happens when this code is reused in multiple environments, each with
-      a separate database and password? At this point, some
-      environment-specific configuration becomes essential.
+* What happens when this code is reused in multiple environments, each with
+  a separate database and password? At this point, some
+  environment-specific configuration becomes essential.
 
-    * What happens when a Web designer who has no experience coding Python
-      wishes to redesign the page? One wrong character could crash the entire
-      application. Ideally, the logic of the page -- the retrieval of book
-      titles from the database -- would be separate from the HTML display of
-      the page, so that a designer could edit the latter without affecting the
-      former.
+* What happens when a Web designer who has no experience coding Python
+  wishes to redesign the page? One wrong character could crash the entire
+  application. Ideally, the logic of the page -- the retrieval of book
+  titles from the database -- would be separate from the HTML display of
+  the page, so that a designer could edit the latter without affecting the
+  former.
 
 These problems are precisely what a Web framework intends to solve. A Web
 framework provides a programming infrastructure for your applications, so that
@@ -165,23 +165,23 @@ an HTML template (``latest_books.html``)::
 Again, don't worry about the particulars of syntax; just get a feel for the
 overall design. The main thing to note here is the *separation of concerns*:
 
-    * The ``models.py`` file contains a description of the database table,
-      represented by a Python class. This class is called a *model*. Using it,
-      you can create, retrieve, update and delete records in your database
-      using simple Python code rather than writing repetitive SQL statements.
+* The ``models.py`` file contains a description of the database table,
+  represented by a Python class. This class is called a *model*. Using it,
+  you can create, retrieve, update and delete records in your database
+  using simple Python code rather than writing repetitive SQL statements.
 
-    * The ``views.py`` file contains the business logic for the page. The
-      ``latest_books()`` function is called a *view*.
+* The ``views.py`` file contains the business logic for the page. The
+  ``latest_books()`` function is called a *view*.
 
-    * The ``urls.py`` file specifies which view is called for a given URL
-      pattern. In this case, the URL ``/latest/`` will be handled by the
-      ``latest_books()`` function. In other words, if your domain is
-      example.com, any visit to the URL http://example.com/latest/ will call
-      the ``latest_books()`` function.
+* The ``urls.py`` file specifies which view is called for a given URL
+  pattern. In this case, the URL ``/latest/`` will be handled by the
+  ``latest_books()`` function. In other words, if your domain is
+  example.com, any visit to the URL http://example.com/latest/ will call
+  the ``latest_books()`` function.
 
-    * The ``latest_books.html`` file is an HTML template that describes the
-      design of the page. It uses a template language with basic logic
-      statements -- e.g., ``{% for book in book_list %}``.
+* The ``latest_books.html`` file is an HTML template that describes the
+  design of the page. It uses a template language with basic logic
+  statements -- e.g., ``{% for book in book_list %}``.
 
 Taken together, these pieces loosely follow a pattern called
 Model-View-Controller (MVC). Simply put, MVC is way of developing software so
@@ -214,13 +214,13 @@ If you've been building Web applications for a while, you're probably familiar
 with the problems in the CGI example we presented earlier. The classic Web
 developer's path goes something like this:
 
-    1. Write a Web application from scratch.
-    2. Write another Web application from scratch.
-    3. Realize the application from step 1 shares much in common with the
-       application from step 2.
-    4. Refactor the code so that application 1 shares code with application 2.
-    5. Repeat steps 2-4 several times.
-    6. Realize you've invented a framework.
+1. Write a Web application from scratch.
+2. Write another Web application from scratch.
+3. Realize the application from step 1 shares much in common with the
+   application from step 2.
+4. Refactor the code so that application 1 shares code with application 2.
+5. Repeat steps 2-4 several times.
+6. Realize you've invented a framework.
 
 This is precisely how Django itself was created!
 
@@ -357,17 +357,15 @@ One of the greatest benefits of Django is its kind and helpful user community.
 For help with any aspect of Django -- from installation, to application design,
 to database design, to deployment -- feel free to ask questions online.
 
-    * The django-users mailing list is where thousands of Django users hang out
-      to ask and answer questions. Sign up for free at http://www.djangoproject.com/r/django-users.
+* The django-users mailing list is where thousands of Django users hang out
+  to ask and answer questions. Sign up for free at http://www.djangoproject.com/r/django-users.
 
-    * The Django IRC channel is where Django users hang out to chat and help
-      each other in real time. Join the fun by logging on to #django on the
-      Freenode IRC network.
+* The Django IRC channel is where Django users hang out to chat and help
+  each other in real time. Join the fun by logging on to #django on the
+  Freenode IRC network.
 
 What's Next
 -----------
 
-In the `next chapter`_, we'll get started with Django, covering installation and
+In :doc:`chapter02`, we'll get started with Django, covering installation and
 initial setup.
-
-.. _next chapter: ../chapter02/

@@ -56,22 +56,22 @@ retrieve some records, and feed them to a template for display as a Web page::
 
 This approach works, but some problems should jump out at you immediately:
 
-    * We're hard-coding the database connection parameters. Ideally, these
-      parameters would be stored in the Django configuration.
+* We're hard-coding the database connection parameters. Ideally, these
+  parameters would be stored in the Django configuration.
 
-    * We're having to write a fair bit of boilerplate code: creating a
-      connection, creating a cursor, executing a statement, and closing the
-      connection. Ideally, all we'd have to do is specify which results we
-      wanted.
+* We're having to write a fair bit of boilerplate code: creating a
+  connection, creating a cursor, executing a statement, and closing the
+  connection. Ideally, all we'd have to do is specify which results we
+  wanted.
 
-    * It ties us to MySQL. If, down the road, we switch from MySQL to
-      PostgreSQL, we'll have to use a different database adapter (e.g.,
-      ``psycopg`` rather than ``MySQLdb``), alter the connection parameters,
-      and -- depending on the nature of the SQL statement -- possibly rewrite
-      the SQL. Ideally, the database server we're using would be abstracted, so
-      that a database server change could be made in a single place. (This
-      feature is particularly relevant if you're building an open-source Django
-      application that you want to be used by as many people as possible.)
+* It ties us to MySQL. If, down the road, we switch from MySQL to
+  PostgreSQL, we'll have to use a different database adapter (e.g.,
+  ``psycopg`` rather than ``MySQLdb``), alter the connection parameters,
+  and -- depending on the nature of the SQL statement -- possibly rewrite
+  the SQL. Ideally, the database server we're using would be abstracted, so
+  that a database server change could be made in a single place. (This
+  feature is particularly relevant if you're building an open-source Django
+  application that you want to be used by as many people as possible.)
 
 As you might expect, Django's database layer aims to solve these problems.
 Here's a sneak preview of how the previous view can be rewritten using Django's
@@ -121,31 +121,31 @@ depending on user input, accessing the model as needed.
 Django follows this MVC pattern closely enough that it can be called an MVC
 framework. Here's roughly how the M, V, and C break down in Django:
 
-    * *M*, the data-access portion, is handled by Django's database layer,
-      which is described in this chapter.
+* *M*, the data-access portion, is handled by Django's database layer,
+  which is described in this chapter.
 
-    * *V*, the portion that selects which data to display and how to display
-      it, is handled by views and templates.
+* *V*, the portion that selects which data to display and how to display
+  it, is handled by views and templates.
 
-    * *C*, the portion that delegates to a view depending on user input, is
-      handled by the framework itself by following your URLconf and calling the
-      appropriate Python function for the given URL.
+* *C*, the portion that delegates to a view depending on user input, is
+  handled by the framework itself by following your URLconf and calling the
+  appropriate Python function for the given URL.
 
 Because the "C" is handled by the framework itself and most of the excitement
 in Django happens in models, templates and views, Django has been referred to
 as an *MTV framework*. In the MTV development pattern,
 
-    * *M* stands for "Model," the data access layer. This layer contains
-      anything and everything about the data: how to access it, how to validate
-      it, which behaviors it has, and the relationships between the data. 
+* *M* stands for "Model," the data access layer. This layer contains
+  anything and everything about the data: how to access it, how to validate
+  it, which behaviors it has, and the relationships between the data.
 
-    * *T* stands for "Template," the presentation layer. This layer contains
-      presentation-related decisions: how something should be displayed on a
-      Web page or other type of document.
+* *T* stands for "Template," the presentation layer. This layer contains
+  presentation-related decisions: how something should be displayed on a
+  Web page or other type of document.
 
-    * *V* stands for "View," the business logic layer. This layer contains the
-      logic that access the model and defers to the appropriate template(s).
-      You can think of it as the bridge between models and templates.
+* *V* stands for "View," the business logic layer. This layer contains the
+  logic that access the model and defers to the appropriate template(s).
+  You can think of it as the bridge between models and templates.
 
 If you're familiar with other MVC Web-development frameworks, such as Ruby on
 Rails, you may consider Django views to be the "controllers" and Django
@@ -185,85 +185,85 @@ look for the database settings::
 
 Here's a rundown of each setting.
 
-    * ``DATABASE_ENGINE`` tells Django which database engine to use. If you're
-      using a database with Django, ``DATABASE_ENGINE`` must be set to one of
-      the strings shown in Table 5-1.
-      
-      .. table:: Table 5-1. Database Engine Settings
+* ``DATABASE_ENGINE`` tells Django which database engine to use. If you're
+  using a database with Django, ``DATABASE_ENGINE`` must be set to one of
+  the strings shown in Table 5-1.
 
-          =======================  ====================  ==============================================
-          Setting                  Database              Required Adapter
-          =======================  ====================  ==============================================
-          ``postgresql``           PostgreSQL            ``psycopg`` version 1.x,
-                                                         http://www.djangoproject.com/r/python-pgsql/1/.
+  .. table:: Table 5-1. Database Engine Settings
 
-          ``postgresql_psycopg2``  PostgreSQL            ``psycopg`` version 2.x,
-                                                         http://www.djangoproject.com/r/python-pgsql/.
+      =======================  ====================  ==============================================
+      Setting                  Database              Required Adapter
+      =======================  ====================  ==============================================
+      ``postgresql``           PostgreSQL            ``psycopg`` version 1.x,
+                                                     http://www.djangoproject.com/r/python-pgsql/1/.
 
-          ``mysql``                MySQL                 ``MySQLdb``,
-                                                         http://www.djangoproject.com/r/python-mysql/.
+      ``postgresql_psycopg2``  PostgreSQL            ``psycopg`` version 2.x,
+                                                     http://www.djangoproject.com/r/python-pgsql/.
 
-          ``sqlite3``              SQLite                No adapter needed if using Python 2.5+.
-                                                         Otherwise, ``pysqlite``,
-                                                         http://www.djangoproject.com/r/python-sqlite/.
+      ``mysql``                MySQL                 ``MySQLdb``,
+                                                     http://www.djangoproject.com/r/python-mysql/.
 
-          ``oracle``               Oracle                ``cx_Oracle``,
-                                                         http://www.djangoproject.com/r/python-oracle/.
-          =======================  ====================  ==============================================
+      ``sqlite3``              SQLite                No adapter needed if using Python 2.5+.
+                                                     Otherwise, ``pysqlite``,
+                                                     http://www.djangoproject.com/r/python-sqlite/.
 
-      Note that for whichever database back-end you use, you'll need to download
-      and install the appropriate database adapter. Each one is available for
-      free on the Web; just follow the links in the "Required Adapter" column
-      in Table 5-1. If you're on Linux, your distribution's package-management
-      system might offer convenient packages. (Look for packages called
-      ``python-postgresql`` or ``python-psycopg``, for example.)
+      ``oracle``               Oracle                ``cx_Oracle``,
+                                                     http://www.djangoproject.com/r/python-oracle/.
+      =======================  ====================  ==============================================
 
-      Example::
+  Note that for whichever database back-end you use, you'll need to download
+  and install the appropriate database adapter. Each one is available for
+  free on the Web; just follow the links in the "Required Adapter" column
+  in Table 5-1. If you're on Linux, your distribution's package-management
+  system might offer convenient packages. (Look for packages called
+  ``python-postgresql`` or ``python-psycopg``, for example.)
 
-          DATABASE_ENGINE = 'postgresql_psycopg2'
+  Example::
 
-    * ``DATABASE_NAME`` tells Django the name of your database. For example::
+      DATABASE_ENGINE = 'postgresql_psycopg2'
 
-          DATABASE_NAME = 'mydb'
+* ``DATABASE_NAME`` tells Django the name of your database. For example::
 
-      If you're using SQLite, specify the full filesystem path to the database
-      file on your filesystem. For example::
+      DATABASE_NAME = 'mydb'
 
-          DATABASE_NAME = '/home/django/mydata.db'
+  If you're using SQLite, specify the full filesystem path to the database
+  file on your filesystem. For example::
 
-      As for where you put that SQLite database, we're using the ``/home/django``
-      directory in this example, but you should pick a directory that works
-      best for you.
+      DATABASE_NAME = '/home/django/mydata.db'
 
-    * ``DATABASE_USER`` tells Django which username to use when connecting to
-      your database. For example: If you're using SQLite, leave this blank.
+  As for where you put that SQLite database, we're using the ``/home/django``
+  directory in this example, but you should pick a directory that works
+  best for you.
 
-    * ``DATABASE_PASSWORD`` tells Django which password to use when connecting
-      to your database. If you're using SQLite or have an empty password, leave
-      this blank.
+* ``DATABASE_USER`` tells Django which username to use when connecting to
+  your database. For example: If you're using SQLite, leave this blank.
 
-    * ``DATABASE_HOST`` tells Django which host to use when connecting to your
-      database. If your database is on the same computer as your Django
-      installation (i.e., localhost), leave this blank. If you're using SQLite,
-      leave this blank.
+* ``DATABASE_PASSWORD`` tells Django which password to use when connecting
+  to your database. If you're using SQLite or have an empty password, leave
+  this blank.
 
-      MySQL is a special case here. If this value starts with a forward slash
-      (``'/'``) and you're using MySQL, MySQL will connect via a Unix socket to
-      the specified socket, for example::
+* ``DATABASE_HOST`` tells Django which host to use when connecting to your
+  database. If your database is on the same computer as your Django
+  installation (i.e., localhost), leave this blank. If you're using SQLite,
+  leave this blank.
 
-          DATABASE_HOST = '/var/run/mysql'
+  MySQL is a special case here. If this value starts with a forward slash
+  (``'/'``) and you're using MySQL, MySQL will connect via a Unix socket to
+  the specified socket, for example::
+
+      DATABASE_HOST = '/var/run/mysql'
 
 .. SL The usual convention is for the socket to be named 'mysql.sock' or similar,
 .. SL so would '/var/run/mysql.sock' be a better example?
 
-      If you're using MySQL and this value *doesn't* start with a forward
-      slash, then this value is assumed to be the host.
+  If you're using MySQL and this value *doesn't* start with a forward
+  slash, then this value is assumed to be the host.
 
-    * ``DATABASE_PORT`` tells Django which port to use when connecting to your
-      database. If you're using SQLite, leave this blank. Otherwise, if you
-      leave this blank, the underlying database adapter will use whichever
-      port is default for your given database server. In most cases, the
-      default port is fine, so you can leave this blank.
+* ``DATABASE_PORT`` tells Django which port to use when connecting to your
+  database. If you're using SQLite, leave this blank. Otherwise, if you
+  leave this blank, the underlying database adapter will use whichever
+  port is default for your given database server. In most cases, the
+  default port is fine, so you can leave this blank.
 
 Once you've entered those settings and saved ``settings.py``, it's a good idea
 to test your configuration. To do this, run ``python manage.py shell`` as in
@@ -325,19 +325,19 @@ beginners. We'd already created a *project*, in Chapter 2, so what's the
 difference between a *project* and an *app*? The difference is that of
 configuration vs. code:
 
-    * A project is an instance of a certain set of Django apps, plus the
-      configuration for those apps.
+* A project is an instance of a certain set of Django apps, plus the
+  configuration for those apps.
 
-      Technically, the only requirement of a project is that it supplies a
-      settings file, which defines the database connection information, the
-      list of installed apps, the ``TEMPLATE_DIRS``, and so forth.
+  Technically, the only requirement of a project is that it supplies a
+  settings file, which defines the database connection information, the
+  list of installed apps, the ``TEMPLATE_DIRS``, and so forth.
 
-    * An app is a portable set of Django functionality, usually including
-      models and views, that lives together in a single Python package.
+* An app is a portable set of Django functionality, usually including
+  models and views, that lives together in a single Python package.
 
-      For example, Django comes with a number of apps, such as a commenting
-      system and an automatic admin interface. A key thing to note about these
-      apps is that they're portable and reusable across multiple projects.
+  For example, Django comes with a number of apps, such as a commenting
+  system and an automatic admin interface. A key thing to note about these
+  apps is that they're portable and reusable across multiple projects.
 
 There are very few hard-and-fast rules about how you fit your Django code into
 this scheme. If you're building a simple Web site, you may use only a single
@@ -393,43 +393,43 @@ If you're familiar with databases, your immediate thought might be, "Isn't it
 redundant to define data models in Python instead of in SQL?" Django works the
 way it does for several reasons:
 
-    * Introspection requires overhead and is imperfect. In order to provide 
-      convenient data-access APIs, Django needs to know the
-      database layout *somehow*, and there are two ways of accomplishing this.
-      The first way would be to explicitly describe the data in Python, and the
-      second way would be to introspect the database at runtime to determine
-      the data models.
+* Introspection requires overhead and is imperfect. In order to provide
+  convenient data-access APIs, Django needs to know the
+  database layout *somehow*, and there are two ways of accomplishing this.
+  The first way would be to explicitly describe the data in Python, and the
+  second way would be to introspect the database at runtime to determine
+  the data models.
 
-      This second way seems cleaner, because the metadata about your tables
-      lives in only one place, but it introduces a few problems. First,
-      introspecting a database at runtime obviously requires overhead. If the
-      framework had to introspect the database each time it processed a
-      request, or even only when the Web server was initialized, this would
-      incur an unacceptable level of overhead. (While some believe that level
-      of overhead is acceptable, Django's developers aim to trim as much
-      framework overhead as possible.) Second, some databases, notably older
-      versions of MySQL, do not store sufficient metadata for accurate and
-      complete introspection.
+  This second way seems cleaner, because the metadata about your tables
+  lives in only one place, but it introduces a few problems. First,
+  introspecting a database at runtime obviously requires overhead. If the
+  framework had to introspect the database each time it processed a
+  request, or even only when the Web server was initialized, this would
+  incur an unacceptable level of overhead. (While some believe that level
+  of overhead is acceptable, Django's developers aim to trim as much
+  framework overhead as possible.) Second, some databases, notably older
+  versions of MySQL, do not store sufficient metadata for accurate and
+  complete introspection.
 
-    * Writing Python is fun, and keeping everything in Python limits the number
-      of times your brain has to do a "context switch." It helps productivity
-      if you keep yourself in a single programming environment/mentality for as
-      long as possible. Having to write SQL, then Python, and then SQL again is
-      disruptive.
+* Writing Python is fun, and keeping everything in Python limits the number
+  of times your brain has to do a "context switch." It helps productivity
+  if you keep yourself in a single programming environment/mentality for as
+  long as possible. Having to write SQL, then Python, and then SQL again is
+  disruptive.
 
-    * Having data models stored as code rather than in your database makes it
-      easier to keep your models under version control. This way, you can
-      easily keep track of changes to your data layouts.
+* Having data models stored as code rather than in your database makes it
+  easier to keep your models under version control. This way, you can
+  easily keep track of changes to your data layouts.
 
-    * SQL allows for only a certain level of metadata about a data layout. Most
-      database systems, for example, do not provide a specialized data type for
-      representing email addresses or URLs. Django models do. The advantage of
-      higher-level data types is higher productivity and more reusable code.
+* SQL allows for only a certain level of metadata about a data layout. Most
+  database systems, for example, do not provide a specialized data type for
+  representing email addresses or URLs. Django models do. The advantage of
+  higher-level data types is higher productivity and more reusable code.
 
-    * SQL is inconsistent across database platforms. If you're distributing a
-      Web application, for example, it's much more pragmatic to distribute a
-      Python module that describes your data layout than separate sets of
-      ``CREATE TABLE`` statements for MySQL, PostgreSQL, and SQLite.
+* SQL is inconsistent across database platforms. If you're distributing a
+  Web application, for example, it's much more pragmatic to distribute a
+  Python module that describes your data layout than separate sets of
+  ``CREATE TABLE`` statements for MySQL, PostgreSQL, and SQLite.
 
 A drawback of this approach, however, is that it's possible for the Python code
 to get out of sync with what's actually in the database. If you make changes to
@@ -452,14 +452,14 @@ also reading a book that was written by authors and produced by a publisher!
 
 We'll suppose the following concepts, fields, and relationships:
 
-    * An author has a first name, a last name and an email address.
+* An author has a first name, a last name and an email address.
 
-    * A publisher has a name, a street address, a city, a state/province, a
-      country, and a Web site.
+* A publisher has a name, a street address, a city, a state/province, a
+  country, and a Web site.
 
-    * A book has a title and a publication date. It also has one or more
-      authors (a many-to-many relationship with authors) and a single publisher
-      (a one-to-many relationship -- aka foreign key -- to publishers).
+* A book has a title and a publication date. It also has one or more
+  authors (a many-to-many relationship with authors) and a single publisher
+  (a one-to-many relationship -- aka foreign key -- to publishers).
 
 The first step in using this database layout with Django is to express it as
 Python code. In the ``models.py`` file that was created by the ``startapp``
@@ -551,8 +551,8 @@ Temporarily comment out all four of those strings by putting a hash character
 (``#``) in front of them. (They're included by default as a common-case
 convenience, but we'll activate and discuss them in subsequent chapters.)
 While you're at it, comment out the default ``MIDDLEWARE_CLASSES`` setting, too;
-the default values in ``MIDDLEWARE_CLASSES`` depend on some of the apps we 
-just commented out. Then, add  ``'mysite.books'`` to the ``INSTALLED_APPS`` 
+the default values in ``MIDDLEWARE_CLASSES`` depend on some of the apps we
+just commented out. Then, add  ``'mysite.books'`` to the ``INSTALLED_APPS``
 list, so the setting ends up looking like this::
 
     MIDDLEWARE_CLASSES = (
@@ -560,7 +560,7 @@ list, so the setting ends up looking like this::
         # 'django.contrib.sessions.middleware.SessionMiddleware',
         # 'django.contrib.auth.middleware.AuthenticationMiddleware',
     )
-    
+
     INSTALLED_APPS = (
         # 'django.contrib.auth',
         # 'django.contrib.contenttypes',
@@ -575,7 +575,7 @@ single-element tuple. By the way, this book's authors prefer to put a comma
 after *every* element of a tuple, regardless of whether the tuple has only a
 single element. This avoids the issue of forgetting commas, and there's no
 penalty for using that extra comma.)
-    
+
 ``'mysite.books'`` refers to the ``books`` app we're working on. Each app in
 ``INSTALLED_APPS`` is represented by its full Python path -- that is, the path
 of packages, separated by dots, leading to the app package.
@@ -645,26 +645,26 @@ should see something like this::
 
 Note the following:
 
-    * Table names are automatically generated by combining the name of the app
-      (``books``) and the lowercase name of the model (``publisher``,
-      ``book``, and ``author``). You can override this behavior, as detailed 
-      in Appendix B.
+* Table names are automatically generated by combining the name of the app
+  (``books``) and the lowercase name of the model (``publisher``,
+  ``book``, and ``author``). You can override this behavior, as detailed
+  in Appendix B.
 
-    * As we mentioned earlier, Django adds a primary key for each table
-      automatically -- the ``id`` fields. You can override this, too.
+* As we mentioned earlier, Django adds a primary key for each table
+  automatically -- the ``id`` fields. You can override this, too.
 
-    * By convention, Django appends ``"_id"`` to the foreign key field name. As
-      you might have guessed, you can override this behavior, too.
+* By convention, Django appends ``"_id"`` to the foreign key field name. As
+  you might have guessed, you can override this behavior, too.
 
-    * The foreign key relationship is made explicit by a ``REFERENCES``
-      statement.
+* The foreign key relationship is made explicit by a ``REFERENCES``
+  statement.
 
-    * These ``CREATE TABLE`` statements are tailored to the database you're
-      using, so database-specific field types such as ``auto_increment``
-      (MySQL), ``serial`` (PostgreSQL), or ``integer primary key`` (SQLite) are
-      handled for you automatically. The same goes for quoting of column names
-      (e.g., using double quotes or single quotes). This example output is in
-      PostgreSQL syntax.
+* These ``CREATE TABLE`` statements are tailored to the database you're
+  using, so database-specific field types such as ``auto_increment``
+  (MySQL), ``serial`` (PostgreSQL), or ``integer primary key`` (SQLite) are
+  handled for you automatically. The same goes for quoting of column names
+  (e.g., using double quotes or single quotes). This example output is in
+  PostgreSQL syntax.
 
 The ``sqlall`` command doesn't actually create the tables or otherwise touch
 your database -- it just prints output to the screen so you can see what SQL
@@ -730,20 +730,20 @@ API for working with those models. Try it out by running
 
 These few lines of code accomplish quite a bit. Here are the highlights:
 
-    * First, we import our ``Publisher`` model class. This lets us interact
-      with the database table that contains publishers.
+* First, we import our ``Publisher`` model class. This lets us interact
+  with the database table that contains publishers.
 
-    * We create a ``Publisher`` object by instantiating it with values for
-      each field -- ``name``, ``address``, etc.
+* We create a ``Publisher`` object by instantiating it with values for
+  each field -- ``name``, ``address``, etc.
 
-    * To save the object to the database, call its ``save()`` method. Behind
-      the scenes, Django executes an SQL ``INSERT`` statement here.
+* To save the object to the database, call its ``save()`` method. Behind
+  the scenes, Django executes an SQL ``INSERT`` statement here.
 
-    * To retrieve publishers from the database, use the attribute
-      ``Publisher.objects``, which you can think of as a set of all publishers.
-      Fetch a list of *all* ``Publisher`` objects in the database with the
-      statement ``Publisher.objects.all()``. Behind the scenes, Django executes
-      an SQL ``SELECT`` statement here.
+* To retrieve publishers from the database, use the attribute
+  ``Publisher.objects``, which you can think of as a set of all publishers.
+  Fetch a list of *all* ``Publisher`` objects in the database with the
+  statement ``Publisher.objects.all()``. Behind the scenes, Django executes
+  an SQL ``SELECT`` statement here.
 
 One thing is worth mentioning, in case it wasn't clear from this example. When
 you're creating objects using the Django model API, Django doesn't save the
@@ -791,7 +791,7 @@ We can fix this easily by adding a method called ``__unicode__()`` to our
 .. parsed-literal::
 
     from django.db import models
-    
+
     class Publisher(models.Model):
         name = models.CharField(max_length=30)
         address = models.CharField(max_length=50)
@@ -934,7 +934,7 @@ a new record (i.e., performing an SQL ``UPDATE`` statement instead of an
 
     >>> p.name = 'Apress Publishing'
     >>> p.save()
-                                               
+
 .. SL Tested ok
 
 The preceding ``save()`` statement will result in roughly the following SQL::
@@ -981,29 +981,29 @@ This roughly translates to this SQL::
     lists all fields explicitly. This is by design: in certain circumstances
     ``SELECT *`` can be slower, and (more important) listing fields more closely
     follows one tenet of the Zen of Python: "Explicit is better than implicit."
-    
+
     For more on the Zen of Python, try typing ``import this`` at a Python
     prompt.
 
 Let's take a close look at each part of this ``Publisher.objects.all()`` line:
 
-    * First, we have the model we defined, ``Publisher``. No surprise here: when
-      you want to look up data, you use the model for that data.
-      
-    * Next, we have the ``objects`` attribute. This is called a *manager*.
-      Managers are discussed in detail in Chapter 10. For now, all you need to
-      know is that managers take care of all "table-level" operations on data
-      including, most important, data lookup.
+* First, we have the model we defined, ``Publisher``. No surprise here: when
+  you want to look up data, you use the model for that data.
 
-      All models automatically get a ``objects`` manager; you'll use it
-      any time you want to look up model instances.
+* Next, we have the ``objects`` attribute. This is called a *manager*.
+  Managers are discussed in detail in Chapter 10. For now, all you need to
+  know is that managers take care of all "table-level" operations on data
+  including, most important, data lookup.
 
-    * Finally, we have ``all()``. This is a method on the ``objects`` manager
-      that returns all the rows in the database. Though this object *looks*
-      like a list, it's actually a *QuerySet* -- an object that represents a
-      specific set of rows from the database. Appendix C deals with QuerySets
-      in detail. For the rest of this chapter, we'll just treat them like the
-      lists they emulate.
+  All models automatically get a ``objects`` manager; you'll use it
+  any time you want to look up model instances.
+
+* Finally, we have ``all()``. This is a method on the ``objects`` manager
+  that returns all the rows in the database. Though this object *looks*
+  like a list, it's actually a *QuerySet* -- an object that represents a
+  specific set of rows from the database. Appendix C deals with QuerySets
+  in detail. For the rest of this chapter, we'll just treat them like the
+  lists they emulate.
 
 Any database lookup is going to follow this general pattern -- we'll call methods on
 the manager attached to the model we want to query against.
@@ -1050,7 +1050,7 @@ lookups. Other lookup types are available::
     [<Publisher: Apress>]
 
 .. SL Tested ok
-    
+
 That's a *double* underscore there between ``name`` and ``contains``. Like
 Python itself, Django uses the double underscore to signal that something
 "magic" is happening -- here, the ``__contains`` part gets translated by Django
@@ -1124,7 +1124,7 @@ according to a certain value -- say, alphabetically. To do this, use the
 
     >>> Publisher.objects.order_by("name")
     [<Publisher: Apress>, <Publisher: O'Reilly>]
-    
+
 .. SL Tested ok
 
 This doesn't look much different from the earlier ``all()`` example, but the
@@ -1160,7 +1160,7 @@ You can also specify reverse ordering by prefixing the field name with a ``-``
 
 .. SL Tested ok
 
-While this flexibility is useful, using ``order_by()`` all the time can be quite 
+While this flexibility is useful, using ``order_by()`` all the time can be quite
 repetitive. Most of the time you'll have a particular field you usually want
 to order by. In these cases, Django lets you specify a default ordering in the
 model:
@@ -1220,10 +1220,10 @@ using Python's standard list slicing syntax::
     <Publisher: Apress>
 
 .. SL Tested ok
-    
+
 This translates roughly to::
 
-    SELECT id, name, address, city, state_province, country, website 
+    SELECT id, name, address, city, state_province, country, website
     FROM books_publisher
     ORDER BY name
     LIMIT 1;
@@ -1237,7 +1237,7 @@ range-slicing syntax::
 
 This returns two objects, translating roughly to::
 
-    SELECT id, name, address, city, state_province, country, website 
+    SELECT id, name, address, city, state_province, country, website
     FROM books_publisher
     ORDER BY name
     OFFSET 0 LIMIT 2;
@@ -1268,7 +1268,7 @@ would look something like this::
     >>> p = Publisher.objects.get(name='Apress')
     >>> p.name = 'Apress Publishing'
     >>> p.save()
-                                                                      
+
 .. SL Tested ok
 
 This roughly translates to the following SQL::

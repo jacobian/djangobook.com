@@ -39,17 +39,17 @@ something like this::
     GET / HTTP/1.1
     Host: google.com
     ...
-    
+
 When Google replies, the HTTP response looks something like the following::
 
     HTTP/1.1 200 OK
     Content-Type: text/html
     Set-Cookie: PREF=ID=5b14f22bdaf1e81c:TM=1167000671:LM=1167000671;
-                expires=Sun, 17-Jan-2038 19:14:07 GMT; 
+                expires=Sun, 17-Jan-2038 19:14:07 GMT;
                 path=/; domain=.google.com
     Server: GWS/2.1
     ...
-    
+
 Notice the ``Set-Cookie`` header. Your browser will store that cookie value
 (``PREF=ID=5b14f22bdaf1e81c:TM=1167000671:LM=1167000671``) and serve it back
 to Google every time you access the site. So the next time you access Google,
@@ -59,7 +59,7 @@ your browser is going to send a request like this::
     Host: google.com
     Cookie: PREF=ID=5b14f22bdaf1e81c:TM=1167000671:LM=1167000671
     ...
-    
+
 Google then can use that ``Cookie`` value to know that you're the same person
 who accessed the site earlier. This value might, for example, be a key into a
 database that stores user information. Google could (and does) use it to
@@ -92,48 +92,48 @@ sets the ``favorite_color`` cookie based on a ``GET`` parameter::
 
     def set_color(request):
         if "favorite_color" in request.GET:
-            
+
             # Create an HttpResponse object...
             response = HttpResponse("Your favorite color is now %s" % \
                 request.GET["favorite_color"])
-            
+
             # ... and set a cookie on the response
-            response.set_cookie("favorite_color", 
+            response.set_cookie("favorite_color",
                                 request.GET["favorite_color"])
-            
+
             return response
-        
+
         else:
             return HttpResponse("You didn't give a favorite color.")
 
 .. SL Tested ok
-            
+
 You can also pass a number of optional arguments to ``response.set_cookie()``
 that control aspects of the cookie, as shown in Table 14-1.
 
 .. table:: Table 14-1: Cookie options
 
     ==============  ==========  ==============================================
-    Parameter       Default     Description                                 
+    Parameter       Default     Description
     ==============  ==========  ==============================================
-    ``max_age``     ``None``    Age (in seconds) that the cookie should last. 
+    ``max_age``     ``None``    Age (in seconds) that the cookie should last.
                                 If this parameter is ``None``, the cookie will
                                 last only until the browser is closed.
-                            
+
     ``expires``     ``None``    The actual date/time when the cookie should
                                 expire. It needs to be in the format ``"Wdy,
                                 DD-Mth-YY HH:MM:SS GMT"``. If given, this
                                 parameter overrides the ``max_age`` parameter.
-                                
+
     ``path``        ``"/"``     The path prefix that this cookie is valid for.
-                                Browsers will only pass the cookie back to 
+                                Browsers will only pass the cookie back to
                                 pages below this path prefix, so you can use
                                 this to prevent cookies from being sent to
-                                other sections of your site. 
-                                
+                                other sections of your site.
+
                                 This is especially useful when you don't
                                 control the top level of your site's domain.
-                                
+
     ``domain``      ``None``    The domain that this cookie is valid for.  You
                                 can use this parameter to set a cross-domain
                                 cookie. For example, ``domain=".example.com"``
@@ -141,11 +141,11 @@ that control aspects of the cookie, as shown in Table 14-1.
                                 domains ``www.example.com``,
                                 ``www2.example.com``, and
                                 ``an.other.sub.domain.example.com``.
-                                
+
                                 If this parameter is set to ``None``, a cookie
                                 will only be readable by the domain that set it.
-                                
-    ``secure``      ``False``   If set to ``True``, this parameter instructs the 
+
+    ``secure``      ``False``   If set to ``True``, this parameter instructs the
                                 browser to only return this cookie to pages
                                 accessed over HTTPS.
     ==============  ==========  ==============================================
@@ -156,38 +156,38 @@ The Mixed Blessing of Cookies
 You might notice a number of potential problems with the way cookies work.
 Let's look at some of the more important ones:
 
-    * Storage of cookies is voluntary; a client does not have to accept or
-      store cookies. In fact, all browsers enable users to control the policy
-      for accepting cookies. If you want to see just how vital cookies are to
-      the Web, try turning on your browser's "prompt to accept every cookie"
-      option.
+* Storage of cookies is voluntary; a client does not have to accept or
+  store cookies. In fact, all browsers enable users to control the policy
+  for accepting cookies. If you want to see just how vital cookies are to
+  the Web, try turning on your browser's "prompt to accept every cookie"
+  option.
 
-      Despite their nearly universal use, cookies are still the definition of
-      unreliability. This means that developers should check that a user
-      actually accepts cookies before relying on them.
+  Despite their nearly universal use, cookies are still the definition of
+  unreliability. This means that developers should check that a user
+  actually accepts cookies before relying on them.
 
-    * Cookies (especially those not sent over HTTPS) are not secure. Because
-      HTTP data is sent in cleartext, cookies are extremely vulnerable to
-      snooping attacks. That is, an attacker snooping on the wire can intercept
-      a cookie and read it. This means you should never store sensitive
-      information in a cookie.
+* Cookies (especially those not sent over HTTPS) are not secure. Because
+  HTTP data is sent in cleartext, cookies are extremely vulnerable to
+  snooping attacks. That is, an attacker snooping on the wire can intercept
+  a cookie and read it. This means you should never store sensitive
+  information in a cookie.
 
-      There's an even more insidious attack, known as a *man-in-the-middle*
-      attack, wherein an attacker intercepts a cookie and uses it to pose as
-      another user. Chapter 20 discusses attacks of this nature in depth, as
-      well as ways to prevent it.
+  There's an even more insidious attack, known as a *man-in-the-middle*
+  attack, wherein an attacker intercepts a cookie and uses it to pose as
+  another user. Chapter 20 discusses attacks of this nature in depth, as
+  well as ways to prevent it.
 
-    * Cookies aren't even secure from their intended recipients. Most browsers
-      provide easy ways to edit the content of individual cookies, and
-      resourceful users can always use tools like mechanize
-      (http://wwwsearch.sourceforge.net/mechanize/) to construct HTTP requests
-      by hand.
+* Cookies aren't even secure from their intended recipients. Most browsers
+  provide easy ways to edit the content of individual cookies, and
+  resourceful users can always use tools like mechanize
+  (http://wwwsearch.sourceforge.net/mechanize/) to construct HTTP requests
+  by hand.
 
-      So you can't store data in cookies that might be sensitive to tampering.
-      The canonical mistake in this scenario is storing something like
-      ``IsLoggedIn=1`` in a cookie when a user logs in. You'd be amazed at the
-      number of sites that make mistakes of this nature; it takes only a
-      second to fool these sites' "security" systems.
+  So you can't store data in cookies that might be sensitive to tampering.
+  The canonical mistake in this scenario is storing something like
+  ``IsLoggedIn=1`` in a cookie when a user logs in. You'd be amazed at the
+  number of sites that make mistakes of this nature; it takes only a
+  second to fool these sites' "security" systems.
 
 Django's Session Framework
 ==========================
@@ -212,13 +212,13 @@ Enabling Sessions
 Sessions are implemented via a piece of middleware (see Chapter 17) and a Django
 model. To enable sessions, you'll need to follow these steps:
 
-    #. Edit your ``MIDDLEWARE_CLASSES`` setting and make sure
-       ``MIDDLEWARE_CLASSES`` contains
-       ``'django.contrib.sessions.middleware.SessionMiddleware'``.
+#. Edit your ``MIDDLEWARE_CLASSES`` setting and make sure
+   ``MIDDLEWARE_CLASSES`` contains
+   ``'django.contrib.sessions.middleware.SessionMiddleware'``.
 
-    #. Make sure ``'django.contrib.sessions'`` is in your ``INSTALLED_APPS``
-       setting (and run ``manage.py syncdb`` if you have to add it).
-       
+#. Make sure ``'django.contrib.sessions'`` is in your ``INSTALLED_APPS``
+   setting (and run ``manage.py syncdb`` if you have to add it).
+
 The default skeleton settings created by ``startproject`` have both of these
 bits already installed, so unless you've removed them, you probably don't have
 to change anything to get sessions to work.
@@ -233,50 +233,50 @@ Using Sessions in Views
 
 When ``SessionMiddleware`` is activated, each ``HttpRequest`` object -- the
 first argument to any Django view function -- will have a ``session``
-attribute, which is a dictionary-like object. You can read it and write to it 
-in the same way you'd use a normal dictionary. For example, in a view 
+attribute, which is a dictionary-like object. You can read it and write to it
+in the same way you'd use a normal dictionary. For example, in a view
 you could do stuff like this::
 
     # Set a session value:
     request.session["fav_color"] = "blue"
-    
+
     # Get a session value -- this could be called in a different view,
     # or many requests later (or both):
     fav_color = request.session["fav_color"]
-    
+
     # Clear an item from the session:
     del request.session["fav_color"]
-    
+
     # Check if the session has a given key:
     if "fav_color" in request.session:
         ...
-        
+
 You can also use other dictionary methods like ``keys()`` and ``items()`` on
 ``request.session``.
 
 There are a couple of simple rules for using Django's sessions effectively:
 
-    * Use normal Python strings as dictionary keys on ``request.session`` (as
-      opposed to integers, objects, etc.).
+* Use normal Python strings as dictionary keys on ``request.session`` (as
+  opposed to integers, objects, etc.).
 
-    * Session dictionary keys that begin with an underscore are reserved for
-      internal use by Django. In practice, the framework uses only a small
-      number of underscore-prefixed session variables, but unless you know what
-      they all are (and you are willing to keep up with any changes in Django
-      itself), staying away from underscore prefixes will keep Django from
-      interfering with your application.
+* Session dictionary keys that begin with an underscore are reserved for
+  internal use by Django. In practice, the framework uses only a small
+  number of underscore-prefixed session variables, but unless you know what
+  they all are (and you are willing to keep up with any changes in Django
+  itself), staying away from underscore prefixes will keep Django from
+  interfering with your application.
 
-      For example, don't use a session key called ``_fav_color``, like
-      this::
+  For example, don't use a session key called ``_fav_color``, like
+  this::
 
-          request.session['_fav_color'] = 'blue' # Don't do this!
+      request.session['_fav_color'] = 'blue' # Don't do this!
 
-    * Don't replace ``request.session`` with a new object, and don't access or
-      set its attributes. Use it like a Python dictionary. Examples::
-      
-          request.session = some_other_object # Don't do this!
-          
-          request.session.foo = 'bar' # Don't do this!
+* Don't replace ``request.session`` with a new object, and don't access or
+  set its attributes. Use it like a Python dictionary. Examples::
+
+      request.session = some_other_object # Don't do this!
+
+      request.session.foo = 'bar' # Don't do this!
 
 Let's take a look at a few quick examples. This simplistic view sets a
 ``has_commented`` variable to ``True`` after a user posts a comment. It's a
@@ -346,25 +346,25 @@ Do this after you've verified that the test cookie worked.
 Here's a typical usage example::
 
     def login(request):
-    
+
         # If we submitted the form...
         if request.method == 'POST':
-        
+
             # Check that the test cookie worked (we set it below):
             if request.session.test_cookie_worked():
-                
+
                 # The test cookie worked, so delete it.
                 request.session.delete_test_cookie()
-                
+
                 # In practice, we'd need some logic to check username/password
                 # here, but since this is an example...
                 return HttpResponse("You're logged in.")
-                
+
             # The test cookie failed, so display an error message. If this
             # were a real site, we'd want to display a friendlier message.
             else:
                 return HttpResponse("Please enable cookies and try again.")
-        
+
         # If we didn't post, send the test cookie along with the login form.
         request.session.set_test_cookie()
         return render_to_response('foo/login_form.html')
@@ -420,7 +420,7 @@ wasn't changed.
 
 Note that the session cookie is sent only when a session has been created or
 modified. If ``SESSION_SAVE_EVERY_REQUEST`` is ``True``, the session cookie
-will be sent on every request. Similarly, the ``expires`` part of a session 
+will be sent on every request. Similarly, the ``expires`` part of a session
 cookie is updated each time the session cookie is sent.
 
 Browser-Length Sessions vs. Persistent Sessions
@@ -454,51 +454,51 @@ influence how Django's session framework uses cookies, as shown in Table 14-2.
     Setting                     Description                    Default
     ==========================  =============================  ==============
     ``SESSION_COOKIE_DOMAIN``   The domain to use for session  ``None``
-                                cookies. Set this to a string 
-                                such as ``".example.com"`` 
-                                for cross-domain cookies, or 
-                                use ``None`` for a standard 
+                                cookies. Set this to a string
+                                such as ``".example.com"``
+                                for cross-domain cookies, or
+                                use ``None`` for a standard
                                 cookie.
-    
+
     ``SESSION_COOKIE_NAME``     The name of the cookie to use  ``"sessionid"``
-                                for sessions. This can be any 
+                                for sessions. This can be any
                                 string.
-                                
+
     ``SESSION_COOKIE_SECURE``   Whether to use a "secure"       ``False``
-                                cookie for the session 
-                                cookie. If this is set to 
+                                cookie for the session
+                                cookie. If this is set to
                                 ``True``,  the cookie will be
-                                marked as "secure," which 
-                                means that browsers will 
-                                ensure that the cookie is 
+                                marked as "secure," which
+                                means that browsers will
+                                ensure that the cookie is
                                 only sent via HTTPS.
     ==========================  =============================  ==============
 
 .. admonition:: Technical Details
 
-    For the curious, here are a few technical notes about the inner workings 
+    For the curious, here are a few technical notes about the inner workings
     of the session framework:
 
-        * The session dictionary accepts any Python object capable of being
-          "pickled." See the documentation for Python's built-in ``pickle``
-          module for information about how this works.
+    * The session dictionary accepts any Python object capable of being
+      "pickled." See the documentation for Python's built-in ``pickle``
+      module for information about how this works.
 
-        * Session data is stored in a database table named ``django_session``.
-         
-        * Session data is fetched upon demand. If you never access
-          ``request.session``, Django won't hit that database table.
-                      
-        * Django only sends a cookie if it needs to. If you don't set any
-          session data, it won't send a session cookie (unless
-          ``SESSION_SAVE_EVERY_REQUEST`` is set to ``True``).
-          
-        * The Django sessions framework is entirely, and solely, cookie based.
-          It does not fall back to putting session IDs in URLs as a last
-          resort, as some other tools (PHP, JSP) do. 
-          
-          This is an intentional design decision. Putting sessions in URLs
-          don't just make URLs ugly, but also make your site vulnerable to a
-          certain form of session ID theft via the ``Referer`` header.
+    * Session data is stored in a database table named ``django_session``.
+
+    * Session data is fetched upon demand. If you never access
+      ``request.session``, Django won't hit that database table.
+
+    * Django only sends a cookie if it needs to. If you don't set any
+      session data, it won't send a session cookie (unless
+      ``SESSION_SAVE_EVERY_REQUEST`` is set to ``True``).
+
+    * The Django sessions framework is entirely, and solely, cookie based.
+      It does not fall back to putting session IDs in URLs as a last
+      resort, as some other tools (PHP, JSP) do.
+
+      This is an intentional design decision. Putting sessions in URLs
+      don't just make URLs ugly, but also make your site vulnerable to a
+      certain form of session ID theft via the ``Referer`` header.
 
     If you're still curious, the source is pretty straightforward; look in
     ``django.contrib.sessions`` for more details.
@@ -517,25 +517,25 @@ and cookie-based user sessions. This system is often referred to as an
 *auth/auth* (authentication and authorization) system. That name recognizes
 that dealing with users is often a two-step process. We need to
 
-    #. Verify (*authenticate*) that a user is who he or she claims to be
-       (usually by checking a username and password against a database of users)
-    
-    #. Verify that the user is *authorized* to perform some given operation
-       (usually by checking against a table of permissions)
+#. Verify (*authenticate*) that a user is who he or she claims to be
+   (usually by checking a username and password against a database of users)
+
+#. Verify that the user is *authorized* to perform some given operation
+   (usually by checking against a table of permissions)
 
 Following these needs, Django's auth/auth system consists of a number of
 parts:
 
-    * *Users*: People registered with your site
-    
-    * *Permissions*: Binary (yes/no) flags designating whether a user may
-      perform a certain task
-      
-    * *Groups*: A generic way of applying labels and permissions to more than
-      one user
-      
-    * *Messages*: A simple way to queue and display system messages to users
-    
+* *Users*: People registered with your site
+
+* *Permissions*: Binary (yes/no) flags designating whether a user may
+  perform a certain task
+
+* *Groups*: A generic way of applying labels and permissions to more than
+  one user
+
+* *Messages*: A simple way to queue and display system messages to users
+
 If you've used the admin tool (discussed in Chapter 6), you've already seen many
 of these tools, and if you've edited users or groups in the admin tool, you've
 actually been editing data in the auth system's database tables.
@@ -548,16 +548,16 @@ application in ``django.contrib`` that needs to be installed. Also like the
 session tools, it's also installed by default, but if you've removed it, you'll
 need to follow these steps to install it:
 
-    #. Make sure the session framework is installed as described earlier in this
-       chapter. Keeping track of users obviously requires cookies, and thus
-       builds on the session framework.
-    
-    #. Put ``'django.contrib.auth'`` in your ``INSTALLED_APPS`` setting and
-       run ``manage.py syncdb`` to install the appropriate database tables.
-    
-    #. Make sure that
-       ``'django.contrib.auth.middleware.AuthenticationMiddleware'`` is in
-       your ``MIDDLEWARE_CLASSES`` setting -- *after* ``SessionMiddleware``.
+#. Make sure the session framework is installed as described earlier in this
+   chapter. Keeping track of users obviously requires cookies, and thus
+   builds on the session framework.
+
+#. Put ``'django.contrib.auth'`` in your ``INSTALLED_APPS`` setting and
+   run ``manage.py syncdb`` to install the appropriate database tables.
+
+#. Make sure that
+   ``'django.contrib.auth.middleware.AuthenticationMiddleware'`` is in
+   your ``MIDDLEWARE_CLASSES`` setting -- *after* ``SessionMiddleware``.
 
 With that installation out of the way, we're ready to deal with users in view
 functions. The main interface you'll use to access users within a view is
@@ -572,7 +572,7 @@ method::
         # Do something for authenticated users.
     else:
         # Do something for anonymous users.
-        
+
 Using Users
 -----------
 
@@ -588,32 +588,32 @@ object. Tables 14-3 and 14-4 list the fields and methods, respectively, on ``Use
     ==================  ======================================================
     Field               Description
     ==================  ======================================================
-    ``username``        Required; 30 characters or fewer. Alphanumeric 
+    ``username``        Required; 30 characters or fewer. Alphanumeric
                         characters only (letters, digits, and underscores).
-                        
+
     ``first_name``      Optional; 30 characters or fewer.
-                        
+
     ``last_name``       Optional; 30 characters or fewer.
-                        
+
     ``email``           Optional. E-mail address.
-                        
-    ``password``        Required. A hash of, and metadata about, the password 
+
+    ``password``        Required. A hash of, and metadata about, the password
                         (Django doesn't store the raw password). See the
                         "Passwords" section for more about this value.
-                        
+
     ``is_staff``        Boolean. Designates whether this user can access the
                         admin site.
-                        
+
     ``is_active``       Boolean. Designates whether this account can be used
                         to log in. Set this flag to ``False`` instead of
                         deleting accounts.
-                        
+
     ``is_superuser``    Boolean. Designates that this user has all permissions
                         without explicitly assigning them.
-                        
+
     ``last_login``      A datetime of the user's last login. This is set to the
                         current date/time by default.
-                        
+
     ``date_joined``     A datetime designating when the account was created.
                         This is set to the current date/time by default when the
                         account is created.
@@ -624,84 +624,84 @@ object. Tables 14-3 and 14-4 list the fields and methods, respectively, on ``Use
     ================================  ==========================================
     Method                            Description
     ================================  ==========================================
-    ``is_authenticated()``            Always returns ``True`` for "real" 
+    ``is_authenticated()``            Always returns ``True`` for "real"
                                       ``User`` objects. This is a way to tell if
                                       the user has been authenticated. This does
                                       not imply any permissions, and it doesn't
                                       check if the user is active. It only
                                       indicates that the user has sucessfully
                                       authenticated.
-                                      
-    ``is_anonymous()``                Returns ``True`` only for 
+
+    ``is_anonymous()``                Returns ``True`` only for
                                       ``AnonymousUser`` objects (and ``False``
                                       for "real" ``User`` objects). Generally,
                                       you should prefer using
                                       ``is_authenticated()`` to this method.
-                                      
-    ``get_full_name()``               Returns the ``first_name`` plus the 
+
+    ``get_full_name()``               Returns the ``first_name`` plus the
                                       ``last_name``, with a space in between.
-                                      
+
     ``set_password(passwd)``          Sets the user's password to the given
                                       raw string, taking care of the password
                                       hashing. This doesn't actually save the
                                       ``User`` object.
-                                      
+
     ``check_password(passwd)``        Returns ``True`` if the given raw
                                       string is the correct password for the
                                       user. This takes care of the password
                                       hashing in making the comparison.
-                                      
+
     ``get_group_permissions()``       Returns a list of permission strings that
                                       the user has through the groups he or she
                                       belongs to.
-                                      
+
     ``get_all_permissions()``         Returns a list of permission strings that
                                       the user has, both through group and user
                                       permissions.
-                                      
-    ``has_perm(perm)``                Returns ``True`` if the user has the 
+
+    ``has_perm(perm)``                Returns ``True`` if the user has the
                                       specified permission, where ``perm`` is in
                                       the format ``"package.codename"``. If the
                                       user is inactive, this method will always
                                       return ``False``.
-                                      
-    ``has_perms(perm_list)``          Returns ``True`` if the user has *all* of 
+
+    ``has_perms(perm_list)``          Returns ``True`` if the user has *all* of
                                       the specified permissions. If the user is
                                       inactive, this method will always return
                                       ``False``.
-                                      
+
     ``has_module_perms(app_label)``   Returns ``True`` if the user has
-                                      any permissions in the given ``app_label``.                
+                                      any permissions in the given ``app_label``.
                                       If the user is inactive, this method will
                                       always return ``False``.
-                                      
+
     ``get_and_delete_messages()``     Returns a list of ``Message`` objects in
                                       the user's queue and deletes the messages
                                       from the queue.
-                                      
+
     ``email_user(subj, msg)``         Sends an email to the user. This email
-                                      is sent from the ``DEFAULT_FROM_EMAIL`` 
+                                      is sent from the ``DEFAULT_FROM_EMAIL``
                                       setting.  You can also pass a third
                                       argument, ``from_email``, to override the
                                       From address on the email.
     ================================  ==========================================
-    
+
 Finally, ``User`` objects have two many-to-many fields: ``groups`` and
 ``permissions``. ``User`` objects can access their related objects in the same
 way as any other many-to-many field::
 
         # Set a user's groups:
         myuser.groups = group_list
-        
+
         # Add a user to some groups:
         myuser.groups.add(group1, group2,...)
-        
+
         # Remove a user from some groups:
         myuser.groups.remove(group1, group2,...)
-        
+
         # Remove a user from all groups:
         myuser.groups.clear()
-        
+
         # Permissions work the same way
         myuser.permissions = permission_list
         myuser.permissions.add(permission1, permission2, ...)
@@ -769,7 +769,7 @@ logging in and out. The first step in using these authentication views is to
 wire them up in your URLconf. You'll need to add this snippet::
 
     from django.contrib.auth.views import login, logout
-    
+
     urlpatterns = patterns('',
         # existing patterns here...
         (r'^accounts/login/$',  login),
@@ -785,19 +785,19 @@ extra view argument ,``template_name``). This form needs to contain a
 ``username`` and a ``password`` field. A simple template might look like this::
 
     {% extends "base.html" %}
-    
+
     {% block content %}
 
       {% if form.errors %}
         <p class="error">Sorry, that's not a valid username or password</p>
       {% endif %}
-      
+
       <form action="" method="post">
         <label for="username">User name:</label>
         <input type="text" name="username" value="" id="username">
         <label for="password">Password:</label>
         <input type="password" name="password" value="" id="password">
-        
+
         <input type="submit" value="login" />
         <input type="hidden" name="next" value="{{ next|escape }}" />
       </form>
@@ -850,13 +850,13 @@ As a shortcut, you can use the convenient ``login_required`` decorator::
 
 ``login_required`` does the following:
 
-    * If the user isn't logged in, redirect to ``/accounts/login/``, passing
-      the current URL path in the query string as ``next``, for example:
-      ``/accounts/login/?next=/polls/3/``.
-      
-    * If the user is logged in, execute the view normally. The view code 
-      can then assume that the user is logged in.
-      
+* If the user isn't logged in, redirect to ``/accounts/login/``, passing
+  the current URL path in the query string as ``next``, for example:
+  ``/accounts/login/?next=/polls/3/``.
+
+* If the user is logged in, execute the view normally. The view code
+  can then assume that the user is logged in.
+
 Limiting Access to Users Who Pass a Test
 ----------------------------------------
 
@@ -944,7 +944,7 @@ Creating Users
 Create users with the ``create_user`` helper function::
 
     >>> from django.contrib.auth.models import User
-    >>> user = User.objects.create_user(username='john', 
+    >>> user = User.objects.create_user(username='john',
     ...                                 email='jlennon@beatles.com',
     ...                                 password='glass onion')
 
@@ -965,7 +965,7 @@ You can change a password with ``set_password()``::
     >>> user = User.objects.get(username='john')
     >>> user.set_password('goo goo goo joob')
     >>> user.save()
-                                                        
+
 .. SL Tested ok
 
 Don't set the ``password`` attribute directly unless you know what you're
@@ -994,29 +994,29 @@ setting and checking of these values behind the scenes.
     A *hash* is a one-way cryptographic function -- that is, you can easily
     compute the hash of a given value, but it's nearly impossible to take a
     hash and reconstruct the original value.
-    
+
     If we stored passwords as plain text, anyone who got their hands on the
     password database would instantly know everyone's password. Storing
     passwords as hashes reduces the value of a compromised database.
-    
+
     However, an attacker with the password database could still run a *brute-
     force* attack, hashing millions of passwords and comparing those hashes
     against the stored values. This takes some time, but less than you might
     think.
-    
+
     Worse, there are publicly available *rainbow tables*, or databases of
     pre-computed hashes of millions of passwords. With a rainbow table, an
     experienced attacker could break most passwords in seconds.
-    
+
     Adding a *salt* -- basically an initial random value -- to the stored hash
     adds another layer of difficulty to breaking passwords. Because salts
     differ from password to password, they also prevent the use of a rainbow
     table, thus forcing attackers to fall back on a brute-force attack, itself
     made more difficult by the extra entropy added to the hash by the salt.
-    
+
     While salted hashes aren't absolutely the most secure way of storing
     passwords, they're a good middle ground between security and convenience.
-    
+
 Handling Registration
 `````````````````````
 
@@ -1032,7 +1032,7 @@ can use for this purpose, which we'll use in this example::
     from django.contrib.auth.forms import UserCreationForm
     from django.http import HttpResponseRedirect
     from django.shortcuts import render_to_response
-    
+
     def register(request):
         if request.method == 'POST':
             form = UserCreationForm(request.POST)
@@ -1049,9 +1049,9 @@ This form assumes a template named ``registration/register.html``. Here's an
 example of what that template might look like::
 
   {% extends "base.html" %}
-  
+
   {% block title %}Create an account{% endblock %}
-  
+
   {% block content %}
     <h1>Create an account</h1>
 
@@ -1078,7 +1078,7 @@ template context when you use ``RequestContext`` (see Chapter 9).
    Chapter 9 for more information.
 
 When using ``RequestContext``, the current user (either a ``User`` instance
-or an ``AnonymousUser`` instance) is stored in the template variable 
+or an ``AnonymousUser`` instance) is stored in the template variable
 ``{{ user }}``::
 
     {% if user.is_authenticated %}
@@ -1122,15 +1122,15 @@ easily use them in your own code.
 
 The Django admin site uses permissions as follows:
 
-    * Access to view the "add" form, and add an object is limited to users with
-      the *add* permission for that type of object.
-      
-    * Access to view the change list, view the "change" form, and change an
-      object is limited to users with the *change* permission for that type of
-      object.
-      
-    * Access to delete an object is limited to users with the *delete*
-      permission for that type of object.
+* Access to view the "add" form, and add an object is limited to users with
+  the *add* permission for that type of object.
+
+* Access to view the change list, view the "change" form, and change an
+  object is limited to users with the *change* permission for that type of
+  object.
+
+* Access to delete an object is limited to users with the *delete*
+  permission for that type of object.
 
 Permissions are set globally per type of object, not per specific object
 instance. For example, it's possible to say "Mary may change news stories,"
@@ -1186,12 +1186,12 @@ successfully" message at the top of the admin page.
 You can use the same API to queue and display messages in your own application.
 The API is simple:
 
-    * To create a new message, use
-      ``user.message_set.create(message='message_text')``.
-      
-    * To retrieve/delete messages, use ``user.get_and_delete_messages()``,
-      which returns a list of ``Message`` objects in the user's queue (if any)
-      and deletes the messages from the queue.
+* To create a new message, use
+  ``user.message_set.create(message='message_text')``.
+
+* To retrieve/delete messages, use ``user.get_and_delete_messages()``,
+  which returns a list of ``Message`` objects in the user's queue (if any)
+  and deletes the messages from the queue.
 
 In this example view, the system saves a message for the user after creating a
 playlist::

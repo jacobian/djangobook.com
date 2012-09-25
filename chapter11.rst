@@ -20,18 +20,18 @@ question can be passed as an extra argument to the URLconf.
 
 Django ships with generic views to do the following:
 
-    * Perform common "simple" tasks: redirect to a different page, or
-      render a given template.
+* Perform common "simple" tasks: redirect to a different page, or
+  render a given template.
 
-    * Display "list" and "detail" pages for a single object. The ``event_list``
-      and ``entry_list`` views from Chapter 8 are examples of list views. A
-      single event page is an example of what we call a "detail" view.
+* Display "list" and "detail" pages for a single object. The ``event_list``
+  and ``entry_list`` views from Chapter 8 are examples of list views. A
+  single event page is an example of what we call a "detail" view.
 
-    * Present date-based objects in year/month/day archive pages,
-      associated detail, and "latest" pages. The Django Weblog's
-      (http://www.djangoproject.com/weblog/) year, month, and
-      day archives are built with these, as would be a typical
-      newspaper's archives.
+* Present date-based objects in year/month/day archive pages,
+  associated detail, and "latest" pages. The Django Weblog's
+  (http://www.djangoproject.com/weblog/) year, month, and
+  day archives are built with these, as would be a typical
+  newspaper's archives.
 
 Taken together, these views provide easy interfaces to perform the most common
 tasks developers encounter.
@@ -49,7 +49,7 @@ page::
 
     from django.conf.urls.defaults import *
     from django.views.generic.simple import direct_to_template
-    
+
     urlpatterns = patterns('',
         (r'^about/$', direct_to_template, {
             'template': 'about.html'
@@ -85,7 +85,7 @@ Next, we'll write the ``about_pages`` view::
     from django.http import Http404
     from django.template import TemplateDoesNotExist
     from django.views.generic.simple import direct_to_template
-    
+
     def about_pages(request, page):
         try:
             return direct_to_template(request, template="about/%s.html" % page)
@@ -144,11 +144,11 @@ To build a list page of all publishers, we'd use a URLconf along these lines::
     from django.conf.urls.defaults import *
     from django.views.generic import list_detail
     from mysite.books.models import Publisher
-    
+
     publisher_info = {
         'queryset': Publisher.objects.all(),
     }
-    
+
     urlpatterns = patterns('',
         (r'^publishers/$', list_detail.object_list, publisher_info)
     )
@@ -162,12 +162,12 @@ by including a ``template_name`` key in the extra arguments dictionary:
     from django.conf.urls.defaults import *
     from django.views.generic import list_detail
     from mysite.books.models import Publisher
-    
+
     publisher_info = {
         'queryset': Publisher.objects.all(),
         **'template_name': 'publisher_list_page.html',**
     }
-    
+
     urlpatterns = patterns('',
         (r'^publishers/$', list_detail.object_list, publisher_info)
     )
@@ -234,13 +234,13 @@ argument:
     from django.conf.urls.defaults import *
     from django.views.generic import list_detail
     from mysite.books.models import Publisher
-    
+
     publisher_info = {
         'queryset': Publisher.objects.all(),
         'template_name': 'publisher_list_page.html',
         'template_object_name': 'publisher',
     }
-    
+
     urlpatterns = patterns('',
         (r'^publishers/$', list_detail.object_list, publisher_info)
     )
@@ -273,7 +273,7 @@ detail view, we'd use an info dictionary like this:
         'template_object_name': 'publisher',
         **'extra_context': {'book_list': Book.objects.all()}**
     }
-    
+
 .. SL Tested ok
 
 This would populate a ``{{ book_list }}`` variable in the template context.
@@ -305,7 +305,7 @@ with an explicitly defined function:
 
     **def get_books():**
         **return Book.objects.all()**
-    
+
     publisher_info = {
         'queryset': Publisher.objects.all(),
         'template_object_name': 'publisher',
@@ -400,12 +400,12 @@ Next, we'll write the ``books_by_publisher`` view itself::
     from django.shortcuts import get_object_or_404
     from django.views.generic import list_detail
     from mysite.books.models import Book, Publisher
-    
+
     def books_by_publisher(request, name):
-    
+
         # Look up the publisher (and raise a 404 if it can't be found).
         publisher = get_object_or_404(Publisher, name__iexact=name)
-    
+
         # Use the object_list view for the heavy lifting.
         return list_detail.object_list(
             request,
@@ -448,7 +448,7 @@ custom view:
 .. parsed-literal::
 
     from mysite.books.views import author_detail
-    
+
     urlpatterns = patterns('',
         # ...
         **(r'^authors/(?P<author_id>\\d+)/$', author_detail),**

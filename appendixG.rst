@@ -26,36 +26,36 @@ on the ``HttpRequest`` instance (see Table G-1). All attributes except
     ==================  =======================================================
     Attribute           Description
     ==================  =======================================================
-    ``path``            A string representing the full path to the requested 
-                        page, not including the domain -- for example,            
+    ``path``            A string representing the full path to the requested
+                        page, not including the domain -- for example,
                         ``"/music/bands/the_beatles/"``.
-                    
-    ``method``          A string representing the HTTP method used in the 
-                        request. This is guaranteed to be uppercase. For 
+
+    ``method``          A string representing the HTTP method used in the
+                        request. This is guaranteed to be uppercase. For
                         example::
-                    
+
                             if request.method == 'GET':
                                 do_something()
                             elif request.method == 'POST':
                                 do_something_else()
-                                 
+
     ``encoding``        A string representing the current encoding used to
                         decode form submission data (or ``None``, which means
                         the ``DEFAULT_CHARSET`` setting is used).
-                        
+
                         You can write to this attribute to change the encoding
                         used when accessing the form data. Any subsequent
                         attribute accesses (such as reading from ``GET`` or
                         ``POST``) will use the new ``encoding`` value.  Useful
                         if you know the form data is not in the
                         ``DEFAULT_CHARSET`` encoding.
-                    
+
     ``GET``             A dictionary-like object containing all given HTTP GET
                         parameters. See the upcoming ``QueryDict`` documentation.
-                    
+
     ``POST``            A dictionary-like object containing all given HTTP POST
                         parameters. See the upcoming ``QueryDict`` documentation.
-                    
+
                         It's possible that a request can come in via POST with
                         an empty ``POST`` dictionary -- if, say, a form is
                         requested via the POST HTTP method but does not
@@ -63,80 +63,80 @@ on the ``HttpRequest`` instance (see Table G-1). All attributes except
                         request.POST`` to check for use of the POST method;
                         instead, use ``if request.method == "POST"`` (see
                         the ``method`` entry in this table).
-                    
+
                         Note: ``POST`` does *not* include file-upload
                         information. See ``FILES``.
-                    
+
     ``REQUEST``         For convenience, a dictionary-like object that searches
                         ``POST`` first, and then ``GET``. Inspired by PHP's
                         ``$_REQUEST``.
-                    
+
                         For example, if ``GET = {"name": "john"}`` and ``POST
                         = {"age": '34'}``, ``REQUEST["name"]`` would be
                         ``"john"``, and ``REQUEST["age"]`` would be ``"34"``.
-                    
+
                         It's strongly suggested that you use ``GET`` and
                         ``POST`` instead of ``REQUEST``, because the former
                         are more explicit.
-                    
+
     ``COOKIES``         A standard Python dictionary containing all cookies.
                         Keys and values are strings. See Chapter 14 for more
                         on using cookies.
-                    
+
     ``FILES``           A dictionary-like object that maps filenames to
                         ``UploadedFile`` objects. See the Django
                         documentation for more.
-                    
+
     ``META``            A standard Python dictionary containing all available
                         HTTP headers. Available headers depend on the client
                         and server, but here are some examples:
-                    
-                            * ``CONTENT_LENGTH``
-                            * ``CONTENT_TYPE``
-                            * ``QUERY_STRING``: The raw unparsed query string
-                            * ``REMOTE_ADDR``: The IP address of the client
-                            * ``REMOTE_HOST``: The hostname of the client
-                            * ``SERVER_NAME``: The hostname of the server.
-                            * ``SERVER_PORT``: The port of the server
-                            
+
+                        * ``CONTENT_LENGTH``
+                        * ``CONTENT_TYPE``
+                        * ``QUERY_STRING``: The raw unparsed query string
+                        * ``REMOTE_ADDR``: The IP address of the client
+                        * ``REMOTE_HOST``: The hostname of the client
+                        * ``SERVER_NAME``: The hostname of the server.
+                        * ``SERVER_PORT``: The port of the server
+
                         Any HTTP headers are available in ``META`` as keys
                         prefixed with ``HTTP_``, converted to uppercase and
                         substituting underscores for hyphens. For example:
 
-                            * ``HTTP_ACCEPT_ENCODING``
-                            * ``HTTP_ACCEPT_LANGUAGE``
-                            * ``HTTP_HOST``: The HTTP ``Host`` header sent by
-                              the client
-                            * ``HTTP_REFERER``: The referring page, if any
-                            * ``HTTP_USER_AGENT``: The client's user-agent string
-                            * ``HTTP_X_BENDER``: The value of the ``X-Bender``
-                              header, if set
-                    
-    ``user``            A ``django.contrib.auth.models.User`` object 
+                        * ``HTTP_ACCEPT_ENCODING``
+                        * ``HTTP_ACCEPT_LANGUAGE``
+                        * ``HTTP_HOST``: The HTTP ``Host`` header sent by
+                          the client
+                        * ``HTTP_REFERER``: The referring page, if any
+                        * ``HTTP_USER_AGENT``: The client's user-agent string
+                        * ``HTTP_X_BENDER``: The value of the ``X-Bender``
+                          header, if set
+
+    ``user``            A ``django.contrib.auth.models.User`` object
                         representing the currently logged-in user. If the user
                         isn't currently logged in, ``user`` will be set to an
                         instance of
                         ``django.contrib.auth.models.AnonymousUser``. You can
                         tell them apart with ``is_authenticated()``, like so::
-                    
+
                             if request.user.is_authenticated():
                                 # Do something for logged-in users.
                             else:
                                 # Do something for anonymous users.
-                    
+
                         ``user`` is available only if your Django installation
                         has the ``AuthenticationMiddleware`` activated.
-                        
+
                         For the complete details of authentication and users,
                         see Chapter 14.
-                                        
-    ``session``         A readable and writable, dictionary-like object that 
+
+    ``session``         A readable and writable, dictionary-like object that
                         represents the current session. This is available only
                         if your Django installation has session support
                         activated. See Chapter 14.
 
-    ``raw_post_data``   The raw HTTP POST data. This is useful for advanced 
-                        processing. 
+    ``raw_post_data``   The raw HTTP POST data. This is useful for advanced
+                        processing.
     ==================  =======================================================
 
 Request objects also have a few useful methods, as shown in Table G-2.
@@ -146,13 +146,13 @@ Request objects also have a few useful methods, as shown in Table G-2.
     ======================  ===================================================
     Method                  Description
     ======================  ===================================================
-    ``__getitem__(key)``    Returns the GET/POST value for the given key, 
+    ``__getitem__(key)``    Returns the GET/POST value for the given key,
                             checking POST first, and then GET. Raises
                             ``KeyError`` if the key doesn't exist.
 
                             This lets you use dictionary-accessing syntax on
                             an ``HttpRequest`` instance.
-                            
+
                             For example, ``request["foo"]`` is the same as
                             checking ``request.POST["foo"]`` and then
                             ``request.GET["foo"]``.
@@ -160,7 +160,7 @@ Request objects also have a few useful methods, as shown in Table G-2.
     ``has_key()``           Returns ``True`` or ``False``, designating whether
                             ``request.GET`` or ``request.POST`` has the given
                             key.
-    
+
     ``get_host()``          Returns the originating host of the request using
                             information from the ``HTTP_X_FORWARDED_HOST`` and
                             ``HTTP_HOST`` headers (in that order). If they
@@ -168,11 +168,11 @@ Request objects also have a few useful methods, as shown in Table G-2.
                             combination of ``SERVER_NAME`` and
                             ``SERVER_PORT``.
 
-    ``get_full_path()``     Returns the ``path``, plus an appended query 
+    ``get_full_path()``     Returns the ``path``, plus an appended query
                             string, if applicable. For example,
                             ``"/music/bands/the_beatles/?print=true"``
-    
-    ``is_secure()``         Returns ``True`` if the request is secure; that 
+
+    ``is_secure()``         Returns ``True`` if the request is secure; that
                             is, if it was made with HTTPS.
     ======================  ===================================================
 
@@ -200,21 +200,21 @@ subclass of dictionary. Exceptions are outlined in Table G-3.
     ``__getitem__``     Works just like a dictionary. However, if the key
                         has more than one value, ``__getitem__()`` returns the
                         last value.
-    
+
     ``__setitem__``     Sets the given key to ``[value]`` (a Python list whose
                         single element is ``value``). Note that this, as other
                         dictionary functions that have side effects, can
                         be called only on a mutable ``QueryDict`` (one that was
                         created via ``copy()``).
-        
-    ``get()``           If the key has more than one value, ``get()`` returns 
+
+    ``get()``           If the key has more than one value, ``get()`` returns
                         the last value just like ``__getitem__``.
-            
+
     ``update()``        Takes either a ``QueryDict`` or standard dictionary.
                         Unlike the standard dictionary's ``update`` method,
                         this method *appends* to the current dictionary items
                         rather than replacing them::
-    
+
                             >>> q = QueryDict('a=1')
                             >>> q = q.copy() # to make it mutable
                             >>> q.update({'a': '2'})
@@ -222,15 +222,15 @@ subclass of dictionary. Exceptions are outlined in Table G-3.
                             ['1', '2']
                             >>> q['a'] # returns the last
                             ['2']
-    
+
     ``items()``         Just like the standard dictionary ``items()`` method,
                         except this uses the same last-value logic as
                         ``__getitem()__``::
-    
+
                              >>> q = QueryDict('a=1&a=2&a=3')
                              >>> q.items()
                              [('a', '3')]
-    
+
     ``values()``        Just like the standard dictionary ``values()`` method,
                         except this uses the same last-value logic as
                         ``__getitem()__``.
@@ -243,38 +243,38 @@ In addition, ``QueryDict`` has the methods shown in Table G-4.
     ==========================  ===============================================
     Method                      Description
     ==========================  ===============================================
-    ``copy()``                  Returns a copy of the object, using 
+    ``copy()``                  Returns a copy of the object, using
                                 ``copy.deepcopy()`` from the Python standard
                                 library. The copy will be mutable -- that is,
                                 you can change its values.
-   
+
     ``getlist(key)``            Returns the data with the requested key, as a
                                 Python list. Returns an empty list if the key
                                 doesn't exist. It's guaranteed to return a
                                 list of some sort.
-   
-    ``setlist(key, list_)``     Sets the given key to ``list_`` (unlike 
+
+    ``setlist(key, list_)``     Sets the given key to ``list_`` (unlike
                                 ``__setitem__()``).
-   
+
     ``appendlist(key, item)``   Appends an item to the internal list associated
                                 with ``key``.
-   
+
     ``setlistdefault(key, a)``  Just like ``setdefault``, except it takes a
                                 list of values instead of a single value.
-   
-    ``lists()``                 Like ``items()``, except it includes all 
+
+    ``lists()``                 Like ``items()``, except it includes all
                                 values, as a list, for each member of the
                                 dictionary. For example::
-   
+
                                     >>> q = QueryDict('a=1&a=2&a=3')
                                     >>> q.lists()
                                     [('a', ['1', '2', '3'])]
-                                    
-   
-    ``urlencode()``             Returns a string of the data in query-string 
+
+
+    ``urlencode()``             Returns a string of the data in query-string
                                 format (e.g., ``"a=2&b=3&b=5"``).
     ==========================  ===============================================
-    
+
 A Complete Example
 ------------------
 
@@ -345,16 +345,16 @@ filelike object::
 You can pass ``HttpResponse`` an iterator rather than passing it
 hard-coded strings. If you use this technique, follow these guidelines:
 
-    * The iterator should return strings.
+* The iterator should return strings.
 
-    * If an ``HttpResponse`` has been initialized with an iterator as its
-      content, you can't use the ``HttpResponse`` instance as a filelike
-      object. Doing so will raise ``Exception``.
+* If an ``HttpResponse`` has been initialized with an iterator as its
+  content, you can't use the ``HttpResponse`` instance as a filelike
+  object. Doing so will raise ``Exception``.
 
 Finally, note that ``HttpResponse`` implements a ``write()`` method, which
 makes is suitable for use anywhere that Python expects a filelike object. See
 Chapter 8 for some examples of using this technique.
-     
+
 Setting Headers
 ---------------
 
@@ -383,41 +383,41 @@ types of HTTP responses (see Table G-5). Like ``HttpResponse``, these subclasses
     ==================================  =======================================
     Class                               Description
     ==================================  =======================================
-    ``HttpResponseRedirect``            The constructor takes a single argument: 
+    ``HttpResponseRedirect``            The constructor takes a single argument:
                                         the path to redirect to. This can
                                         be a fully qualified URL (e.g.,
                                         ``'http://search.yahoo.com/'``) or
                                         an absolute URL with no domain (e.g.,
                                         ``'/search/'``). Note that this
                                         returns an HTTP status code 302.
-    
+
     ``HttpResponsePermanentRedirect``   Like ``HttpResponseRedirect``, but it
                                         returns a permanent redirect (HTTP
                                         status code 301) instead of a "found"
                                         redirect (status code 302).
-    
-    ``HttpResponseNotModified``         The constructor doesn't take any 
+
+    ``HttpResponseNotModified``         The constructor doesn't take any
                                         arguments. Use this to designate that
                                         a page hasn't been modified since the
                                         user's last request.
-    
-    ``HttpResponseBadRequest``          Acts just like ``HttpResponse`` but 
+
+    ``HttpResponseBadRequest``          Acts just like ``HttpResponse`` but
                                         uses a 400 status code.
-    
-    ``HttpResponseNotFound``            Acts just like ``HttpResponse`` but 
+
+    ``HttpResponseNotFound``            Acts just like ``HttpResponse`` but
                                         uses a 404 status code.
-    
-    ``HttpResponseForbidden``           Acts just like ``HttpResponse`` but 
+
+    ``HttpResponseForbidden``           Acts just like ``HttpResponse`` but
                                         uses a 403 status code.
-    
+
     ``HttpResponseNotAllowed``          Like ``HttpResponse``, but uses a 405
                                         status code. It takes a single, required
                                         argument: a list of permitted methods
                                         (e.g., ``['GET', 'POST']``).
-    
+
     ``HttpResponseGone``                Acts just like ``HttpResponse`` but
                                         uses a 410 status code.
-    
+
     ``HttpResponseServerError``         Acts just like ``HttpResponse`` but
                                         uses a 500 status code.
     ==================================  =======================================
@@ -485,7 +485,7 @@ if you want to override the 404 view, you can specify ``handler404`` in your
 URLconf, like so::
 
     from django.conf.urls.defaults import *
-    
+
     urlpatterns = patterns('',
         ...
     )
@@ -503,16 +503,16 @@ see in ``django/conf/urls/defaults.py``, ``handler404`` is set to
 
 There are three things to note about 404 views:
 
-    * The 404 view is also called if Django doesn't find a match after checking
-      every regular expression in the URLconf.
+* The 404 view is also called if Django doesn't find a match after checking
+  every regular expression in the URLconf.
 
-    * If you don't define your own 404 view -- and simply use the default,
-      which is recommended -- you still have one obligation: to create a
-      ``404.html`` template in the root of your template directory. The default
-      404 view will use that template for all 404 errors.
+* If you don't define your own 404 view -- and simply use the default,
+  which is recommended -- you still have one obligation: to create a
+  ``404.html`` template in the root of your template directory. The default
+  404 view will use that template for all 404 errors.
 
-    * If ``DEBUG`` is set to ``True`` (in your settings module), then your 404
-      view will never be used, and the traceback will be displayed instead.
+* If ``DEBUG`` is set to ``True`` (in your settings module), then your 404
+  view will never be used, and the traceback will be displayed instead.
 
 Customizing the 500 (Server Error) View
 ---------------------------------------

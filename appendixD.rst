@@ -19,15 +19,15 @@ Here are a couple of example settings::
 
 Because a settings file is a Python module, the following apply:
 
-    * It must be valid Python code; syntax errors aren't allowed.
-    
-    * It can assign settings dynamically using normal Python syntax,
-      for example::
+* It must be valid Python code; syntax errors aren't allowed.
 
-          MY_SETTING = [str(i) for i in range(30)]
+* It can assign settings dynamically using normal Python syntax,
+  for example::
 
-    * It can import values from other settings files.
-    
+      MY_SETTING = [str(i) for i in range(30)]
+
+* It can import values from other settings files.
+
 Default Settings
 ----------------
 
@@ -37,9 +37,9 @@ to. Each setting has a sensible default value. These defaults live in the file
 
 Here's the algorithm Django uses in compiling settings:
 
-    * Load settings from ``global_settings.py``.
-    * Load settings from the specified settings file, overriding the global
-      settings as necessary.
+* Load settings from ``global_settings.py``.
+* Load settings from the specified settings file, overriding the global
+  settings as necessary.
 
 Note that a settings file should *not* import from ``global_settings``, because
 that's redundant.
@@ -101,13 +101,13 @@ Creating Your Own Settings
 There's nothing stopping you from creating your own settings, for your own
 Django applications. Just follow these conventions:
 
-    * Use all uppercase for setting names.
-    
-    * For settings that are sequences, use tuples instead of lists. Settings
-      should be considered immutable and shouldn't be changed once they're
-      defined. Using tuples mirrors these semantics.
-      
-    * Don't reinvent an already existing setting.
+* Use all uppercase for setting names.
+
+* For settings that are sequences, use tuples instead of lists. Settings
+  should be considered immutable and shouldn't be changed once they're
+  defined. Using tuples mirrors these semantics.
+
+* Don't reinvent an already existing setting.
 
 Designating the Settings: DJANGO_SETTINGS_MODULE
 ================================================
@@ -178,7 +178,7 @@ calling ``django.conf.settings.configure()``. Here's an example::
     from django.conf import settings
 
     settings.configure(
-        DEBUG = True, 
+        DEBUG = True,
         TEMPLATE_DEBUG = True,
         TEMPLATE_DIRS = [
             '/home/web-apps/myapp',
@@ -279,7 +279,7 @@ ADMIN_MEDIA_PREFIX
 
 *Default*: ``'/media/'``
 
-This setting is the URL prefix for admin media: CSS, JavaScript, and images. 
+This setting is the URL prefix for admin media: CSS, JavaScript, and images.
 Make sure to use a trailing slash.
 
 ADMINS
@@ -344,7 +344,7 @@ DATABASE_HOST
 
 *Default*: ``''`` (empty string)
 
-This setting indicates which host to use when connecting to the database. 
+This setting indicates which host to use when connecting to the database.
 An empty string means ``localhost``. This is not used with SQLite.
 
 If this value starts with a forward slash (``'/'``) and you're using MySQL,
@@ -558,7 +558,7 @@ LANGUAGE_CODE
 *Default*: ``'en-us'``
 
 This is a string representing the language code for this installation. This should be
-in standard language format -- for example, U.S. English is ``"en-us"``. See 
+in standard language format -- for example, U.S. English is ``"en-us"``. See
 Chapter 19.
 
 LANGUAGES
@@ -622,8 +622,8 @@ This URL handles the media served from ``MEDIA_ROOT`` (e.g.,
 
 Note that this should have a trailing slash if it has a path component:
 
-    * *Correct*: ``"http://www.example.com/static/"``
-    * *Incorrect*: ``"http://www.example.com/static"``
+* *Correct*: ``"http://www.example.com/static/"``
+* *Incorrect*: ``"http://www.example.com/static"``
 
 See Chapter 12 for more on deployment and serving media.
 
@@ -662,7 +662,7 @@ PREPEND_WWW
 
 *Default*: ``False``
 
-This setting indicates whether to prepend the "www." subdomain to URLs that don't have it. 
+This setting indicates whether to prepend the "www." subdomain to URLs that don't have it.
 This is used only if ``CommonMiddleware`` is installed (see the Chapter 17). See also
 ``APPEND_SLASH``.
 
@@ -740,8 +740,8 @@ SESSION_COOKIE_SECURE
 
 *Default*: ``False``
 
-This setting indicates whether to use a secure cookie for the session cookie. 
-If this is set to ``True``, the cookie will be marked as "secure," 
+This setting indicates whether to use a secure cookie for the session cookie.
+If this is set to ``True``, the cookie will be marked as "secure,"
 which means browsers may ensure that the cookie is only sent under an HTTPS connection.
 See Chapter 14.
 
@@ -750,7 +750,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE
 
 *Default*: ``False``
 
-This setting indicates whether to expire the session when the user closes 
+This setting indicates whether to expire the session when the user closes
 his browser. See Chapter 14.
 
 SESSION_SAVE_EVERY_REQUEST
@@ -810,7 +810,7 @@ paths should use Unix-style forward slashes, even on Windows. See Chapters 4 and
 TEMPLATE_LOADERS
 ----------------
 
-*Default*: 
+*Default*::
 
     ('django.template.loaders.filesystem.load_template_source',
     'django.template.loaders.app_directories.load_template_source')

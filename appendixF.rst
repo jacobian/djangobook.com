@@ -10,10 +10,10 @@ wrapper. ``manage.py`` is automatically created in each Django project and is a
 thin wrapper around ``django-admin.py``. It takes care of two things for you
 before delegating to ``django-admin.py``:
 
-    * It puts your project's package on ``sys.path``.
+* It puts your project's package on ``sys.path``.
 
-    * It sets the ``DJANGO_SETTINGS_MODULE`` environment variable so that it
-      points to your project's ``settings.py`` file.
+* It sets the ``DJANGO_SETTINGS_MODULE`` environment variable so that it
+  points to your project's ``settings.py`` file.
 
 The ``django-admin.py`` script should be on your system path if you installed
 Django via its ``setup.py`` utility. If it's not on your path, you can find it in
@@ -140,9 +140,9 @@ Runs the command-line client for the database engine specified in your
 ``DATABASE_ENGINE`` setting, with the connection parameters specified in your
 ``DATABASE_USER``, ``DATABASE_PASSWORD``, etc., settings.
 
-    * For PostgreSQL, this runs the ``psql`` command-line client.
-    * For MySQL, this runs the ``mysql`` command-line client.
-    * For SQLite, this runs the ``sqlite3`` command-line client.
+* For PostgreSQL, this runs the ``psql`` command-line client.
+* For MySQL, this runs the ``mysql`` command-line client.
+* For SQLite, this runs the ``sqlite3`` command-line client.
 
 This command assumes the programs are on your ``PATH`` so that a simple call to
 the program name (``psql``, ``mysql``, ``sqlite3``) will find the program in
@@ -232,19 +232,19 @@ As you might expect, the created models will have an attribute for every field
 in the table. Note that ``inspectdb`` has a few special cases in its field-name
 output:
 
-    * If ``inspectdb`` cannot map a column's type to a model field type, it'll
-      use ``TextField`` and will insert the Python comment
-      ``'This field type is a guess.'`` next to the field in the generated
-      model.
+* If ``inspectdb`` cannot map a column's type to a model field type, it'll
+  use ``TextField`` and will insert the Python comment
+  ``'This field type is a guess.'`` next to the field in the generated
+  model.
 
-    * If the database column name is a Python reserved word (such as
-      ``'pass'``, ``'class'`` or ``'for'``), ``inspectdb`` will append
-      ``'_field'`` to the attribute name. For example, if a table has a column
-      ``'for'``, the generated model will have a field ``'for_field'``, with
-      the ``db_column`` attribute set to ``'for'``. ``inspectdb`` will insert
-      the Python comment
-      ``'Field renamed because it was a Python reserved word.'`` next to the
-      field.
+* If the database column name is a Python reserved word (such as
+  ``'pass'``, ``'class'`` or ``'for'``), ``inspectdb`` will append
+  ``'_field'`` to the attribute name. For example, if a table has a column
+  ``'for'``, the generated model will have a field ``'for_field'``, with
+  the ``db_column`` attribute set to ``'for'``. ``inspectdb`` will insert
+  the Python comment
+  ``'Field renamed because it was a Python reserved word.'`` next to the
+  field.
 
 This feature is meant as a shortcut, not as definitive model generation. After
 you run it, you'll want to look over the generated models yourself to make
@@ -272,9 +272,9 @@ fixture can be distributed over multiple directories, in multiple applications.
 
 Django will search in three locations for fixtures:
 
-   1. In the ``fixtures`` directory of every installed application
-   2. In any directory named in the ``FIXTURE_DIRS`` setting
-   3. In the literal path named by the fixture
+1. In the ``fixtures`` directory of every installed application
+2. In any directory named in the ``FIXTURE_DIRS`` setting
+3. In the literal path named by the fixture
 
 Django will load any and all fixtures it finds in these locations that match
 the provided fixture names.
@@ -395,8 +395,8 @@ Example usage::
 Use the ``--domain`` or ``-d`` option to change the domain of the messages files.
 Currently supported:
 
-	* ``django`` for all ``*.py`` and ``*.html`` files (default)
-	* ``djangojs`` for ``*.js`` files
+* ``django`` for all ``*.py`` and ``*.html`` files (default)
+* ``djangojs`` for ``*.js`` files
 
 .. _django-admin-reset:
 
@@ -704,9 +704,9 @@ Example usage::
 Use ``--verbosity`` to specify the amount of notification and debug information
 that ``django-admin.py`` should print to the console.
 
-    * ``0`` means no output.
-    * ``1`` means normal output (default).
-    * ``2`` means verbose output.
+* ``0`` means no output.
+* ``1`` means normal output (default).
+* ``2`` means verbose output.
 
 Extra niceties
 ==============
@@ -727,7 +727,7 @@ script, which lives in ``extras/django_bash_completion`` in the Django
 distribution. It enables tab-completion of ``django-admin.py`` and
 ``manage.py`` commands, so you can, for instance...
 
-    * Type ``django-admin.py``.
-    * Press [TAB] to see all available options.
-    * Type ``sql``, then [TAB], to see all available options whose names start
-      with ``sql``.
+* Type ``django-admin.py``.
+* Press [TAB] to see all available options.
+* Type ``sql``, then [TAB], to see all available options whose names start
+  with ``sql``.

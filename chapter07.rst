@@ -34,22 +34,22 @@ Information About the URL
 ``HttpRequest`` objects contain several pieces of information about the
 currently requested URL:
 
-    ===========================   ====================================  ========================
-    Attribute/method              Description                           Example                 
-    ===========================   ====================================  ========================
-    ``request.path``              The full path, not including the      ``"/hello/"``
-                                  domain but including the leading
-                                  slash.                         
+===========================   ====================================  ========================
+Attribute/method              Description                           Example
+===========================   ====================================  ========================
+``request.path``              The full path, not including the      ``"/hello/"``
+                              domain but including the leading
+                              slash.
 
-    ``request.get_host()``        The host (i.e., the "domain," in      ``"127.0.0.1:8000"``
-                                  common parlance).                     or ``"www.example.com"``
+``request.get_host()``        The host (i.e., the "domain," in      ``"127.0.0.1:8000"``
+                              common parlance).                     or ``"www.example.com"``
 
-    ``request.get_full_path()``   The ``path``, plus a query string     ``"/hello/?print=true"``
-                                  (if available).
+``request.get_full_path()``   The ``path``, plus a query string     ``"/hello/?print=true"``
+                              (if available).
 
-    ``request.is_secure()``       ``True`` if the request was made via  ``True`` or ``False``
-                                  HTTPS. Otherwise, ``False``.
-    ===========================   ====================================  ========================
+``request.is_secure()``       ``True`` if the request was made via  ``True`` or ``False``
+                              HTTPS. Otherwise, ``False``.
+===========================   ====================================  ========================
 
 Always use these attributes/methods instead of hard-coding URLs in your views.
 This makes for more flexible code that can be reused in other places. A
@@ -72,13 +72,13 @@ for the given request -- including the user's IP address and user agent
 of available headers depends on which headers the user sent and which headers
 your Web server sets. Some commonly available keys in this dictionary are:
 
-    * ``HTTP_REFERER`` -- The referring URL, if any. (Note the misspelling of
-      ``REFERER``.)
-    * ``HTTP_USER_AGENT`` -- The user's browser's user-agent string, if any.
-      This looks something like: ``"Mozilla/5.0 (X11; U; Linux i686; fr-FR; rv:1.8.1.17) Gecko/20080829 Firefox/2.0.0.17"``.
-    * ``REMOTE_ADDR`` -- The IP address of the client, e.g., ``"12.345.67.89"``.
-      (If the request has passed through any proxies, then this might be a
-      comma-separated list of IP addresses, e.g., ``"12.345.67.89,23.456.78.90"``.)
+* ``HTTP_REFERER`` -- The referring URL, if any. (Note the misspelling of
+  ``REFERER``.)
+* ``HTTP_USER_AGENT`` -- The user's browser's user-agent string, if any.
+  This looks something like: ``"Mozilla/5.0 (X11; U; Linux i686; fr-FR; rv:1.8.1.17) Gecko/20080829 Firefox/2.0.0.17"``.
+* ``REMOTE_ADDR`` -- The IP address of the client, e.g., ``"12.345.67.89"``.
+  (If the request has passed through any proxies, then this might be a
+  comma-separated list of IP addresses, e.g., ``"12.345.67.89,23.456.78.90"``.)
 
 Note that because ``request.META`` is just a basic Python dictionary, you'll
 get a ``KeyError`` exception if you try to access a key that doesn't exist.
@@ -232,12 +232,12 @@ For the moment, this merely displays the user's search term, so we can make
 sure the data is being submitted to Django properly, and so you can get a feel
 for how the search term flows through the system. In short:
 
-    1. The HTML ``<form>`` defines a variable ``q``. When it's submitted, the
-       value of ``q`` is sent via ``GET`` (``method="get"``) to the URL
-       ``/search/``.
+1. The HTML ``<form>`` defines a variable ``q``. When it's submitted, the
+   value of ``q`` is sent via ``GET`` (``method="get"``) to the URL
+   ``/search/``.
 
-    2. The Django view that handles the URL ``/search/`` (``search()``) has
-       access to the ``q`` value in ``request.GET``.
+2. The Django view that handles the URL ``/search/`` (``search()``) has
+   access to the ``q`` value in ``request.GET``.
 
 An important thing to point out here is that we explicitly check that ``'q'``
 exists in ``request.GET``. As we pointed out in the ``request.META`` section
@@ -292,41 +292,41 @@ the user's search query into our book database (again, in ``views.py``)::
 
 A couple of notes on what we did here:
 
-    * Aside from checking that ``'q'`` exists in ``request.GET``, we also make
-      sure that ``request.GET['q']`` is a non-empty value before passing it to
-      the database query.
+* Aside from checking that ``'q'`` exists in ``request.GET``, we also make
+  sure that ``request.GET['q']`` is a non-empty value before passing it to
+  the database query.
 
-    * We're using ``Book.objects.filter(title__icontains=q)`` to query our
-      book table for all books whose title includes the given submission. The
-      ``icontains`` is a lookup type (as explained in Chapter 5 and Appendix
-      B), and the statement can be roughly translated as "Get the books whose
-      title contains ``q``, without being case-sensitive."
+* We're using ``Book.objects.filter(title__icontains=q)`` to query our
+  book table for all books whose title includes the given submission. The
+  ``icontains`` is a lookup type (as explained in Chapter 5 and Appendix
+  B), and the statement can be roughly translated as "Get the books whose
+  title contains ``q``, without being case-sensitive."
 
-      This is a very simple way to do a book search. We wouldn't recommend
-      using a simple ``icontains`` query on a large production database, as
-      it can be slow. (In the real world, you'd want to use a custom search
-      system of some sort. Search the Web for *open-source full-text search*
-      to get an idea of the possibilities.)
+  This is a very simple way to do a book search. We wouldn't recommend
+  using a simple ``icontains`` query on a large production database, as
+  it can be slow. (In the real world, you'd want to use a custom search
+  system of some sort. Search the Web for *open-source full-text search*
+  to get an idea of the possibilities.)
 
-    * We pass ``books``, a list of ``Book`` objects, to the template. The
-      template code for ``search_results.html`` might include something like
-      this::
+* We pass ``books``, a list of ``Book`` objects, to the template. The
+  template code for ``search_results.html`` might include something like
+  this::
 
-          <p>You searched for: <strong>{{ query }}</strong></p>
+      <p>You searched for: <strong>{{ query }}</strong></p>
 
-          {% if books %}
-              <p>Found {{ books|length }} book{{ books|pluralize }}.</p>
-              <ul>
-                  {% for book in books %}
-                  <li>{{ book.title }}</li>
-                  {% endfor %}
-              </ul>
-          {% else %}
-              <p>No books matched your search criteria.</p>
-          {% endif %}
+      {% if books %}
+          <p>Found {{ books|length }} book{{ books|pluralize }}.</p>
+          <ul>
+              {% for book in books %}
+              <li>{{ book.title }}</li>
+              {% endfor %}
+          </ul>
+      {% else %}
+          <p>No books matched your search criteria.</p>
+      {% endif %}
 
-      Note usage of the ``pluralize`` template filter, which outputs an "s"
-      if appropriate, based on the number of books found.
+  Note usage of the ``pluralize`` template filter, which outputs an "s"
+  if appropriate, based on the number of books found.
 
 .. SL Tested ok
 
@@ -449,11 +449,11 @@ empty. Many HTML forms include a level of validation that's more complex than
 making sure the value is non-empty. We've all seen the error messages on Web
 sites:
 
-    * "Please enter a valid e-mail address. 'foo' is not an e-mail address."
-    * "Please enter a valid five-digit U.S. ZIP code. '123' is not a ZIP code."
-    * "Please enter a valid date in the format YYYY-MM-DD."
-    * "Please enter a password that is at least 8 characters long and contains
-      at least one number."
+* "Please enter a valid e-mail address. 'foo' is not an e-mail address."
+* "Please enter a valid five-digit U.S. ZIP code. '123' is not a ZIP code."
+* "Please enter a valid date in the format YYYY-MM-DD."
+* "Please enter a password that is at least 8 characters long and contains
+  at least one number."
 
 .. admonition:: A note on JavaScript validation
 
@@ -657,56 +657,56 @@ empty ``__init__.py`` and ``views.py``.)
 
 A couple of new things are happening here:
 
-    * We're checking that ``request.method`` is ``'POST'``. This will only be
-      true in the case of a form submission; it won't be true if somebody is
-      merely viewing the contact form. (In the latter case,
-      ``request.method will be set to 'GET'``, because in normal Web browsing,
-      browsers use ``GET``, not ``POST``.) This makes it a nice way to isolate
-      the "form display" case from the "form processing" case.
+* We're checking that ``request.method`` is ``'POST'``. This will only be
+  true in the case of a form submission; it won't be true if somebody is
+  merely viewing the contact form. (In the latter case,
+  ``request.method will be set to 'GET'``, because in normal Web browsing,
+  browsers use ``GET``, not ``POST``.) This makes it a nice way to isolate
+  the "form display" case from the "form processing" case.
 
-    * Instead of ``request.GET``, we're using ``request.POST`` to access the
-      submitted form data. This is necessary because the HTML ``<form>`` in 
-      ``contact_form.html`` uses ``method="post"``. If this view is accessed
-      via ``POST``, then ``request.GET`` will be empty.
+* Instead of ``request.GET``, we're using ``request.POST`` to access the
+  submitted form data. This is necessary because the HTML ``<form>`` in
+  ``contact_form.html`` uses ``method="post"``. If this view is accessed
+  via ``POST``, then ``request.GET`` will be empty.
 
-    * This time, we have *two* required fields, ``subject`` and ``message``, so
-      we have to validate both. Note that we're using ``request.POST.get()``
-      and providing a blank string as the default value; this is a nice, short
-      way of handling both the cases of missing keys and missing data.
+* This time, we have *two* required fields, ``subject`` and ``message``, so
+  we have to validate both. Note that we're using ``request.POST.get()``
+  and providing a blank string as the default value; this is a nice, short
+  way of handling both the cases of missing keys and missing data.
 
-    * Although the ``email`` field is not required, we still validate it if it
-      is indeed submitted. Our validation algorithm here is fragile -- we're
-      just checking that the string contains an ``@`` character. In the real
-      world, you'd want more robust validation (and Django provides it, which
-      we'll show you very shortly).
+* Although the ``email`` field is not required, we still validate it if it
+  is indeed submitted. Our validation algorithm here is fragile -- we're
+  just checking that the string contains an ``@`` character. In the real
+  world, you'd want more robust validation (and Django provides it, which
+  we'll show you very shortly).
 
-    * We're using the function ``django.core.mail.send_mail`` to send an
-      e-mail. This function has four required arguments: the e-mail subject,
-      the e-mail body, the "from" address, and a list of recipient addresses.
-      ``send_mail`` is a convenient wrapper around Django's ``EmailMessage``
-      class, which provides advanced features such as attachments, multipart
-      e-mails, and full control over e-mail headers.
+* We're using the function ``django.core.mail.send_mail`` to send an
+  e-mail. This function has four required arguments: the e-mail subject,
+  the e-mail body, the "from" address, and a list of recipient addresses.
+  ``send_mail`` is a convenient wrapper around Django's ``EmailMessage``
+  class, which provides advanced features such as attachments, multipart
+  e-mails, and full control over e-mail headers.
 
-      Note that in order to send e-mail using ``send_mail()``, your server must
-      be configured to send mail, and Django must be told about your outbound
-      e-mail server. See http://docs.djangoproject.com/en/dev/topics/email/ for
-      the specifics.
+  Note that in order to send e-mail using ``send_mail()``, your server must
+  be configured to send mail, and Django must be told about your outbound
+  e-mail server. See http://docs.djangoproject.com/en/dev/topics/email/ for
+  the specifics.
 
-    * After the e-mail is sent, we redirect to a "success" page by returning an
-      ``HttpResponseRedirect`` object. We'll leave the implementation of that
-      "success" page up to you (it's a simple view/URLconf/template), but we
-      should explain why we initiate a redirect instead of, for example, simply
-      calling ``render_to_response()`` with a template right there.
+* After the e-mail is sent, we redirect to a "success" page by returning an
+  ``HttpResponseRedirect`` object. We'll leave the implementation of that
+  "success" page up to you (it's a simple view/URLconf/template), but we
+  should explain why we initiate a redirect instead of, for example, simply
+  calling ``render_to_response()`` with a template right there.
 
-      The reason: if a user hits "Refresh" on a page that was loaded via
-      ``POST``, that request will be repeated. This can often lead to undesired
-      behavior, such as a duplicate record being added to the database -- or,
-      in our example, the e-mail being sent twice. If the user is redirected to
-      another page after the ``POST``, then there's no chance of repeating the
-      request.
+  The reason: if a user hits "Refresh" on a page that was loaded via
+  ``POST``, that request will be repeated. This can often lead to undesired
+  behavior, such as a duplicate record being added to the database -- or,
+  in our example, the e-mail being sent twice. If the user is redirected to
+  another page after the ``POST``, then there's no chance of repeating the
+  request.
 
-      You should *always* issue a redirect for successful ``POST`` requests.
-      It's a Web development best practice.
+  You should *always* issue a redirect for successful ``POST`` requests.
+  It's a Web development best practice.
 
 This view works, but those validation functions are kind of crufty. Imagine
 processing a form with a dozen fields; would you really want to have to write

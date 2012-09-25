@@ -22,17 +22,17 @@ is the list of database fields it defines.
 
     Django places only two restrictions on model field names:
 
-        1. A field name cannot be a Python reserved word, because that would result
-           in a Python syntax error. For example::
+    1. A field name cannot be a Python reserved word, because that would result
+       in a Python syntax error. For example::
 
-               class Example(models.Model):
-                   pass = models.IntegerField() # 'pass' is a reserved word!
+           class Example(models.Model):
+               pass = models.IntegerField() # 'pass' is a reserved word!
 
-        2. A field name cannot contain more than one underscore in a row, due to
-           the way Django's query lookup syntax works. For example::
+    2. A field name cannot contain more than one underscore in a row, due to
+       the way Django's query lookup syntax works. For example::
 
-               class Example(models.Model):
-                   foo__bar = models.IntegerField() # 'foo__bar' has two underscores!
+           class Example(models.Model):
+               foo__bar = models.IntegerField() # 'foo__bar' has two underscores!
 
     These limitations can be worked around, though, because your field name
     doesn't necessarily have to match your database column name. See
@@ -46,14 +46,14 @@ is the list of database fields it defines.
 Each field in your model should be an instance of the appropriate ``Field``
 class. Django uses the field class types to determine a few things:
 
-    * The database column type (e.g., ``INTEGER``, ``VARCHAR``).
-    
-    * The widget to use in Django's forms and admin site, if you care to use it
-      (e.g., ``<input type="text">``, ``<select>``).
+* The database column type (e.g., ``INTEGER``, ``VARCHAR``).
 
-    * The minimal validation requirements, which are used in Django's admin
-      interface and by forms.
-        
+* The widget to use in Django's forms and admin site, if you care to use it
+  (e.g., ``<input type="text">``, ``<select>``).
+
+* The minimal validation requirements, which are used in Django's admin
+  interface and by forms.
+
 A complete list of field classes follows, sorted alphabetically. Note that
 relationship fields (``ForeignKey``, etc.) are handled in the next section.
 
@@ -116,11 +116,9 @@ A fixed-precision decimal number, represented in Python by a
 ``decimal.Decimal`` instance. Has two **required** arguments:
 
 ``max_digits``
-
     The maximum number of digits allowed in the number
 
 ``decimal_places``
-
     The number of decimal places to store with the number
 
 For example, to store numbers up to 999 with a resolution of 2 decimal places,
@@ -153,7 +151,6 @@ A file-upload field.
 Has one **required** argument:
 
 ``upload_to``
-
     A local filesystem path that will be appended to your ``MEDIA_ROOT``
     setting to determine the value of the ``django.core.files.File.url``
     attribute.
@@ -169,50 +166,49 @@ Has one **required** argument:
     to be passed along to the storage system. The two arguments that will be
     passed are:
 
-        ======================  ===============================================
-        Argument                Description
-        ======================  ===============================================
-        ``instance``            An instance of the model where the
-                                ``FileField`` is defined. More specifically,
-                                this is the particular instance where the
-                                current file is being attached.
+    ======================  ===============================================
+    Argument                Description
+    ======================  ===============================================
+    ``instance``            An instance of the model where the
+                            ``FileField`` is defined. More specifically,
+                            this is the particular instance where the
+                            current file is being attached.
 
-                                In most cases, this object will not have been
-                                saved to the database yet, so if it uses the
-                                default ``AutoField``, *it might not yet have a
-                                value for its primary key field*.
+                            In most cases, this object will not have been
+                            saved to the database yet, so if it uses the
+                            default ``AutoField``, *it might not yet have a
+                            value for its primary key field*.
 
-        ``filename``            The filename that was originally given to the
-                                file. This may or may not be taken into account
-                                when determining the final destination path.
-        ======================  ===============================================
+    ``filename``            The filename that was originally given to the
+                            file. This may or may not be taken into account
+                            when determining the final destination path.
+    ======================  ===============================================
 
 Also has one optional argument:
 
 ``storage``
-
     Optional. A storage object, which handles the storage and retrieval of your
     files.
 
 Using a ``FileField`` or an ``ImageField`` (see below) in a model
 takes a few steps:
 
-    1. In your settings file, you'll need to define ``MEDIA_ROOT`` as the
-       full path to a directory where you'd like Django to store uploaded files.
-       (For performance, these files are not stored in the database.) Define
-       ``MEDIA_URL`` as the base public URL of that directory. Make sure
-       that this directory is writable by the Web server's user account.
+1. In your settings file, you'll need to define ``MEDIA_ROOT`` as the
+   full path to a directory where you'd like Django to store uploaded files.
+   (For performance, these files are not stored in the database.) Define
+   ``MEDIA_URL`` as the base public URL of that directory. Make sure
+   that this directory is writable by the Web server's user account.
 
-    2. Add the ``FileField`` or ``ImageField`` to your model, making
-       sure to define the ``upload_to`` option to tell Django
-       to which subdirectory of ``MEDIA_ROOT`` it should upload files.
+2. Add the ``FileField`` or ``ImageField`` to your model, making
+   sure to define the ``upload_to`` option to tell Django
+   to which subdirectory of ``MEDIA_ROOT`` it should upload files.
 
-    3. All that will be stored in your database is a path to the file
-       (relative to ``MEDIA_ROOT``). You'll most likely want to use the
-       convenience ``url`` function provided by
-       Django. For example, if your ``ImageField`` is called ``mug_shot``,
-       you can get the absolute URL to your image in a template with
-       ``{{ object.mug_shot.url }}``.
+3. All that will be stored in your database is a path to the file
+   (relative to ``MEDIA_ROOT``). You'll most likely want to use the
+   convenience ``url`` function provided by
+   Django. For example, if your ``ImageField`` is called ``mug_shot``,
+   you can get the absolute URL to your image in a template with
+   ``{{ object.mug_shot.url }}``.
 
 For example, say your ``MEDIA_ROOT`` is set to ``'/home/media'``, and
 ``upload_to`` is set to ``'photos/%Y/%m/%d'``. The ``'%Y/%m/%d'``
@@ -245,19 +241,16 @@ directory on the filesystem. Has three special arguments, of which the first is
 **required**:
 
 ``path``
-
     Required. The absolute filesystem path to a directory from which this
     ``FilePathField`` should get its choices. Example: ``"/home/images"``.
 
 ``match``
-
     Optional. A regular expression, as a string, that ``FilePathField``
     will use to filter filenames. Note that the regex will be applied to the
     base filename, not the full path. Example: ``"foo.*\.txt$"``, which will
     match a file called ``foo23.txt`` but not ``bar.txt`` or ``foo23.gif``.
 
 ``recursive``
-
     Optional. Either ``True`` or ``False``. Default is ``False``. Specifies
     whether all subdirectories of ``path`` should be included.
 
@@ -288,12 +281,10 @@ Like ``FileField``, but validates that the uploaded object is a valid
 image. Has two extra optional arguments:
 
 ``height_field``
-
     Name of a model field which will be auto-populated with the height of the
     image each time the model instance is saved.
 
 ``width_field``
-
     Name of a model field which will be auto-populated with the width of the
     image each time the model instance is saved.
 
@@ -371,7 +362,6 @@ URLField
 A ``CharField`` for a URL. Has one extra optional argument:
 
 ``verify_exists``
-
     If ``True`` (the default), the URL given will be checked for existence
     (i.e., the URL actually loads and doesn't give a 404 response). It should
     be noted that when using the single-threaded development server, validating
@@ -389,7 +379,6 @@ A ``TextField`` that checks that the value is valid XML that matches a
 given schema. Takes one required argument:
 
 ``schema_path``
-
     The filesystem path to a RelaxNG schema against which to validate the
     field. For more on RelaxNG, see http://www.relaxng.org/.
 
@@ -403,7 +392,7 @@ null
 
 If ``True``, Django will store empty values as ``NULL`` in the database. If
 ``False``, saving empty values will likely result in a database error. Default
-is ``False``. 
+is ``False``.
 
 Note that empty string values will always get stored as empty strings, not as
 ``NULL``. Only use ``null=True`` for non-string fields such as integers,
@@ -661,7 +650,6 @@ deal with the field names of your model object.
 define the details of how the relation works.
 
 ``limit_choices_to``
-
     A dictionary of lookup arguments and values
     that limit the available admin choices for this object. Use this with
     functions from the Python ``datetime`` module to limit choices of objects by
@@ -674,13 +662,11 @@ define the details of how the relation works.
 
     ``limit_choices_to`` has no effect on the inline FormSets that are created
     to display related objects in the admin.
-    
-``related_name``
 
+``related_name``
     The name to use for the relation from the related object back to this one.
 
 ``to_field``
-
     The field on the related object that the relation is to. By default, Django
     uses the primary key of the related object.
 
@@ -705,11 +691,9 @@ You can manually provide the name of the join table using the
 that control how the relationship functions.
 
 ``related_name``
-
     Same as ``related_name`` in ``ForeignKey``.
 
 ``limit_choices_to``
-
     Same as ``limit_choices_to`` in ``ForeignKey``.
 
     ``limit_choices_to`` has no effect when used on a ``ManyToManyField`` with a
@@ -717,7 +701,6 @@ that control how the relationship functions.
     ``through`` paramter.
 
 ``symmetrical``
-
     Only used in the definition of ManyToManyFields on self. Consider the
     following model::
 
@@ -736,7 +719,6 @@ that control how the relationship functions.
     ``ManyToManyField`` relationships to be non-symmetrical.
 
 ``through``
-
     Django will automatically generate a table to manage many-to-many
     relationships. However, if you want to manually specify the intermediary
     table, you can use the ``through`` option to specify
@@ -747,7 +729,6 @@ that control how the relationship functions.
     extra data with a many-to-many relationship.
 
 ``db_table``
-
     The name of the table to create for storing the many-to-many data. If this
     is not provided, Django will assume a default name based upon the names of
     the two tables being joined.
@@ -773,7 +754,6 @@ Additionally, ``OneToOneField`` accepts all of the extra arguments
 accepted by ``ForeignKey``, plus one extra argument:
 
 ``parent_link``
-
     When ``True`` and used in a model which inherits from another
     (concrete) model, indicates that this field should be used as the
     link back to the parent class, rather than the extra
@@ -795,7 +775,7 @@ model class::
 
 Model metadata is "anything that's not a field," such as ordering options and so forth.
 
-The sections that follow present a list of all possible ``Meta`` options. 
+The sections that follow present a list of all possible ``Meta`` options.
 No options are required. Adding ``class Meta`` to a model is completely optional.
 
 abstract
@@ -861,21 +841,21 @@ table or a database view that has been created by some other means. This is
 the *only* difference when ``managed`` is ``False``. All other aspects of
 model handling are exactly the same as normal. This includes
 
-    1. Adding an automatic primary key field to the model if you don't declare
-       it. To avoid confusion for later code readers, it's recommended to
-       specify all the columns from the database table you are modeling when
-       using unmanaged models.
+1. Adding an automatic primary key field to the model if you don't declare
+   it. To avoid confusion for later code readers, it's recommended to
+   specify all the columns from the database table you are modeling when
+   using unmanaged models.
 
-    2. If a model with ``managed=False`` contains a
-       ``ManyToManyField`` that points to another
-       unmanaged model, then the intermediary table for the many-to-many join
-       will also not be created. However, the intermediary table between one
-       managed and one unmanaged model *will* be created.
-       
-       If you need to change this default behavior, create the intermediary
-       table as an explicit model (with ``managed`` set as needed) and use the
-       ``through`` attribute to make the relation use your
-       custom model.
+2. If a model with ``managed=False`` contains a
+   ``ManyToManyField`` that points to another
+   unmanaged model, then the intermediary table for the many-to-many join
+   will also not be created. However, the intermediary table between one
+   managed and one unmanaged model *will* be created.
+
+   If you need to change this default behavior, create the intermediary
+   table as an explicit model (with ``managed`` set as needed) and use the
+   ``through`` attribute to make the relation use your
+   custom model.
 
 For tests involving models with ``managed=False``, it's up to you to ensure
 the correct tables are created as part of the test setup.

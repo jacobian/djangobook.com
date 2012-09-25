@@ -57,22 +57,22 @@ it in your project.
 
 First, make a few changes to your settings file:
 
-    1. Add ``'django.contrib.admin'`` to the ``INSTALLED_APPS`` setting. (The
-       order of ``INSTALLED_APPS`` doesn't matter, but we like to keep things
-       alphabetical so it's easy for a human to read.)
+1. Add ``'django.contrib.admin'`` to the ``INSTALLED_APPS`` setting. (The
+   order of ``INSTALLED_APPS`` doesn't matter, but we like to keep things
+   alphabetical so it's easy for a human to read.)
 
-    2. Make sure ``INSTALLED_APPS`` contains ``'django.contrib.auth'``,
-       ``'django.contrib.contenttypes'`` and ``'django.contrib.sessions'``. The
-       Django admin site requires these three packages. (If you're following
-       along with our ongoing ``mysite`` project, note that we commented out
-       these three ``INSTALLED_APPS`` entries in Chapter 5. Uncomment them now.)
+2. Make sure ``INSTALLED_APPS`` contains ``'django.contrib.auth'``,
+   ``'django.contrib.contenttypes'`` and ``'django.contrib.sessions'``. The
+   Django admin site requires these three packages. (If you're following
+   along with our ongoing ``mysite`` project, note that we commented out
+   these three ``INSTALLED_APPS`` entries in Chapter 5. Uncomment them now.)
 
-    3. Make sure ``MIDDLEWARE_CLASSES`` contains
-       ``'django.middleware.common.CommonMiddleware'``,
-       ``'django.contrib.sessions.middleware.SessionMiddleware'`` and
-       ``'django.contrib.auth.middleware.AuthenticationMiddleware'``. (Again,
-       if you're following along, note that we commented them out in Chapter 5,
-       so uncomment them.)
+3. Make sure ``MIDDLEWARE_CLASSES`` contains
+   ``'django.middleware.common.CommonMiddleware'``,
+   ``'django.contrib.sessions.middleware.SessionMiddleware'`` and
+   ``'django.contrib.auth.middleware.AuthenticationMiddleware'``. (Again,
+   if you're following along, note that we commented them out in Chapter 5,
+   so uncomment them.)
 
 Second, run ``python manage.py syncdb``. This step will install the extra
 database tables that the admin interface uses. The first time you run
@@ -564,21 +564,21 @@ list pages. Edit ``admin.py`` to make these changes:
 
 Here's what we've done:
 
-    * We created the class ``AuthorAdmin``. This class, which subclasses
-      ``django.contrib.admin.ModelAdmin``, holds custom configuration
-      for a specific admin model. We've only specified one customization --
-      ``list_display``, which is set to a tuple of field names to display on
-      the change list page. These field names must exist in the model, of
-      course.
+* We created the class ``AuthorAdmin``. This class, which subclasses
+  ``django.contrib.admin.ModelAdmin``, holds custom configuration
+  for a specific admin model. We've only specified one customization --
+  ``list_display``, which is set to a tuple of field names to display on
+  the change list page. These field names must exist in the model, of
+  course.
 
-    * We altered the ``admin.site.register()`` call to add ``AuthorAdmin`` after
-      ``Author``. You can read this as: "Register the ``Author`` model with the
-      ``AuthorAdmin`` options."
+* We altered the ``admin.site.register()`` call to add ``AuthorAdmin`` after
+  ``Author``. You can read this as: "Register the ``Author`` model with the
+  ``AuthorAdmin`` options."
 
-      The ``admin.site.register()`` function takes a ``ModelAdmin`` subclass as
-      an optional second argument. If you don't specify a second argument (as
-      is the case for ``Publisher`` and ``Book``), Django will use the default
-      admin options for that model.
+  The ``admin.site.register()`` function takes a ``ModelAdmin`` subclass as
+  an optional second argument. If you don't specify a second argument (as
+  is the case for ``Publisher`` and ``Book``), Django will use the default
+  admin options for that model.
 
 With that tweak made, reload the author change list page, and you'll see it's
 now displaying three columns -- the first name, last name and e-mail address.
@@ -880,19 +880,19 @@ username, password, e-mail and real name fields you might expect, along with a
 set of fields that define what the user is allowed to do in the admin
 interface. First, there's a set of three boolean flags:
 
-    * The "active" flag controls whether the user is active at all.
-      If this flag is off and the user tries to log in, he won't be allowed in,
-      even with a valid password.
+* The "active" flag controls whether the user is active at all.
+  If this flag is off and the user tries to log in, he won't be allowed in,
+  even with a valid password.
 
-    * The "staff" flag controls whether the user is allowed to log in to the
-      admin interface (i.e., whether that user is considered a "staff member" in
-      your organization). Since this same user system can be used to control
-      access to public (i.e., non-admin) sites (see Chapter 14), this flag
-      differentiates between public users and administrators.
+* The "staff" flag controls whether the user is allowed to log in to the
+  admin interface (i.e., whether that user is considered a "staff member" in
+  your organization). Since this same user system can be used to control
+  access to public (i.e., non-admin) sites (see Chapter 14), this flag
+  differentiates between public users and administrators.
 
-    * The "superuser" flag gives the user full access to add, create and
-      delete any item in the admin interface. If a user has this flag set, then
-      all regular permissions (or lack thereof) are ignored for that user.
+* The "superuser" flag gives the user full access to add, create and
+  delete any item in the admin interface. If a user has this flag set, then
+  all regular permissions (or lack thereof) are ignored for that user.
 
 "Normal" admin users -- that is, active, non-superuser staff members -- are
 granted admin access through assigned permissions. Each object editable through
@@ -934,19 +934,19 @@ newspaper where Django was first developed, development of a typical online
 feature -- say, a special report on water quality in the municipal supply --
 would go something like this:
 
-    * The reporter responsible for the project meets with one of the developers
-      and describes the available data.
+* The reporter responsible for the project meets with one of the developers
+  and describes the available data.
 
-    * The developer designs Django models to fit this data and then opens up
-      the admin site to the reporter.
+* The developer designs Django models to fit this data and then opens up
+  the admin site to the reporter.
 
-    * The reporter inspects the admin site to point out any missing or
-      extraneous fields -- better now than later. The developer changes the
-      models iteratively.
+* The reporter inspects the admin site to point out any missing or
+  extraneous fields -- better now than later. The developer changes the
+  models iteratively.
 
-    * When the models are agreed upon, the reporter begins entering data using
-      the admin site. At the same time, the programmer can focus on developing
-      the publicly accessible views/templates (the fun part!).
+* When the models are agreed upon, the reporter begins entering data using
+  the admin site. At the same time, the programmer can focus on developing
+  the publicly accessible views/templates (the fun part!).
 
 In other words, the raison d'être of Django's admin interface is facilitating
 the simultaneous work of content producers and programmers.
@@ -954,23 +954,23 @@ the simultaneous work of content producers and programmers.
 However, beyond these obvious data entry tasks, the admin site is useful in a
 few other cases:
 
-    * *Inspecting data models*: Once you've defined a few models, it can be
-      quite useful to call them up in the admin interface and enter some dummy
-      data. In some cases, this might reveal data-modeling mistakes or other
-      problems with your models.
+* *Inspecting data models*: Once you've defined a few models, it can be
+  quite useful to call them up in the admin interface and enter some dummy
+  data. In some cases, this might reveal data-modeling mistakes or other
+  problems with your models.
 
-    * *Managing acquired data*: For applications that rely on data coming from
-      external sources (e.g., users or Web crawlers), the admin site gives you
-      an easy way to inspect or edit this data. You can think of it as a less
-      powerful, but more convenient, version of your database's command-line
-      utility.
+* *Managing acquired data*: For applications that rely on data coming from
+  external sources (e.g., users or Web crawlers), the admin site gives you
+  an easy way to inspect or edit this data. You can think of it as a less
+  powerful, but more convenient, version of your database's command-line
+  utility.
 
-    * *Quick and dirty data-management apps*: You can use the admin site to
-      build yourself a very lightweight data management app -- say, to keep
-      track of expenses. If you're just building something for your own needs,
-      not for public consumption, the admin site can take you a long way. In
-      this sense, you can think of it as a beefed up, relational version of a
-      spreadsheet.
+* *Quick and dirty data-management apps*: You can use the admin site to
+  build yourself a very lightweight data management app -- say, to keep
+  track of expenses. If you're just building something for your own needs,
+  not for public consumption, the admin site can take you a long way. In
+  this sense, you can think of it as a beefed up, relational version of a
+  spreadsheet.
 
 One final point we want to make clear is: the admin site is not an
 end-all-be-all. Over the years, we've seen it hacked and chopped up to serve a

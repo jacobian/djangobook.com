@@ -103,19 +103,19 @@ personal coding style and needs.
 
 Advantages of the string approach are as follows:
 
-    * It's more compact, because it doesn't require you to import the view
-      functions.
+* It's more compact, because it doesn't require you to import the view
+  functions.
 
-    * It results in more readable and manageable URLconfs if your view
-      functions are spread across several different Python modules.
+* It results in more readable and manageable URLconfs if your view
+  functions are spread across several different Python modules.
 
 Advantages of the function object approach are as follows:
 
-    * It allows for easy "wrapping" of view functions. See the section "Wrapping View
-      Functions" later in this chapter.
+* It allows for easy "wrapping" of view functions. See the section "Wrapping View
+  Functions" later in this chapter.
 
-    * It's more "Pythonic" -- that is, it's more in line with Python
-      traditions, such as passing functions as objects.
+* It's more "Pythonic" -- that is, it's more in line with Python
+  traditions, such as passing functions as objects.
 
 Both approaches are valid, and you can even mix them within the same URLconf.
 The choice is yours.
@@ -278,9 +278,9 @@ non-named groups, we'd have to remember to change the order of arguments in the
 the captured parameters in the URL would have no effect on the view.
 
 Of course, the benefits of named groups come at the cost of brevity; some
-developers find the named-group syntax ugly and too verbose. Still, another 
-advantage of named groups is readability, especially by those who aren't 
-intimately familiar with regular expressions or your particular Django 
+developers find the named-group syntax ugly and too verbose. Still, another
+advantage of named groups is readability, especially by those who aren't
+intimately familiar with regular expressions or your particular Django
 application. It's easier to see what's happening, at a glance, in a
 URLconf that uses named groups.
 
@@ -293,13 +293,13 @@ throw any errors, but you'll probably find that your URLs aren't matching as
 you expect. Specifically, here's the algorithm the URLconf parser follows, with
 respect to named groups vs. non-named groups in a regular expression:
 
-    * If there are any named arguments, it will use those, ignoring non-named
-      arguments.
+* If there are any named arguments, it will use those, ignoring non-named
+  arguments.
 
-    * Otherwise, it will pass all non-named arguments as positional arguments.
+* Otherwise, it will pass all non-named arguments as positional arguments.
 
-    * In both cases, it will pass any extra options as keyword arguments. See
-      the next section for more information.
+* In both cases, it will pass any extra options as keyword arguments. See
+  the next section for more information.
 
 Passing Extra Options to View Functions
 ---------------------------------------
@@ -525,26 +525,26 @@ From now on, anytime we need a view that lists a set of objects, we can simply
 reuse this ``object_list`` view rather than writing view code. Here are a
 couple of notes about what we did:
 
-    * We're passing the model classes directly, as the ``model`` parameter. The
-      dictionary of extra URLconf options can pass any type of Python object --
-      not just strings.
+* We're passing the model classes directly, as the ``model`` parameter. The
+  dictionary of extra URLconf options can pass any type of Python object --
+  not just strings.
 
-    * The ``model.objects.all()`` line is an example of *duck typing*: "If it
-      walks like a duck and talks like a duck, we can treat it like a duck."
-      Note the code doesn't know what type of object ``model`` is; the only
-      requirement is that ``model`` have an ``objects`` attribute, which in
-      turn has an ``all()`` method.
+* The ``model.objects.all()`` line is an example of *duck typing*: "If it
+  walks like a duck and talks like a duck, we can treat it like a duck."
+  Note the code doesn't know what type of object ``model`` is; the only
+  requirement is that ``model`` have an ``objects`` attribute, which in
+  turn has an ``all()`` method.
 
-    * We're using ``model.__name__.lower()`` in determining the template name.
-      Every Python class has a ``__name__`` attribute that returns the class
-      name. This feature is useful at times like this, when we don't know the
-      type of class until runtime. For example, the ``BlogEntry`` class's 
-      ``__name__`` is the string ``'BlogEntry'``.
+* We're using ``model.__name__.lower()`` in determining the template name.
+  Every Python class has a ``__name__`` attribute that returns the class
+  name. This feature is useful at times like this, when we don't know the
+  type of class until runtime. For example, the ``BlogEntry`` class's
+  ``__name__`` is the string ``'BlogEntry'``.
 
-    * In a slight difference between this example and the previous example,
-      we're passing the generic variable name ``object_list`` to the template.
-      We could easily change this variable name to be ``blogentry_list`` or
-      ``event_list``, but we've left that as an exercise for the reader.
+* In a slight difference between this example and the previous example,
+  we're passing the generic variable name ``object_list`` to the template.
+  We could easily change this variable name to be ``blogentry_list`` or
+  ``event_list``, but we've left that as an exercise for the reader.
 
 Because database-driven Web sites have several common patterns, Django comes
 with a set of "generic views" that use this exact technique to save you time.
@@ -746,7 +746,7 @@ parameters, or the domain name. It also does not include the leading slash,
 because every URL has a leading slash.
 
 For example, in a request to ``http://www.example.com/myapp/``, Django will try
-to match ``myapp/``. In a request to ``http://www.example.com/myapp/?page=3``, 
+to match ``myapp/``. In a request to ``http://www.example.com/myapp/?page=3``,
 Django will try to match ``myapp/``.
 
 The request method (e.g., ``POST``, ``GET``) is *not* taken into account when
@@ -832,29 +832,29 @@ this technique could help simplify our ``some_page()`` view::
 
 Let's go through what this does:
 
-    * We've written a new view, ``method_splitter()``, that delegates to other
-      views based on ``request.method``. It looks for two keyword arguments,
-      ``GET`` and ``POST``, which should be *view functions*. If
-      ``request.method`` is ``'GET'``, then it calls the ``GET`` view. If
-      ``request.method`` is ``'POST'``, then it calls the ``POST`` view. If
-      ``request.method`` is something else (``HEAD``, etc.), or if ``GET`` or
-      ``POST`` were not supplied to the function, then it raises an
-      ``Http404``.
+* We've written a new view, ``method_splitter()``, that delegates to other
+  views based on ``request.method``. It looks for two keyword arguments,
+  ``GET`` and ``POST``, which should be *view functions*. If
+  ``request.method`` is ``'GET'``, then it calls the ``GET`` view. If
+  ``request.method`` is ``'POST'``, then it calls the ``POST`` view. If
+  ``request.method`` is something else (``HEAD``, etc.), or if ``GET`` or
+  ``POST`` were not supplied to the function, then it raises an
+  ``Http404``.
 
-    * In the URLconf, we point ``/somepage/`` at ``method_splitter()`` and pass
-      it extra arguments -- the view functions to use for ``GET`` and ``POST``,
-      respectively.
+* In the URLconf, we point ``/somepage/`` at ``method_splitter()`` and pass
+  it extra arguments -- the view functions to use for ``GET`` and ``POST``,
+  respectively.
 
-    * Finally, we've split the ``some_page()`` view into two view functions --
-      ``some_page_get()`` and ``some_page_post()``. This is much nicer than
-      shoving all of that logic into a single view.
+* Finally, we've split the ``some_page()`` view into two view functions --
+  ``some_page_get()`` and ``some_page_post()``. This is much nicer than
+  shoving all of that logic into a single view.
 
-      Note that these view functions technically no longer have to check
-      ``request.method``, because ``method_splitter()`` does that. (By the time
-      ``some_page_post()`` is called, for example, we can be confident
-      ``request.method`` is ``'post'``.) Still, just to be safe, and also to
-      serve as documentation, we stuck in an ``assert`` that makes sure
-      ``request.method`` is what we expect it to be.
+  Note that these view functions technically no longer have to check
+  ``request.method``, because ``method_splitter()`` does that. (By the time
+  ``some_page_post()`` is called, for example, we can be confident
+  ``request.method`` is ``'post'``.) Still, just to be safe, and also to
+  serve as documentation, we stuck in an ``assert`` that makes sure
+  ``request.method`` is what we expect it to be.
 
 Now we have ourselves a nice, generic view function that encapsulates the logic
 of delegating a view by ``request.method``. Nothing about ``method_splitter()``
@@ -1020,21 +1020,21 @@ Continuing this example, here's the URLconf ``mysite.blog.urls``::
 
 With these two URLconfs, here's how a few sample requests would be handled:
 
-    * ``/weblog/2007/``: In the first URLconf, the pattern ``r'^weblog/'``
-      matches. Because it is an ``include()``, Django strips all the matching
-      text, which is ``'weblog/'`` in this case. The remaining part of the URL
-      is ``2007/``, which matches the first line in the ``mysite.blog.urls``
-      URLconf.
+* ``/weblog/2007/``: In the first URLconf, the pattern ``r'^weblog/'``
+  matches. Because it is an ``include()``, Django strips all the matching
+  text, which is ``'weblog/'`` in this case. The remaining part of the URL
+  is ``2007/``, which matches the first line in the ``mysite.blog.urls``
+  URLconf.
 
-    * ``/weblog//2007/`` (with two slashes): In the first URLconf, the pattern
-      ``r'^weblog/'`` matches. Because it is an ``include()``, Django strips
-      all the matching text, which is ``'weblog/'`` in this case. The remaining
-      part of the URL is ``/2007/`` (with a leading slash), which does not
-      match any of the lines in the ``mysite.blog.urls`` URLconf.
+* ``/weblog//2007/`` (with two slashes): In the first URLconf, the pattern
+  ``r'^weblog/'`` matches. Because it is an ``include()``, Django strips
+  all the matching text, which is ``'weblog/'`` in this case. The remaining
+  part of the URL is ``/2007/`` (with a leading slash), which does not
+  match any of the lines in the ``mysite.blog.urls`` URLconf.
 
-    * ``/about/``: This matches the view ``mysite.views.about`` in the first
-      URLconf, demonstrating that you can mix ``include()`` patterns with
-      non-``include()`` patterns.
+* ``/about/``: This matches the view ``mysite.views.about`` in the first
+  URLconf, demonstrating that you can mix ``include()`` patterns with
+  non-``include()`` patterns.
 
 How Captured Parameters Work with include()
 -------------------------------------------

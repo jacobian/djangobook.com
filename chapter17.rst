@@ -15,17 +15,17 @@ Each middleware component is responsible for doing some specific function. If
 you're reading this book straight through, you've seen middleware a number of
 times already:
 
-    * All of the session and user tools that we looked at in Chapter 14
-      are made possible by a few small pieces of middleware (more
-      specifically, the middleware makes ``request.session`` and
-      ``request.user`` available to you in views).
+* All of the session and user tools that we looked at in Chapter 14
+  are made possible by a few small pieces of middleware (more
+  specifically, the middleware makes ``request.session`` and
+  ``request.user`` available to you in views).
 
-    * The sitewide cache discussed in Chapter 15 is actually just a piece
-      of middleware that bypasses the call to your view function if the
-      response for that view has already been cached.
+* The sitewide cache discussed in Chapter 15 is actually just a piece
+  of middleware that bypasses the call to your view function if the
+  response for that view has already been cached.
 
-    * The ``flatpages``, ``redirects``, and ``csrf`` applications from
-      Chapter 16 all do their magic through middleware components.
+* The ``flatpages``, ``redirects``, and ``csrf`` applications from
+  Chapter 16 all do their magic through middleware components.
 
 This chapter dives deeper into exactly what middleware is and how it works,
 and explains how you can write your own middleware.
@@ -141,12 +141,12 @@ the ``HttpRequest`` object, which you may modify at will.
 ``process_request()`` should return either ``None`` or an ``HttpResponse``
 object.
 
-    * If it returns ``None``, Django will continue processing this request,
-      executing any other middleware and then the appropriate view.
+* If it returns ``None``, Django will continue processing this request,
+  executing any other middleware and then the appropriate view.
 
-    * If it returns an ``HttpResponse`` object, Django won't bother calling
-      *any* other middleware (of any type) or the appropriate view. Django
-      will immediately return that ``HttpResponse``.
+* If it returns an ``HttpResponse`` object, Django won't bother calling
+  *any* other middleware (of any type) or the appropriate view. Django
+  will immediately return that ``HttpResponse``.
 
 View Preprocessor: process_view(self, request, view, args, kwargs)
 ------------------------------------------------------------------
@@ -179,12 +179,12 @@ The arguments passed to this view are shown in Table 17-1.
 Just like ``process_request()``, ``process_view()`` should return either
 ``None`` or an ``HttpResponse`` object.
 
-    * If it returns ``None``, Django will continue processing this request,
-      executing any other middleware and then the appropriate view.
+* If it returns ``None``, Django will continue processing this request,
+  executing any other middleware and then the appropriate view.
 
-    * If it returns an ``HttpResponse`` object, Django won't bother calling
-      *any* other middleware (of any type) or the appropriate view. Django
-      will immediately return that ``HttpResponse``.
+* If it returns an ``HttpResponse`` object, Django won't bother calling
+  *any* other middleware (of any type) or the appropriate view. Django
+  will immediately return that ``HttpResponse``.
 
 Response Postprocessor: process_response(self, request, response)
 -----------------------------------------------------------------
@@ -206,8 +206,8 @@ Exception Postprocessor: process_exception(self, request, exception)
 --------------------------------------------------------------------
 
 This method gets called only if something goes wrong and a view raises an
-uncaught exception. You can use this hook to send error notifications, dump 
-postmortem information to a log, or even try to recover from the error 
+uncaught exception. You can use this hook to send error notifications, dump
+postmortem information to a log, or even try to recover from the error
 automatically.
 
 The parameters to this function are the same ``request`` object we've been
@@ -217,18 +217,18 @@ object raised by the view function.
 ``process_exception()`` should return a either ``None`` or an ``HttpResponse``
 object.
 
-    * If it returns ``None``, Django will continue processing this request
-      with the framework's built-in exception handling.
+* If it returns ``None``, Django will continue processing this request
+  with the framework's built-in exception handling.
 
-    * If it returns an ``HttpResponse`` object, Django will use that response
-      instead of the framework's built-in exception handling.
+* If it returns an ``HttpResponse`` object, Django will use that response
+  instead of the framework's built-in exception handling.
 
 .. note::
 
     Django ships with a number of middleware classes (discussed in the following
     section) that make good examples. Reading the code for them should give you
     a good feel for the power of middleware.
-    
+
     You can also find a number of community-contributed examples on Django's
     wiki: http://code.djangoproject.com/wiki/ContributedMiddleware
 
@@ -256,57 +256,57 @@ Middleware class: ``django.middleware.common.CommonMiddleware``.
 
 This middleware adds a few conveniences for perfectionists:
 
-    * *Forbids access to user agents in the ``DISALLOWED_USER_AGENTS`` setting*:
-      If provided, this setting should be a list of compiled regular expression
-      objects that are matched against the user-agent header for each incoming
-      request. Here's an example snippet from a settings file::
+* *Forbids access to user agents in the ``DISALLOWED_USER_AGENTS`` setting*:
+  If provided, this setting should be a list of compiled regular expression
+  objects that are matched against the user-agent header for each incoming
+  request. Here's an example snippet from a settings file::
 
-          import re
+      import re
 
-          DISALLOWED_USER_AGENTS = (
-              re.compile(r'^OmniExplorer_Bot'),
-              re.compile(r'^Googlebot')
-          )
+      DISALLOWED_USER_AGENTS = (
+          re.compile(r'^OmniExplorer_Bot'),
+          re.compile(r'^Googlebot')
+      )
 
-      Note the ``import re``, because ``DISALLOWED_USER_AGENTS`` requires its
-      values to be compiled regexes (i.e., the output of ``re.compile()``). 
-      The settings file is regular Python, so it's perfectly OK to include 
-      Python ``import`` statements in it.
+  Note the ``import re``, because ``DISALLOWED_USER_AGENTS`` requires its
+  values to be compiled regexes (i.e., the output of ``re.compile()``).
+  The settings file is regular Python, so it's perfectly OK to include
+  Python ``import`` statements in it.
 
-    * *Performs URL rewriting based on the ``APPEND_SLASH`` and ``PREPEND_WWW``
-      settings*: If ``APPEND_SLASH`` is ``True``, URLs that lack a trailing
-      slash will be redirected to the same URL with a trailing slash, unless
-      the last component in the path contains a period. So ``foo.com/bar`` is
-      redirected to ``foo.com/bar/``, but ``foo.com/bar/file.txt`` is passed
-      through unchanged.
+* *Performs URL rewriting based on the ``APPEND_SLASH`` and ``PREPEND_WWW``
+  settings*: If ``APPEND_SLASH`` is ``True``, URLs that lack a trailing
+  slash will be redirected to the same URL with a trailing slash, unless
+  the last component in the path contains a period. So ``foo.com/bar`` is
+  redirected to ``foo.com/bar/``, but ``foo.com/bar/file.txt`` is passed
+  through unchanged.
 
-      If ``PREPEND_WWW`` is ``True``, URLs that lack a leading "www." will be
-      redirected to the same URL with a leading "www.".
+  If ``PREPEND_WWW`` is ``True``, URLs that lack a leading "www." will be
+  redirected to the same URL with a leading "www.".
 
-      Both of these options are meant to normalize URLs. The philosophy is
-      that each URL should exist in one -- and only one -- place. Technically the
-      URL ``example.com/bar`` is distinct from ``example.com/bar/``, which in
-      turn is distinct from ``www.example.com/bar/``. A search-engine indexer
-      would treat these as separate URLs, which is detrimental to your site's
-      search-engine rankings, so it's a best practice to normalize URLs.
+  Both of these options are meant to normalize URLs. The philosophy is
+  that each URL should exist in one -- and only one -- place. Technically the
+  URL ``example.com/bar`` is distinct from ``example.com/bar/``, which in
+  turn is distinct from ``www.example.com/bar/``. A search-engine indexer
+  would treat these as separate URLs, which is detrimental to your site's
+  search-engine rankings, so it's a best practice to normalize URLs.
 
-    * *Handles ETags based on the ``USE_ETAGS`` setting*: *ETags* are an HTTP-level
-      optimization for caching pages conditionally. If ``USE_ETAGS`` is
-      set to ``True``, Django will calculate an ETag for each request by
-      MD5-hashing the page content, and it will take care of sending ``Not
-      Modified`` responses, if appropriate.
+* *Handles ETags based on the ``USE_ETAGS`` setting*: *ETags* are an HTTP-level
+  optimization for caching pages conditionally. If ``USE_ETAGS`` is
+  set to ``True``, Django will calculate an ETag for each request by
+  MD5-hashing the page content, and it will take care of sending ``Not
+  Modified`` responses, if appropriate.
 
-      Note there is also a conditional ``GET`` middleware, covered shortly, which
-      handles ETags and does a bit more.
+  Note there is also a conditional ``GET`` middleware, covered shortly, which
+  handles ETags and does a bit more.
 
 Compression Middleware
 ----------------------
 
 Middleware class: ``django.middleware.gzip.GZipMiddleware``.
 
-This middleware automatically compresses content for browsers that understand gzip 
-compression (all modern browsers). This can greatly reduce the amount of bandwidth 
-a Web server consumes. The tradeoff is that it takes a bit of processing time to 
+This middleware automatically compresses content for browsers that understand gzip
+compression (all modern browsers). This can greatly reduce the amount of bandwidth
+a Web server consumes. The tradeoff is that it takes a bit of processing time to
 compress pages.
 
 We usually prefer speed over bandwidth, but if you prefer the reverse, just
@@ -317,8 +317,8 @@ Conditional GET Middleware
 
 Middleware class: ``django.middleware.http.ConditionalGetMiddleware``.
 
-This middleware provides support for conditional ``GET`` operations. If the response 
-has an ``Last-Modified`` or ``ETag`` or header, and the request has ``If-None-Match`` 
+This middleware provides support for conditional ``GET`` operations. If the response
+has an ``Last-Modified`` or ``ETag`` or header, and the request has ``If-None-Match``
 or ``If-Modified-Since``, the response is replaced by an 304 ("Not modified")
 response. ``ETag`` support depends on on the ``USE_ETAGS`` setting and expects
 the ``ETag`` response header to already be set. As discussed above, the ``ETag``
@@ -371,8 +371,8 @@ Transaction Middleware
 
 Middleware class: ``django.middleware.transaction.TransactionMiddleware``.
 
-This middleware binds a database ``COMMIT`` or ``ROLLBACK`` to the request/response 
-phase. If a view function runs successfully, a ``COMMIT`` is issued. If the view 
+This middleware binds a database ``COMMIT`` or ``ROLLBACK`` to the request/response
+phase. If a view function runs successfully, a ``COMMIT`` is issued. If the view
 raises an exception, a ``ROLLBACK`` is issued.
 
 The order of this middleware in the stack is important. Middleware modules
