@@ -21,8 +21,8 @@ __ http://github.com/jacobian/djangobook.com
    :maxdepth: 1
    :glob:
 
-   introduction
    frontmatter
+   introduction
    chapter*
    appendix*
    license
