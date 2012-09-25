@@ -1,389 +1,955 @@
-========================
-Appendix A: Case Studies
-========================
+======================================
+Appendix A: Model Definition Reference
+======================================
 
-To help answer questions about how Django works in the "real world," we spoke
-with (well, emailed) a handful of people who have complete, deployed Django
-sites under their belts. Most of this appendix is in their words, which have
-been lightly edited for clarity.
+Chapter 5 explains the basics of defining models, and we use them throughout
+the rest of the book. There is, however, a *huge* range of model options
+available not covered elsewhere. This appendix explains each possible model
+definition option.
 
-Cast of Characters
-==================
+Note that although these APIs are considered stable, the Django developers
+consistently add new shortcuts and conveniences to the model definition. It's a
+good idea to always check the latest documentation online at
+http://docs.djangoproject.com/.
 
-Let's meet our cast and their projects.
+Fields
+======
 
-    * *Ned Batchelder* is the lead engineer at Tabblo.com. Tabblo started life as
-      a storytelling tool built around photo sharing, but it was recently bought
-      by Hewlett-Packard for more wide-reaching purposes:
-      
-        HP saw real value in our style of web development, and in the way we
-        bridged the virtual and physical worlds. They acquired us so that we
-        could bring that technology to other sites on the Web. Tabblo.com is
-        still a great storytelling site, but now we are also working to
-        componentize and rehost the most interesting pieces of our technology.
+The most important part of a model -- and the only required part of a model --
+is the list of database fields it defines.
 
-    * *Johannes Beigel* is a lead developer at Brainbot Technologies AG.
-      Brainbot's major public-facing Django site is http://pediapress.com/,
-      where you can order printed versions of Wikipedia articles. Johannes's team
-      is currently working on an enterprise-class knowledge-management program
-      known as Brainfiler.
-      
-      Johannes tells us that Brainfiler 
-      
-        [...] is a software solution to manage, search for, categorize, and share
-        information from distributed information sources. It's built for
-        enterprise usage for both the intranet and the Internet and is highly
-        scalable and customizable. The development of the core concepts and
-        components started in 2001. Just recently we have
-        redesigned/reimplemented the application server and Web front-end, which
-        is [now] based on Django.
-      
-    * *David Cramer* is the lead developer at Curse, Inc. He develops
-      Curse.com, a gaming site devoted to massively multiplayer online games
-      like World of Warcraft, Ultima Online, and others.
-      
-      Curse.com is one of the largest deployed Django sites on the Internet:
-      
-        We do roughly 60-90 million page views in an average month, and we have
-        peaked at over 130 million page views [in a month] using Django. We are a
-        very dynamic and user-centric Web site for online gamers, specifically
-        massively multiplayer games, and are one of the largest Web sites
-        globally for World of Warcraft. Our Web site was established in early
-        2005, and since late 2006 we have been expanding our reach into games
-        beyond World of Warcraft.
-      
-    * *Christian Hammond* is a senior engineer at VMware (a leading developer
-      of virtualization software). He's also the lead developer of Review Board
-      (http://www.review-board.org/), a Web-based code review system. Review
-      Board began life as an internal VMware project, but is now open source:
-      
-        In late 2006, David Trowbridge and I were discussing the process we used
-        at VMware for handling code reviews. Before people committed code to the
-        source repository, they were supposed to send out a diff of the change
-        to a mailing list and get it reviewed. It was all handled over email,
-        and as such, it became hard to keep track of reviews requiring your
-        attention. We began to discuss potential solutions for this problem.
+.. admonition:: Field Name Restrictions
+
+    Django places only two restrictions on model field names:
+
+        1. A field name cannot be a Python reserved word, because that would result
+           in a Python syntax error. For example::
+
+               class Example(models.Model):
+                   pass = models.IntegerField() # 'pass' is a reserved word!
+
+        2. A field name cannot contain more than one underscore in a row, due to
+           the way Django's query lookup syntax works. For example::
+
+               class Example(models.Model):
+                   foo__bar = models.IntegerField() # 'foo__bar' has two underscores!
+
+    These limitations can be worked around, though, because your field name
+    doesn't necessarily have to match your database column name. See
+    "db_column", below.
+
+    SQL reserved words, such as ``join``, ``where``, or ``select``, *are* allowed
+    as model field names, because Django escapes all database table names and
+    column names in every underlying SQL query. It uses the quoting syntax of your
+    particular database engine.
+
+Each field in your model should be an instance of the appropriate ``Field``
+class. Django uses the field class types to determine a few things:
+
+    * The database column type (e.g., ``INTEGER``, ``VARCHAR``).
+    
+    * The widget to use in Django's forms and admin site, if you care to use it
+      (e.g., ``<input type="text">``, ``<select>``).
+
+    * The minimal validation requirements, which are used in Django's admin
+      interface and by forms.
         
-        Rather than writing down my ideas, I put them into code. Before long,
-        Review Board was born. Review Board helps developers, contributors, and
-        reviewers to keep track of the code that's out for review and to better
-        communicate with each other. Rather than vaguely referencing some part
-        of the code in an email, the reviewer is able to comment directly on
-        the code. The code, along with the comments, will then appear in the
-        review, giving the developer enough context to work with to quickly make
-        the necessary changes.
-        
-        Review Board grew quickly at VMware. Much faster than expected,
-        actually. Within a few short weeks, we had ten teams using Review Board.
-        However, this project is not internal to VMware. It was decided day one
-        that this should be open source and be made available for any company or
-        project to use.
-        
-        We made an open source announcement and put a site together, which is
-        available at http://www.review-board.org/. The response to our public
-        announcement was as impressive as our internal VMware announcement.
-        Before long, our demo server reached over 600 users, and people began to
-        contribute back to the project.
-        
-        Review Board isn't the only code review tool on the market, but it is
-        the first we have seen that is open source and has the extensive feature
-        set we've worked to build into it. We hope this will in time benefit
-        many open source and commercial projects.
-        
-Why Django?
-===========
+A complete list of field classes follows, sorted alphabetically. Note that
+relationship fields (``ForeignKey``, etc.) are handled in the next section.
 
-We asked each developer why he decided to use Django, what other options
-were considered, and how the decision to use Django was ultimately made.
+AutoField
+---------
 
-*Ned Batchelder*:
+An ``IntegerField`` that automatically increments according to available IDs.
+You usually won't need to use this directly; a primary key field will
+automatically be added to your model if you don't specify otherwise.
+
+BooleanField
+------------
+
+A true/false field.
+
+.. admonition:: MySQL users...
+
+    A boolean field in MySQL is stored as a ``TINYINT`` column with a value of
+    either 0 or 1 (most databases have a proper ``BOOLEAN`` type instead). So,
+    for MySQL, only, when a ``BooleanField`` is retrieved from the database
+    and stored on a model attribute, it will have the values 1 or 0, rather
+    than ``True`` or ``False``. Normally, this shouldn't be a problem, since
+    Python guarantees that ``1 == True`` and ``0 == False`` are both true.
+    Just be careful if you're writing something like ``obj is True`` when
+    ``obj`` is a value from a boolean attribute on a model. If that model was
+    constructed using the ``mysql`` backend, the "``is``" test will fail.
+    Prefer an equality test (using "``==``") in cases like this.
+
+CharField
+---------
+
+A string field, for small- to large-sized strings.
+
+For very large amounts of text, use ``TextField``.
+
+``CharField`` has one extra required argument: ``max_length``. This is the
+maximum length (in characters) of the field. The ``max_length`` is enforced
+at the database level and in Django's validation.
+
+CommaSeparatedIntegerField
+--------------------------
+
+A field of integers separated by commas. As in ``CharField``, the
+``max_length`` argument is required.
+
+DateField
+---------
+
+A date, represented in Python by a ``datetime.date`` instance.
+
+DateTimeField
+-------------
+
+A date and time, represented in Python by a ``datetime.datetime`` instance.
+
+DecimalField
+------------
+
+A fixed-precision decimal number, represented in Python by a
+``decimal.Decimal`` instance. Has two **required** arguments:
+
+``max_digits``
+
+    The maximum number of digits allowed in the number
+
+``decimal_places``
+
+    The number of decimal places to store with the number
+
+For example, to store numbers up to 999 with a resolution of 2 decimal places,
+you'd use::
+
+    models.DecimalField(..., max_digits=5, decimal_places=2)
+
+And to store numbers up to approximately one billion with a resolution of 10
+decimal places::
+
+    models.DecimalField(..., max_digits=19, decimal_places=10)
+
+When assigning to a ``DecimalField``, use either a ``decimal.Decimal`` object
+or a string -- not a Python float.
+
+EmailField
+----------
+
+A ``CharField`` that checks that the value is a valid e-mail address.
+
+FileField
+---------
+
+A file-upload field.
+
+.. note::
+    The ``primary_key`` and ``unique`` arguments are not supported, and will
+    raise a ``TypeError`` if used.
+
+Has one **required** argument:
+
+``upload_to``
+
+    A local filesystem path that will be appended to your ``MEDIA_ROOT``
+    setting to determine the value of the ``django.core.files.File.url``
+    attribute.
+
+    This path may contain "strftime formatting" (see the Python docs for the
+    ``time`` standard library module), which will be replaced using the
+    date/time of the file upload (so that uploaded files don't fill up the given
+    directory).
+
+    This may also be a callable, such as a function, which will be called to
+    obtain the upload path, including the filename. This callable must be able
+    to accept two arguments, and return a Unix-style path (with forward slashes)
+    to be passed along to the storage system. The two arguments that will be
+    passed are:
+
+        ======================  ===============================================
+        Argument                Description
+        ======================  ===============================================
+        ``instance``            An instance of the model where the
+                                ``FileField`` is defined. More specifically,
+                                this is the particular instance where the
+                                current file is being attached.
+
+                                In most cases, this object will not have been
+                                saved to the database yet, so if it uses the
+                                default ``AutoField``, *it might not yet have a
+                                value for its primary key field*.
+
+        ``filename``            The filename that was originally given to the
+                                file. This may or may not be taken into account
+                                when determining the final destination path.
+        ======================  ===============================================
+
+Also has one optional argument:
+
+``storage``
+
+    Optional. A storage object, which handles the storage and retrieval of your
+    files.
+
+Using a ``FileField`` or an ``ImageField`` (see below) in a model
+takes a few steps:
+
+    1. In your settings file, you'll need to define ``MEDIA_ROOT`` as the
+       full path to a directory where you'd like Django to store uploaded files.
+       (For performance, these files are not stored in the database.) Define
+       ``MEDIA_URL`` as the base public URL of that directory. Make sure
+       that this directory is writable by the Web server's user account.
+
+    2. Add the ``FileField`` or ``ImageField`` to your model, making
+       sure to define the ``upload_to`` option to tell Django
+       to which subdirectory of ``MEDIA_ROOT`` it should upload files.
+
+    3. All that will be stored in your database is a path to the file
+       (relative to ``MEDIA_ROOT``). You'll most likely want to use the
+       convenience ``url`` function provided by
+       Django. For example, if your ``ImageField`` is called ``mug_shot``,
+       you can get the absolute URL to your image in a template with
+       ``{{ object.mug_shot.url }}``.
+
+For example, say your ``MEDIA_ROOT`` is set to ``'/home/media'``, and
+``upload_to`` is set to ``'photos/%Y/%m/%d'``. The ``'%Y/%m/%d'``
+part of ``upload_to`` is strftime formatting; ``'%Y'`` is the
+four-digit year, ``'%m'`` is the two-digit month and ``'%d'`` is the two-digit
+day. If you upload a file on Jan. 15, 2007, it will be saved in the directory
+``/home/media/photos/2007/01/15``.
+
+If you want to retrieve the upload file's on-disk filename, or a URL that refers
+to that file, or the file's size, you can use the
+``name``, ``url`` and ``size`` attributes.
+
+Note that whenever you deal with uploaded files, you should pay close attention
+to where you're uploading them and what type of files they are, to avoid
+security holes. *Validate all uploaded files* so that you're sure the files are
+what you think they are. For example, if you blindly let somebody upload files,
+without validation, to a directory that's within your Web server's document
+root, then somebody could upload a CGI or PHP script and execute that script by
+visiting its URL on your site. Don't allow that.
+
+By default, ``FileField`` instances are
+created as ``varchar(100)`` columns in your database. As with other fields, you
+can change the maximum length using the ``max_length`` argument.
+
+FilePathField
+-------------
+
+A ``CharField`` whose choices are limited to the filenames in a certain
+directory on the filesystem. Has three special arguments, of which the first is
+**required**:
+
+``path``
+
+    Required. The absolute filesystem path to a directory from which this
+    ``FilePathField`` should get its choices. Example: ``"/home/images"``.
+
+``match``
+
+    Optional. A regular expression, as a string, that ``FilePathField``
+    will use to filter filenames. Note that the regex will be applied to the
+    base filename, not the full path. Example: ``"foo.*\.txt$"``, which will
+    match a file called ``foo23.txt`` but not ``bar.txt`` or ``foo23.gif``.
+
+``recursive``
+
+    Optional. Either ``True`` or ``False``. Default is ``False``. Specifies
+    whether all subdirectories of ``path`` should be included.
+
+Of course, these arguments can be used together.
+
+The one potential gotcha is that ``match`` applies to the
+base filename, not the full path. So, this example::
+
+    FilePathField(path="/home/images", match="foo.*", recursive=True)
+
+...will match ``/home/images/bar/foo.gif`` but not ``/home/images/foo/bar.gif``
+because the ``match`` applies to the base filename
+(``foo.gif`` and ``bar.gif``).
+
+By default, ``FilePathField`` instances are
+created as ``varchar(100)`` columns in your database. As with other fields, you
+can change the maximum length using the ``max_length`` argument.
+
+FloatField
+----------
+
+A floating-point number represented in Python by a ``float`` instance.
+
+ImageField
+----------
+
+Like ``FileField``, but validates that the uploaded object is a valid
+image. Has two extra optional arguments:
+
+``height_field``
+
+    Name of a model field which will be auto-populated with the height of the
+    image each time the model instance is saved.
+
+``width_field``
+
+    Name of a model field which will be auto-populated with the width of the
+    image each time the model instance is saved.
+
+In addition to the special attributes that are available for FileField``,
+an ``ImageField`` also has ``height`` and ``width`` attributes, both of which
+correspond to the image's height and width in pixels.
+
+Requires the Python Imaging Library, available at http://www.pythonware.com/products/pil/.
+
+By default, ``ImageField`` instances are
+created as ``varchar(100)`` columns in your database. As with other fields, you
+can change the maximum length using the ``max_length`` argument.
+
+IntegerField
+------------
+
+An integer.
+
+IPAddressField
+--------------
+
+An IP address, in string format (e.g. ``'192.0.2.30'``).
+
+NullBooleanField
+----------------
+
+Like a ``BooleanField``, but allows ``NULL`` as one of the options. Use
+this instead of a ``BooleanField`` with ``null=True``.
+
+PositiveIntegerField
+--------------------
+
+Like an ``IntegerField``, but must be positive.
+
+PositiveSmallIntegerField
+-------------------------
+
+Like a ``PositiveIntegerField``, but only allows values under a certain
+(database-dependent) point.
+
+SlugField
+---------
+
+"Slug" is a newspaper term. A slug is a short label for something,
+containing only letters, numbers, underscores or hyphens. They're generally used
+in URLs.
+
+Like a ``CharField``, you can specify ``max_length``. If ``max_length`` is not
+specified, Django will use a default length of 50.
+
+Implies setting ``db_index`` to ``True``.
+
+SmallIntegerField
+-----------------
+
+Like an ``IntegerField``, but only allows values under a certain
+(database-dependent) point.
+
+TextField
+---------
+
+A large text field.
+
+Also see ``CharField`` for storing smaller bits of text.
+
+TimeField
+---------
+
+A time, represented in Python by a ``datetime.time`` instance. Accepts the same
+auto-population options as ``DateField``.
+
+URLField
+--------
+
+A ``CharField`` for a URL. Has one extra optional argument:
+
+``verify_exists``
+
+    If ``True`` (the default), the URL given will be checked for existence
+    (i.e., the URL actually loads and doesn't give a 404 response). It should
+    be noted that when using the single-threaded development server, validating
+    a url being served by the same server will hang.
+    This should not be a problem for multithreaded servers.
+
+Like all ``CharField`` subclasses, ``URLField`` takes the optional
+``max_length`` argument. If you don't specify
+``max_length``, a default of 200 is used.
+
+XMLField
+--------
+
+A ``TextField`` that checks that the value is valid XML that matches a
+given schema. Takes one required argument:
+
+``schema_path``
+
+    The filesystem path to a RelaxNG schema against which to validate the
+    field. For more on RelaxNG, see http://www.relaxng.org/.
+
+Universal Field Options
+=======================
+
+The following arguments are available to all field types. All are optional.
+
+null
+----
+
+If ``True``, Django will store empty values as ``NULL`` in the database. If
+``False``, saving empty values will likely result in a database error. Default
+is ``False``. 
+
+Note that empty string values will always get stored as empty strings, not as
+``NULL``. Only use ``null=True`` for non-string fields such as integers,
+booleans and dates. For both types of fields, you will also need to set
+``blank=True`` if you wish to permit empty values in forms, as the
+``null`` parameter only affects database storage (see
+``blank``).
+
+Avoid using ``null`` on string-based fields such as
+``CharField`` and ``TextField`` unless you have an excellent reason.
+If a string-based field has ``null=True``, that means it has two possible values
+for "no data": ``NULL``, and the empty string. In most cases, it's redundant to
+have two possible values for "no data;" Django's convention is to use the empty
+string, not ``NULL``.
+
+.. note::
+
+    When using the Oracle database backend, the ``null=True`` option will be
+    coerced for string-based fields that have the empty string as a possible
+    value, and the value ``NULL`` will be stored to denote the empty string.
+
+For more on this, see the section "Making Date and Numeric Fields Optional" in
+Chapter 6.
+
+blank
+-----
+
+If ``True``, the field is allowed to be blank. Default is ``False``.
+
+Note that this is different than ``null``. ``null`` is
+purely database-related, whereas ``blank`` is validation-related. If
+a field has ``blank=True``, validation on Django's admin site will allow entry
+of an empty value. If a field has ``blank=False``, the field will be required.
+
+choices
+-------
+
+An iterable (e.g., a list or tuple) of 2-tuples to use as choices for this
+field.
+
+A choices list looks like this::
+
+    YEAR_IN_SCHOOL_CHOICES = (
+        ('FR', 'Freshman'),
+        ('SO', 'Sophomore'),
+        ('JR', 'Junior'),
+        ('SR', 'Senior'),
+        ('GR', 'Graduate'),
+    )
+
+The first element in each tuple is the actual value to be stored. The second
+element is the human-readable name for the option.
+
+The choices list can be defined either as part of your model class::
+
+    class Foo(models.Model):
+        GENDER_CHOICES = (
+            ('M', 'Male'),
+            ('F', 'Female'),
+        )
+        gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+
+or outside your model class altogether::
+
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
+    class Foo(models.Model):
+        gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+
+You can also collect your available choices into named groups that can
+be used for organizational purposes in a form::
+
+    MEDIA_CHOICES = (
+        ('Audio', (
+                ('vinyl', 'Vinyl'),
+                ('cd', 'CD'),
+            )
+        ),
+        ('Video', (
+                ('vhs', 'VHS Tape'),
+                ('dvd', 'DVD'),
+            )
+        ),
+        ('unknown', 'Unknown'),
+    )
+
+The first element in each tuple is the name to apply to the group. The
+second element is an iterable of 2-tuples, with each 2-tuple containing
+a value and a human-readable name for an option. Grouped options may be
+combined with ungrouped options within a single list (such as the
+`unknown` option in this example).
+
+Finally, note that choices can be any iterable object -- not necessarily a list
+or tuple. This lets you construct choices dynamically. But if you find yourself
+hacking ``choices`` to be dynamic, you're probably better off using a
+proper database table with a `ForeignKey``. ``choices`` is
+meant for static data that doesn't change much, if ever.
+
+db_column
+---------
+
+The name of the database column to use for this field. If this isn't given,
+Django will use the field's name.
+
+If your database column name is an SQL reserved word, or contains
+characters that aren't allowed in Python variable names -- notably, the
+hyphen -- that's OK. Django quotes column and table names behind the
+scenes.
+
+db_index
+--------
+
+If ``True``, ``django-admin.py sqlindexes`` will output a
+``CREATE INDEX`` statement for this field.
+
+db_tablespace
+-------------
+
+The name of the database tablespace to use for this field's index, if this field
+is indexed. The default is the project's ``DEFAULT_INDEX_TABLESPACE``
+setting, if set, or the ``db_tablespace`` of the model, if any. If
+the backend doesn't support tablespaces, this option is ignored.
+
+default
+-------
+
+The default value for the field. This can be a value or a callable object. If
+callable it will be called every time a new object is created.
+
+editable
+--------
+
+If ``False``, the field will not be editable in the admin or via forms
+automatically generated from the model class. Default is ``True``.
+
+help_text
+---------
+
+Extra "help" text to be displayed under the field on the object's admin form.
+It's useful for documentation even if your object doesn't have an admin form.
+
+Note that this value is *not* HTML-escaped when it's displayed in the admin
+interface. This lets you include HTML in ``help_text`` if you so
+desire. For example::
+
+    help_text="Please use the following format: <em>YYYY-MM-DD</em>."
+
+Alternatively you can use plain text and
+``django.utils.html.escape()`` to escape any HTML special characters.
+
+primary_key
+-----------
+
+If ``True``, this field is the primary key for the model.
+
+If you don't specify ``primary_key=True`` for any fields in your model, Django
+will automatically add an ``AutoField`` to hold the primary key, so you
+don't need to set ``primary_key=True`` on any of your fields unless you want to
+override the default primary-key behavior.
+
+``primary_key=True`` implies ``null=False`` and ``unique=True``.
+Only one primary key is allowed on an object.
+
+unique
+------
+
+If ``True``, this field must be unique throughout the table.
+
+This is enforced at the database level and at the level of forms created with
+``ModelForm`` (including forms in the Django admin site). If
+you try to save a model with a duplicate value in a ``unique``
+field, an ``IntegrityError`` will be raised by the model's
+``save`` method.
+
+This option is valid on all field types except ``ManyToManyField``,
+``FileField`` and ``ImageField``.
+
+unique_for_date
+---------------
+
+Set this to the name of a ``DateField`` or ``DateTimeField`` to
+require that this field be unique for the value of the date field.
+
+For example, if you have a field ``title`` that has
+``unique_for_date="pub_date"``, then Django wouldn't allow the entry of two
+records with the same ``title`` and ``pub_date``.
+
+This is enforced at the level of forms created with ``ModelForm`` (including
+forms in the Django admin site) but not at the database level.
+
+unique_for_month
+----------------
+
+Like ``unique_for_date``, but requires the field to be unique with
+respect to the month.
+
+unique_for_year
+---------------
+
+Like ``unique_for_date`` and ``unique_for_month``.
+
+verbose_name
+------------
+
+A human-readable name for the field. If the verbose name isn't given, Django
+will automatically create it using the field's attribute name, converting
+underscores to spaces.
+
+Relationships
+=============
+
+Clearly, the power of relational databases lies in relating tables to each
+other. Django offers ways to define the three most common types of database
+relationships: many-to-one, many-to-many, and one-to-one.
+
+ForeignKey
+----------
+
+A many-to-one relationship. Requires a positional argument: the class to which
+the model is related.
+
+To create a recursive relationship -- an object that has a many-to-one
+relationship with itself -- use ``models.ForeignKey('self')``.
+
+If you need to create a relationship on a model that has not yet been defined,
+you can use the name of the model, rather than the model object itself::
+
+    class Car(models.Model):
+        manufacturer = models.ForeignKey('Manufacturer')
+        # ...
+
+    class Manufacturer(models.Model):
+        # ...
+
+Note, however, that this only refers to models in the same ``models.py`` file.
+
+To refer to models defined in another
+application, you must instead explicitly specify the application label. For
+example, if the ``Manufacturer`` model above is defined in another application
+called ``production``, you'd need to use::
+
+    class Car(models.Model):
+        manufacturer = models.ForeignKey('production.Manufacturer')
+
+Behind the scenes, Django appends ``"_id"`` to the field name to create its
+database column name. In the above example, the database table for the ``Car``
+model will have a ``manufacturer_id`` column. (You can change this explicitly by
+specifying ``db_column``) However, your code should never have to
+deal with the database column name, unless you write custom SQL. You'll always
+deal with the field names of your model object.
+
+``ForeignKey`` accepts an extra set of arguments -- all optional -- that
+define the details of how the relation works.
+
+``limit_choices_to``
+
+    A dictionary of lookup arguments and values
+    that limit the available admin choices for this object. Use this with
+    functions from the Python ``datetime`` module to limit choices of objects by
+    date. For example::
+
+        limit_choices_to = {'pub_date__lte': datetime.now}
+
+    only allows the choice of related objects with a ``pub_date`` before the
+    current date/time to be chosen.
+
+    ``limit_choices_to`` has no effect on the inline FormSets that are created
+    to display related objects in the admin.
     
-    Before I joined Tabblo, Antonio Rodriguez (Tabblo's founder/CTO) did an evaluation
-    of Rails and Django, and found that both provided a great
-    quick-out-of-the-blocks rapid development environment. In comparing the
-    two, he found that Django had a greater technical depth that would make it
-    easier to build a robust, scalable site. Also, Django's Python foundation
-    meant that we'd have all the richness of the Python ecosystem to support
-    our work. This has definitely been proven out as we've built Tabblo.
-    
-*Johannes Beigel*:
+``related_name``
 
-    As we have been coding in Python for many years now, and quickly started
-    using the Twisted framework, Nevow was the most "natural" solution for our
-    Web application stuff. But we soon realized that -- despite the perfect
-    Twisted integration -- many things were getting a little cumbersome and
-    got in the way of our agile development process.
-    
-    After some Internet research it quickly became clear that Django was the
-    most promising Web development framework for our requirements.
-    
-    The trigger that led us to Django was its template syntax, but we soon
-    appreciated all the other features that are included, and so Django was
-    pretty much a fast-selling item.
-    
-    After doing a few years of parallel development and deployment (Nevow is
-    still in use for some projects on customer sites), we came to the
-    conclusion that Django is a lot less cumbersome, results in code that is
-    much better to maintain, and is more fun to work with.
-    
-*David Cramer*:
+    The name to use for the relation from the related object back to this one.
 
-    I heard about Django in the summer of 2006, about the time we were getting
-    ready to do an overhaul of Curse, and we did some research on it. We were
-    all very impressed at what it could do, and where it could save time for
-    us. We talked it over, decided on Django, and began writing the third
-    revision to the Web site almost immediately.
-    
-*Christian Hammond*:
+``to_field``
 
-    I had toyed around with Django on a couple of small projects and had been
-    very impressed with it. It's based on Python, which I had become a big
-    fan of, and it made it easy not only to develop Web sites and Web apps, but
-    also to keep them organized and maintainable. This was always tricky in PHP and
-    Perl. Based on past experiences, going with Django was a no-brainer.
-    
-Getting Started
-===============
+    The field on the related object that the relation is to. By default, Django
+    uses the primary key of the related object.
 
-Since Django's a relatively new tool, there aren't that many experienced
-Django developers out there. We asked our "panel" how they got their team up
-to speed on Django and for any tips they wanted to share with new Django
-developers.
+ManyToManyField
+---------------
 
-*Johannes Beigel*:
+A many-to-many relationship. Requires a positional argument: the class to which
+the model is related. This works exactly the same as it does for
+``ForeignKey``, including all the options regarding recursive relationships
+and lazy relationships.
 
-    After coding mostly in C++ and Perl, we switched to Python and continued
-    using C++ for the computationally intensive code.
+Behind the scenes, Django creates an intermediary join table to represent the
+many-to-many relationship. By default, this table name is generated using the
+names of the two tables being joined. Since some databases don't support table
+names above a certain length, these table names will be automatically
+truncated to 64 characters and a uniqueness hash will be used. This means you
+might see table names like ``author_books_9cdf4``; this is perfectly normal.
+You can manually provide the name of the join table using the
+``db_table`` option.
 
-    [We learned Django by] working through the tutorial, browsing the
-    documentation to get an idea of what's possible (it's easy to miss many
-    features by just doing the tutorial), and trying to understand the basic
-    concepts behind middleware, request objects, database models, template
-    tags, custom filters, forms, authorization, localization... Then [we
-    could] take a deeper look at those topics when [we] actually needed them.
+``ManyToManyField`` accepts an extra set of arguments -- all optional --
+that control how the relationship functions.
 
-*David Cramer*:
+``related_name``
 
-    The Web site documentation is great. Stick with it.
+    Same as ``related_name`` in ``ForeignKey``.
 
-*Christian Hammond*:
+``limit_choices_to``
 
-    David and I both had prior experience with Django, though it was limited.
-    We had learned a lot through our development of Review Board. I would
-    advise new users to read through the well-written Django documentation and
-    [the book you're reading now], both of which have been invaluable to us.
+    Same as ``limit_choices_to`` in ``ForeignKey``.
 
-We didn't have to bribe Christian to get that quote -- promise!
+    ``limit_choices_to`` has no effect when used on a ``ManyToManyField`` with a
+    custom intermediate table specified using the
+    ``through`` paramter.
 
-Porting Existing Code
-=====================
+``symmetrical``
 
-Although Review Board and Tabblo were ground-up development, the other sites
-were ported from existing code. We were interested in hearing how that process
-went.
+    Only used in the definition of ManyToManyFields on self. Consider the
+    following model::
 
-*Johannes Beigel*:
+        class Person(models.Model):
+            friends = models.ManyToManyField("self")
 
-    We started to "port" the site from Nevow, but we soon realized that we'd
-    like to change so many conceptual things (both in the UI part and in the
-    application server part) that we started from scratch and used the former
-    code merely as a reference.
+    When Django processes this model, it identifies that it has a
+    ``ManyToManyField`` on itself, and as a result, it doesn't add a
+    ``person_set`` attribute to the ``Person`` class. Instead, the
+    ``ManyToManyField`` is assumed to be symmetrical -- that is, if I am
+    your friend, then you are my friend.
 
-*David Cramer*:
+    If you do not want symmetry in many-to-many relationships with ``self``, set
+    ``symmetrical`` to ``False``. This will force Django to
+    add the descriptor for the reverse relationship, allowing
+    ``ManyToManyField`` relationships to be non-symmetrical.
 
-    The previous site was written in PHP. Going from PHP to Python was great
-    programmatically. The only downfall is you have to be a lot more careful
-    with memory management [since Django processes stay around a lot longer
-    than PHP processes (which are single cycle)].
-    
-How Did It Go?
-==============
+``through``
 
-Now for the million-dollar question: How did Django treat you? We were especially
-interested in hearing where Django fell down -- it's important to know where
-your tools are weak *before* you run into roadblocks.
+    Django will automatically generate a table to manage many-to-many
+    relationships. However, if you want to manually specify the intermediary
+    table, you can use the ``through`` option to specify
+    the Django model that represents the intermediate table that you want to
+    use.
 
-*Ned Batchelder*:
+    The most common use for this option is when you want to associate
+    extra data with a many-to-many relationship.
 
-    Django has really enabled us to experiment with our Web site's
-    functionality. Both as a startup heat-seeking customers and businesses,
-    and now as a part of HP working with a number of partners, we've had to be
-    very nimble when it comes to adapting the software to new demands. The
-    separation of functionality into models, views, and controllers has given
-    us modularity so we can appropriately choose where to extend and modify.
-    The underlying Python environment gives us the opportunity to make use of
-    existing libraries to solve problems without reinventing the wheel. PIL, PDFlib,
-    ZSI, JSmin, and BeautifulSoup are just a handful of the libraries we've
-    pulled in to do some heavy lifting for us.
-    
-    The most difficult part of our Django use has been the relationship of
-    memory objects to database objects, in a few ways. First, Django's ORM
-    does not ensure that two references to the same database record are the
-    same Python object, so you can get into situations where two parts of the
-    code are both trying to modify the same record, and one of the copies is
-    stale. Second, the Django development model encourages you to base your
-    data objects on database objects. We've found over time more and more uses
-    for data objects that are not tied to the database, and we've had to
-    migrate away from assuming that data is stored in the database.
-    
-    For a large, long-lived code base, it definitely makes sense to spend time
-    up front anticipating the ways your data will be stored and accessed, and
-    building some infrastructure to support those ways.
-    
-    We've also added our own database migration facility so that developers
-    don't have to apply SQL patches to keep their database schemas current.
-    Developers who change the schema write a Python function to update the
-    database, and these are applied automatically when the server is started.
+``db_table``
 
-*Johannes Beigel*:
+    The name of the table to create for storing the many-to-many data. If this
+    is not provided, Django will assume a default name based upon the names of
+    the two tables being joined.
 
-    We consider Django as a very successful platform that perfectly fits
-    in the Pythonic way of thinking. Almost everything just worked as
-    intended.
+OneToOneField
+-------------
 
-    One thing that needed a bit of work in our current project was tweaking
-    the global ``settings.py`` file and directory structure/configuration
-    (for apps, templates, locale data, etc.), because we implemented a highly
-    modular and configurable system, where all Django views are actually
-    methods of some class instances. But with the omnipotence of dynamic
-    Python code, that was still possible.
+A one-to-one relationship. Conceptually, this is similar to a
+``ForeignKey`` with ``unique=True``, but the
+"reverse" side of the relation will directly return a single object.
 
-*David Cramer*:
+This is most useful as the primary key of a model which "extends"
+another model in some way; multi-table-inheritance is
+implemented by adding an implicit one-to-one relation from the child
+model to the parent model, for example.
 
-    We managed to push out large database applications in a weekend. This
-    would have taken one to two weeks to do on the previous Web site, in PHP. Django
-    has shined exactly where we wanted it to.
+One positional argument is required: the class to which the model will be
+related. This works exactly the same as it does for ``ForeignKey``,
+including all the options regarding recursive relationships and lazy
+relationships.
 
-    Now, while Django is a great platform, it can't go without saying that it's
-    not built specific to everyone's needs. Upon the initial launch of the
-    Django Web site, we had our highest traffic month of the year, and we
-    weren't able to keep up. Over the next few months we tweaked bits and
-    pieces, mostly hardware and the software serving Django requests. [This
-    included modification of our] hardware configuration, optimization of
-    Django, [and tuning] the software we were using to serve the requests
-    (which, at the time, was lighttpd and FastCGI).
-    
-    In May of 2007, Blizzard (the creators of World of Warcraft) released
-    another quite large patch, as they had done in December when we first
-    launched Django. The first thing going through our heads was, "Hey, we
-    nearly held up in December, this is nowhere near as big, we should be
-    fine." We lasted about 12 hours before the servers started to feel the
-    heat. The question was raised again: was Django really the best solution
-    for what we want to accomplish?
-    
-    Thanks to a lot of great support from the community, and a late night, we
-    managed to implement several "hot-fixes" to the Web site during those few
-    days. The changes (which hopefully have been rolled back into Django by
-    the time this book is released) managed to completely reassure everyone
-    that while not everyone needs to be able to do 300 Web requests per
-    second, the people who do, can, with Django.
+Additionally, ``OneToOneField`` accepts all of the extra arguments
+accepted by ``ForeignKey``, plus one extra argument:
 
-*Christian Hammond*:
+``parent_link``
 
-    Django allowed us to build Review Board fairly quickly by forcing us to
-    stay organized through its URL, view, and template separations, and by
-    providing useful built-in components, such as the authentication app,
-    built-in caching, and the database abstraction. Most of this has worked
-    really well for us.
-    
-    Being a dynamic [Web application], we've had to write a lot of JavaScript
-    code. This is an area that Django hasn't really helped us with so far.
-    Django's templates, template tags, filters, and forms support are great, but
-    aren't easily usable from JavaScript code. There are times when we would
-    want to use a particular template or filter but had no way of using it
-    from JavaScript. I would personally like to see some creative solutions
-    for this incorporated into Django.
-    
-Team Structure
-==============
+    When ``True`` and used in a model which inherits from another
+    (concrete) model, indicates that this field should be used as the
+    link back to the parent class, rather than the extra
+    ``OneToOneField`` which would normally be implicitly created by
+    subclassing.
 
-Often successful projects are made so by their teams, not their choice of
-technology. We asked our panel how their teams work, and what tools and
-techniques they use to stay on track.
+Model Metadata Options
+======================
 
-*Ned Batchelder*:
+Model-specific metadata lives in a ``class Meta`` defined in the body of your
+model class::
 
-    We're a pretty standard Web startup environment: Trac/SVN, five
-    developers. We have a staging server, a production server, an ad hoc deploy
-    script, and so on.
+    class Book(models.Model):
+        title = models.CharField(maxlength=100)
 
-    Memcached rocks.
+        class Meta:
+            # model metadata options go here
+            ...
 
-*Johannes Beigel*:
+Model metadata is "anything that's not a field," such as ordering options and so forth.
 
-    We use Trac as our bug tracker and wiki and have recently switched from using
-    Subversion+SVK to Mercurial (a Python-written distributed version-
-    control system that handles branching/merging like a charm).
+The sections that follow present a list of all possible ``Meta`` options. 
+No options are required. Adding ``class Meta`` to a model is completely optional.
 
-    I think we have a very agile development process, but we do not follow a
-    "rigid" methodology like Extreme Programming ([though] we borrow many
-    ideas from it). We are more like Pragmatic Programmers.
+abstract
+--------
 
-    We have an automated build system (customized but based on SCons) and unit
-    tests for almost everything.
+If ``True``, this model will be an abstract base class. See the Django
+documentation for more on abstract base classes.
 
-*David Cramer*:
+db_table
+--------
 
-    Our team consists of four Web developers, all working in the same office
-    space, so it's quite easy to communicate. We rely on common tools such as
-    SVN and Trac.
+The name of the database table to use for the model::
 
-*Christian Hammond*:
+    db_table = 'music_album'
 
-    Review Board currently has two main developers (myself and David
-    Trowbridge) and a couple of contributors. We're hosted on Google Code and
-    make use of their Subversion repository, issue tracker, and wiki. We
-    actually use Review Board to review our changes before they go in. We test
-    on our local computers, both by hand and through unit tests. Our users at
-    VMware who use Review Board every day provide a lot of useful feedback and
-    bug reports, which we try to incorporate into the program.
+Table names
+~~~~~~~~~~~
 
-Deployment
-==========
+To save you time, Django automatically derives the name of the database table
+from the name of your model class and the app that contains it. A model's
+database table name is constructed by joining the model's "app label" -- the
+name you used in ``manage.py startapp`` -- to the model's class name, with an
+underscore between them.
 
-The Django developers take ease of deployment and scaling very seriously, so
-we're always interested in hearing about real-world trials and tribulations.
+For example, if you have an app ``bookstore`` (as created by
+``manage.py startapp bookstore``), a model defined as ``class Book`` will have
+a database table named ``bookstore_book``.
 
-*Ned Batchelder*:
+To override the database table name, use the ``db_table`` parameter in
+``class Meta``.
 
-    We've used caching both at the query and response layers to speed response
-    time. We have a classic configuration: a multiplexer, many app servers,
-    one database server. This has worked well for us, because we can use
-    caching at the app server to avoid database access, and then add app
-    servers as needed to handle the volume.
+If your database table name is an SQL reserved word, or contains characters that
+aren't allowed in Python variable names -- notably, the hyphen -- that's OK.
+Django quotes column and table names behind the scenes.
 
-*Johannes Beigel*:
+db_tablespace
+-------------
 
-    Linux servers, preferably Debian, with many gigs of RAM. Lighttpd as the Web
-    server, Pound as the HTTPS front-end and load balancer if needed, and Memcached
-    for caching. SQLite for small databases, Postgres if data grows larger, and
-    highly specialized custom database stuff for our search and knowledge
-    management components.
+The name of the database tablespace to use for the model. If the backend doesn't
+support tablespaces, this option is ignored.
 
-*David Cramer*:
+get_latest_by
+-------------
 
-    Our structure is still up for debate... [but this is what's current]:
+The name of a ``DateField`` or ``DateTimeField`` in the model. This
+specifies the default field to use in your model ``Manager``'s
+``latest`` method.
 
-    When a user requests the site they are sent to a cluster of Squid servers
-    using lighttpd. There, servers then check if the user is logged in. If not,
-    they're served a cached page. A logged-in user is forwarded to a cluster
-    of Web servers running apache2 plus mod_python (each with a large amount of
-    memory), which then each rely on a distributed Memcached system and a
-    beastly MySQL database server. Static content is hosted on a cluster of
-    lighttpd servers. Media, such as large files and videos, are hosted
-    (currently) on a server using a minimal Django install using lighttpd plus
-    fastcgi. As of right now we're moving toward pushing all media to
-    a service similar to Amazon's S3.
+Example::
 
-*Christian Hammond*:
+    get_latest_by = "order_date"
 
-    There are two main production servers right now. One is at VMware and
-    consists of an Ubuntu virtual machine running on VMware ESX. We use MySQL
-    for the database, Memcached for our caching back-end, and currently Apache
-    for the Web server. We have several powerful servers that we can scale
-    across when we need to. We may find ourselves moving MySQL or Memcached to
-    another virtual machine as our user base increases.
-    
-    The second production server is the one for Review Board itself. The
-    setup is nearly identical to the one at VMware, except the virtual machine
-    is being hosted on VMware Server.
+managed
+-------
+
+Defaults to ``True``, meaning Django will create the appropriate database
+tables in ``django-admin.py syncdb`` and remove them as part of a ``reset``
+management command. That is, Django *manages* the database tables' lifecycles.
+
+If ``False``, no database table creation or deletion operations will be
+performed for this model. This is useful if the model represents an existing
+table or a database view that has been created by some other means. This is
+the *only* difference when ``managed`` is ``False``. All other aspects of
+model handling are exactly the same as normal. This includes
+
+    1. Adding an automatic primary key field to the model if you don't declare
+       it. To avoid confusion for later code readers, it's recommended to
+       specify all the columns from the database table you are modeling when
+       using unmanaged models.
+
+    2. If a model with ``managed=False`` contains a
+       ``ManyToManyField`` that points to another
+       unmanaged model, then the intermediary table for the many-to-many join
+       will also not be created. However, the intermediary table between one
+       managed and one unmanaged model *will* be created.
+       
+       If you need to change this default behavior, create the intermediary
+       table as an explicit model (with ``managed`` set as needed) and use the
+       ``through`` attribute to make the relation use your
+       custom model.
+
+For tests involving models with ``managed=False``, it's up to you to ensure
+the correct tables are created as part of the test setup.
+
+If you're interested in changing the Python-level behavior of a model class,
+you *could* use ``managed=False`` and create a copy of an existing model.
+However, there's a better approach for that situation: proxy-models.
+
+ordering
+--------
+
+The default ordering for the object, for use when obtaining lists of objects::
+
+    ordering = ['-order_date']
+
+This is a tuple or list of strings. Each string is a field name with an optional
+"-" prefix, which indicates descending order. Fields without a leading "-" will
+be ordered ascending. Use the string "?" to order randomly.
+
+.. note::
+
+    Regardless of how many fields are in ``ordering``, the admin
+    site uses only the first field.
+
+For example, to order by a ``pub_date`` field ascending, use this::
+
+    ordering = ['pub_date']
+
+To order by ``pub_date`` descending, use this::
+
+    ordering = ['-pub_date']
+
+To order by ``pub_date`` descending, then by ``author`` ascending, use this::
+
+    ordering = ['-pub_date', 'author']
+
+proxy
+-----
+
+If set to ``True``, a model which subclasses another model will be treated as
+a proxy model. For more on proxy models, see the Django documentation.
+
+unique_together
+---------------
+
+Sets of field names that, taken together, must be unique::
+
+    unique_together = (("driver", "restaurant"),)
+
+This is a list of lists of fields that must be unique when considered together.
+It's used by ``ModelForm`` forms (including forms in the Django admin site) and
+is enforced at the database level (i.e., the appropriate ``UNIQUE`` statements
+are included in the ``CREATE TABLE`` statement).
+
+For convenience, unique_together can be a single sequence when dealing with a single
+set of fields::
+
+    unique_together = ("driver", "restaurant")
+
+verbose_name
+------------
+
+A human-readable name for the object, singular::
+
+    verbose_name = "pizza"
+
+If this isn't given, Django will use a munged version of the class name:
+``CamelCase`` becomes ``camel case``.
+
+verbose_name_plural
+-------------------
+
+The plural name for the object::
+
+    verbose_name_plural = "stories"
+
+If this isn't given, Django will use ``verbose_name`` + ``"s"``.

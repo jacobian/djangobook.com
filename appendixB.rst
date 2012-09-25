@@ -1,1731 +1,1372 @@
-======================================
-Appendix B: Model Definition Reference
-======================================
-
-Chapter 5 explains the basics of defining models, and we use them throughout
-the rest of the book. There is, however, a *huge* range of model options
-available not covered elsewhere. This appendix explains each possible model
-definition option.
-
-Note that although these APIs are considered very stable, the Django developers
-consistently add new shortcuts and conveniences to the model definition. It's a good
-idea to always check the latest documentation online at
-http://www.djangoproject.com/documentation/0.96/model-api/.
-
-Fields
-======
-
-The most important part of a model -- and the only required part of a model --
-is the list of database fields it defines.
-
-.. admonition:: Field Name Restrictions
-
-    Django places only two restrictions on model field names:
-
-        1. A field name cannot be a Python reserved word, because that would result
-           in a Python syntax error, for example::
-
-               class Example(models.Model):
-                   pass = models.IntegerField() # 'pass' is a reserved word!
-
-        2. A field name cannot contain more than one underscore in a row, due to
-           the way Django's query lookup syntax works, for example::
-
-               class Example(models.Model):
-                   foo__bar = models.IntegerField() # 'foo__bar' has two underscores!
-
-    These limitations can be worked around, though, because your field name
-    doesn't necessarily have to match your database column name. See
-    "db_column", below. below.
-
-    SQL reserved words, such as ``join``, ``where``, or ``select``, *are* allowed
-    as model field names, because Django escapes all database table names and
-    column names in every underlying SQL query. It uses the quoting syntax of your
-    particular database engine.
-
-Each field in your model should be an instance of the appropriate ``Field``
-class. Django uses the field class types to determine a few things:
-
-    * The database column type (e.g., ``INTEGER``, ``VARCHAR``).
-    
-    * The widget to use in Django's admin interface, if you care to use it
-      (e.g., ``<input type="text">``, ``<select>``).
-    
-    * The minimal validation requirements, which are used in Django's admin interface.
-        
-A complete list of field classes follows, sorted alphabetically. Note that
-relationship fields (``ForeignKey``, etc.) are handled in the next section.
-
-AutoField
----------
-
-An ``IntegerField`` that automatically increments according to available IDs.
-You usually won't need to use this directly; a primary key field will
-automatically be added to your model if you don't specify otherwise.
-
-BooleanField
-------------
-
-A true/false field.
-
-CharField
----------
-
-A string field, for small- to large-sized strings. For large amounts of text,
-use ``TextField``.
-
-``CharField`` has an extra required argument, ``maxlength``, which is the
-maximum length (in characters) of the field. This maximum length is enforced
-at the database level and in Django's validation.
-
-CommaSeparatedIntegerField
---------------------------
-
-A field of integers separated by commas. As in ``CharField``, the
-``maxlength`` argument is required.
-
-DateField
----------
-
-A date field. ``DateField`` has a few extra optional arguments, as shown in Table B-1.
-
-.. table:: Table B-1. Extra DateField Options
-
-    ======================  ===================================================
-    Argument                Description
-    ======================  ===================================================
-    ``auto_now``            Automatically sets the field to now every time the
-                            object is saved. It's useful for "last-modified"
-                            timestamps. Note that the current date is *always*
-                            used; it's not just a default value that you can
-                            override.
-
-    ``auto_now_add``        Automatically sets the field to now when the object
-                            is first created. It's useful for creation of
-                            timestamps. Note that the current date is *always*
-                            used; it's not just a default value that you can
-                            override.
-    ======================  ===================================================
-
-DateTimeField
--------------
-
-A date and time field. It takes the same extra options as ``DateField``.
-
-EmailField
-----------
-
-A ``CharField`` that checks that the value is a valid email address. This
-doesn't accept ``maxlength``; its ``maxlength`` is automatically set to 75.
-
-FileField
----------
-
-A file-upload field. It has one *required* argument, as shown in Table B-3.
-
-.. table:: Table B-2. Extra FileField Option
-
-    ======================  ===================================================
-    Argument                Description
-    ======================  ===================================================
-    ``upload_to``           A local filesystem path that will be appended to
-                            your ``MEDIA_ROOT`` setting to determine the
-                            output of the ``get_<fieldname>_url()`` helper
-                            function
-    ======================  ===================================================
-
-This path may contain ``strftime`` formatting (see
-http://www.djangoproject.com/r/python/strftime/), which will be replaced by the
-date/time of the file upload (so that uploaded files don't fill up the given
-directory).
-
-Using a ``FileField`` or an ``ImageField`` in a model takes a few
-steps:
-
-    1. In your settings file, you'll need to define ``MEDIA_ROOT`` as the
-       full path to a directory where you'd like Django to store uploaded
-       files. (For performance, these files are not stored in the database.)
-       Define ``MEDIA_URL`` as the base public URL of that directory. Make
-       sure that this directory is writable by the Web server's user
-       account.
-
-    2. Add the ``FileField`` or ``ImageField`` to your model, making sure
-       to define the ``upload_to`` option to tell Django to which
-       subdirectory of ``MEDIA_ROOT`` it should upload files.
-
-    3. All that will be stored in your database is a path to the file
-       (relative to ``MEDIA_ROOT``). You'll most likely want to use the
-       convenience ``get_<fieldname>_url`` function provided by Django. For
-       example, if your ``ImageField`` is called ``mug_shot``, you can get
-       the absolute URL to your image in a template with ``{{
-       object.get_mug_shot_url }}``.
-
-For example, say your ``MEDIA_ROOT`` is set to ``'/home/media'``, and
-``upload_to`` is set to ``'photos/%Y/%m/%d'``. The ``'%Y/%m/%d'`` part of
-``upload_to`` is strftime formatting; ``'%Y'`` is the four-digit year,
-``'%m'`` is the two-digit month, and ``'%d'`` is the two-digit day. If you
-upload a file on January 15, 2007, it will be saved in the directory
-``/home/media/photos/2007/01/15``.
-
-If you want to retrieve the upload file's on-disk file name, or a URL that
-refers to that file, or the file's size, you can use the
-``get_FIELD_filename()``, ``get_FIELD_url()``, and ``get_FIELD_size()`` methods. See
-Appendix C for a complete explanation of these methods.
-
-.. note::
-
-    Whenever you deal with uploaded files, you should pay close attention to
-    where you're uploading them and what type of files they are, to avoid
-    security holes. *Validate all uploaded files* so that you're sure the
-    files are what you think they are. 
-    
-    For example, if you blindly let somebody upload files, without validation,
-    to a directory that's within your Web server's document root, then
-    somebody could upload a CGI or PHP script and execute that script by
-    visiting its URL on your site. Don't let that happen!
-
-FilePathField
--------------
-
-A field whose choices are limited to the file names in a certain directory on
-the filesystem. It has three special arguments, as shown in Table B-4.
-
-.. table:: Table B-3. Extra FilePathField Options
-
-    ======================  ===================================================
-    Argument                Description
-    ======================  ===================================================
-    ``path``                *Required*; the absolute filesystem path to a
-                            directory from which this ``FilePathField`` should
-                            get its choices (e.g., ``"/home/images"``).
-
-    ``match``               Optional; a regular expression, as a string, that
-                            ``FilePathField`` will use to filter file names.
-                            Note that the regex will be applied to the
-                            base file name, not the full path (e.g.,
-                            ``"foo.*\.txt^"``, which will match a file called
-                            ``foo23.txt``, but not ``bar.txt`` or ``foo23.gif``).
-
-    ``recursive``           Optional; either ``True`` or ``False``. The default is
-                            ``False``. It specifies whether all subdirectories of
-                            ``path`` should be included.
-    ======================  ===================================================
-
-Of course, these arguments can be used together.
-
-The one potential gotcha is that ``match`` applies to the base file name,
-not the full path. So, this example::
-
-    FilePathField(path="/home/images", match="foo.*", recursive=True)
-
-will match ``/home/images/foo.gif`` but not ``/home/images/foo/bar.gif``
-because the ``match`` applies to the base file name (``foo.gif`` and
-``bar.gif``).
-
-FloatField
-----------
-
-A floating-pint number, represented in Python by a ``float`` instance. It has
-two *required* arguments, as shown in Table B-2.
-
-.. table:: Table B-4. Extra FloatField Options
-
-    ======================  ===================================================
-    Argument                Description
-    ======================  ===================================================
-    ``max_digits``          The maximum number of digits allowed in the number
-
-    ``decimal_places``      The number of decimal places to store with the
-                            number
-    ======================  ===================================================
-
-For example, to store numbers up to 999 with a resolution of two decimal places,
-you'd use the following::
-
-    models.FloatField(..., max_digits=5, decimal_places=2)
-
-And to store numbers up to approximately 1 billion with a resolution of ten
-decimal places, you would use this::
-
-    models.FloatField(..., max_digits=19, decimal_places=10)
-
-ImageField
-----------
-
-Like ``FileField``, but validates that the uploaded object is a valid image.
-It has two extra optional arguments, ``height_field`` and ``width_field``, which,
-if set, will be autopopulated with the height and width of the image each
-time a model instance is saved.
-
-In addition to the special ``get_FIELD_*`` methods that are available for
-``FileField``, an ``ImageField`` also has ``get_FIELD_height()`` and
-``get_FIELD_width()`` methods. These are documented in Appendix C.
-
-``ImageField`` requires the Python Imaging Library
-(http://www.pythonware.com/products/pil/).
-
-IntegerField
-------------
-
-An integer.
-
-IPAddressField
---------------
-
-An IP address, in string format (e.g., ``"24.124.1.30"``).
-
-NullBooleanField
-----------------
-
-Like a ``BooleanField``, but allows ``None``/``NULL`` as one of the options.
-Use this instead of a ``BooleanField`` with ``null=True``.
-
-PhoneNumberField
-----------------
-
-A ``CharField`` that checks that the value is a valid U.S.-style phone
-number (in the format ``XXX-XXX-XXXX``).
-
-.. note::
-
-    If you need to represent a phone number from another country, check the
-    ``django.contrib.localflavor`` package to see if field definitions for
-    your country are included.
-
-PositiveIntegerField
---------------------
-
-Like an ``IntegerField``, but must be positive.
-
-PositiveSmallIntegerField
--------------------------
-
-Like a ``PositiveIntegerField``, but only allows values under a certain point.
-The maximum value allowed by these fields is database dependent, but since
-databases have a 2-byte small integer field, the maximum positive small
-integer is usually 65,535.
-
-SlugField
----------
-
-"Slug" is a newspaper term. A *slug* is a short label for something, containing
-only letters, numbers, underscores, or hyphens. They're generally used in URLs.
-
-Like a ``CharField``, you can specify ``maxlength``. If ``maxlength`` is not
-specified, Django will use a default length of 50.
-
-A ``SlugField`` implies ``db_index=True`` since slugs are primarily used for
-database lookups.
-
-``SlugField`` accepts an extra option, ``prepopulate_from``, which is a list of fields
-from which to autopopulate the slug, via JavaScript, in the object's admin
-form::
-
-    models.SlugField(prepopulate_fpom=("pre_name", "name"))
-
-``prepopulate_from`` doesn't accept ``DateTimeField`` names as arguments.
-
-SmallIntegerField
------------------
-
-Like an ``IntegerField``, but only allows values in a certain
-database-dependent range (usually -32,768 to +32,767).
-
-TextField
----------
-
-An unlimited-length text field.
-
-TimeField
----------
-
-A time of day. It accepts the same autopopulation options as ``DateField`` and
-``DateTimeField``.
-
-URLField
---------
-
-A field for a URL. If the ``verify_exists`` option is ``True`` (the default),
-the URL given will be checked for existence (i.e., the URL actually loads
-and doesn't give a 404 response).
-
-Like other character fields, ``URLField`` takes the ``maxlength`` argument. If
-you don't specify ``maxlength``, a default of 200 is used.
-
-USStateField
-------------
-
-A two-letter U.S. state abbreviation.
-
-.. note::
-
-    If you need to represent other countries or states, look first in the
-    ``django.contrib.localflavor`` package to see if Django already includes
-    fields for your locale.
-
-
-XMLField
---------
-
-A ``TextField`` that checks that the value is valid XML that matches a given
-schema. It takes one required argument, ``schema_path``, which is the filesystem
-path to a RELAX NG (http://www.relaxng.org/) schema against which to validate the field.
-
-Requires ``jing`` (http://thaiopensource.com/relaxng/jing.html) to validate
-the XML.
-
-Universal Field Options
-=======================
-
-The following arguments are available to all field types. All are optional.
-
-null
-----
-
-If ``True``, Django will store empty values as ``NULL`` in the database.
-The default is ``False``.
-
-Note that empty string values will always get stored as empty strings, not as
-``NULL``. Only use ``null=True`` for nonstring fields such as integers,
-Booleans, and dates. For both types of fields, you will also need to set
-``blank=True`` if you wish to permit empty values in forms, as the ``null``
-parameter only affects database storage (see the following section, titled "blank").
-
-Avoid using ``null`` on string-based fields such as ``CharField`` and
-``TextField`` unless you have an excellent reason. If a string-based field has
-``null=True``, that means it has two possible values for "no data": ``NULL``
-and the empty string. In most cases, it's redundant to have two possible
-values for "no data"; Django's convention is to use the empty string, not
-``NULL``.
-
-blank
------
-
-If ``True``, the field is allowed to be blank. The default is ``False``.
-
-Note that this is different from ``null``. ``null`` is purely
-database related, whereas ``blank`` is validation related. If a field has
-``blank=True``, validation on Django's admin site will allow entry of an empty
-value. If a field has ``blank=False``, the field will be required.
-
-choices
--------
-
-An iterable (e.g., a list, tuple, or other iterable Python object) of two tuples
-to use as choices for this field.
-
-If this is given, Django's admin interface will use a select box instead of the
-standard text field and will limit choices to the choices given.
-
-A choices list looks like this::
-
-    YEAR_IN_SCHOOL_CHOICES = (
-        ('FR', 'Freshman'),
-        ('SO', 'Sophomore'),
-        ('JR', 'Junior'),
-        ('SR', 'Senior'),
-        ('GR', 'Graduate'),
-    )
-
-The first element in each tuple is the actual value to be stored. The
-second element is the human-readable name for the option.
-
-The choices list can be defined either as part of your model class::
-
-    class Foo(models.Model):
-        GENDER_CHOICES = (
-            ('M', 'Male'),
-            ('F', 'Female'),
-        )
-        gender = models.CharField(maxlength=1, choices=GENDER_CHOICES)
-
-or outside your model class altogether::
-
-    GENDER_CHOICES = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-    )
-    class Foo(models.Model):
-        gender = models.CharField(maxlength=1, choices=GENDER_CHOICES)
-
-For each model field that has ``choices`` set, Django will add a method to
-retrieve the human-readable name for the field's current value. See Appendix
-C for more details.
-
-db_column
----------
-
-The name of the database column to use for this field. If this isn't given,
-Django will use the field's name. This is useful when you're defining a model
-around a database that already exists.
-
-If your database column name is an SQL reserved word, or if it contains characters
-that aren't allowed in Python variable names (notably the hyphen), that's
-OK. Django quotes column and table names behind the scenes.
-
-db_index
---------
-
-If ``True``, Django will create a database index on this column when creating
-the table (i.e., when running ``manage.py syncdb``).
-ta
-default
--------
-
-The default value for the field.
-
-editable
---------
-
-If ``False``, the field will not be editable in the admin interface or via form
-processing. The default is ``True``.
-
-help_text
----------
-
-Extra "help" text to be displayed under the field on the object's admin form.
-It's useful for documentation even if your object doesn't have an admin form.
-
-primary_key
------------
-
-If ``True``, this field is the primary key for the model.
-
-If you don't specify ``primary_key=True`` for any fields in your model, Django
-will automatically add this field::
-
-    id = models.AutoField('ID', primary_key=True)
-
-Thus, you don't need to set ``primary_key=True`` on any of your fields unless
-you want to override the default primary-key behavior.
-
-``primary_key=True`` implies ``blank=False``, ``null=False``, and
-``unique=True``. Only one primary key is allowed on an object.
-
-radio_admin
------------
-
-By default, Django's admin uses a select-box interface (<select>) for fields
-that are ``ForeignKey`` or have ``choices`` set. If ``radio_admin`` is set to
-``True``, Django will use a radio-button interface instead.
-
-Don't use this for a field unless it's a ``ForeignKey`` or has ``choices``
-set.
-
-unique
-------
-
-If ``True``, the value for this field must be unique throughout the table.
-
-unique_for_date
----------------
-
-Set to the name of a ``DateField`` or ``DateTimeField`` to require that
-this field be unique for the value of the date field, for example::
-
-    class Story(models.Model):
+==================================
+Appendix B: Database API Reference
+==================================
+
+Django's database API is the other half of the model API discussed in Appendix
+A. Once you've defined a model, you'll use this API any time you need to
+access the database. You've seen examples of this API in use throughout the
+book; this appendix explains all the various options in detail.
+
+Like the model APIs discussed in Appendix A, though these APIs are considered
+very stable, the Django developers consistently add new shortcuts and
+conveniences. It's a good idea to always check the latest documentation online,
+available at http://docs.djangoproject.com/.
+
+Throughout this reference, we'll refer to the following models, which might form
+a simple blog application::
+
+    from django.db import models
+
+    class Blog(models.Model):
+        name = models.CharField(max_length=100)
+        tagline = models.TextField()
+
+        def __unicode__(self):
+            return self.name
+
+    class Author(models.Model):
+        name = models.CharField(max_length=50)
+        email = models.EmailField()
+
+        def __unicode__(self):
+            return self.name
+
+    class Entry(models.Model):
+        blog = models.ForeignKey(Blog)
+        headline = models.CharField(max_length=255)
+        body_text = models.TextField()
         pub_date = models.DateTimeField()
-        slug = models.SlugField(unique_for_date="pub_date")
-        ...
+        authors = models.ManyToManyField(Author)
 
-In the preceding code, Django won't allow the creation of two stories with the same
-slug published on the same date. This differs from using a ``unique_together``
-constraint in that only the date of the ``pub_date`` field is
-taken into account; the time doesn't matter.
+        def __unicode__(self):
+            return self.headline
 
-unique_for_month
+Creating Objects
+================
+
+To create an object, instantiate it using keyword arguments to the model class, and
+then call ``save()`` to save it to the database::
+
+    >>> from mysite.blog.models import Blog
+    >>> b = Blog(name='Beatles Blog', tagline='All the latest Beatles news.')
+    >>> b.save()
+
+This performs an ``INSERT`` SQL statement behind the scenes. Django doesn't hit
+the database until you explicitly call ``save()``.
+
+The ``save()`` method has no return value.
+
+To create an object and save it all in one step, see the ``create`` manager
+method.
+
+What Happens When You Save?
+---------------------------
+
+When you save an object, Django performs the following steps:
+
+    #. **Emit a pre_save signal.** This provides a notification that
+       an object is about to be saved. You can register a listener that
+       will be invoked whenever this signal is emitted. Check the online
+       documentation for more on signals.
+
+    #. **Preprocess the data.** Each field on the object is asked to
+       perform any automated data modification that the field may need
+       to perform.
+
+       Most fields do *no* preprocessing -- the field data is kept as is.
+       Preprocessing is only used on fields that have special behavior, 
+       like file fields.
+
+    #. **Prepare the data for the database.** Each field is asked to provide
+       its current value in a data type that can be written to the database.
+
+       Most fields require no data preparation. Simple data types, such as
+       integers and strings, are "ready to write" as a Python object. However,
+       more complex data types often require some modification. For example, 
+       ``DateFields`` use a Python ``datetime`` object to store data. 
+       Databases don't store ``datetime`` objects, so the field value
+       must be converted into an ISO-compliant date string for insertion
+       into the database.
+
+    #. **Insert the data into the database.** The preprocessed, prepared
+       data is then composed into an SQL statement for insertion into the
+       database.
+
+    #. **Emit a post_save signal.** As with the ``pre_save`` signal, this
+       is used to provide notification that an object has been successfully
+       saved.
+
+Autoincrementing Primary Keys
+------------------------------
+
+For convenience, each model is given an autoincrementing primary key field
+named ``id`` unless you explicitly specify ``primary_key=True`` on a field (see
+the section titled "AutoField" in Appendix A).
+
+If your model has an ``AutoField``, that autoincremented value will be
+calculated and saved as an attribute on your object the first time you call
+``save()``::
+    
+    >>> b2 = Blog(name='Cheddar Talk', tagline='Thoughts on cheese.')
+    >>> b2.id     # Returns None, because b doesn't have an ID yet.
+    None
+    
+    >>> b2.save()
+    >>> b2.id     # Returns the ID of your new object.
+    14
+
+There's no way to tell what the value of an ID will be before you call
+``save()``, because that value is calculated by your database, not by Django.
+
+If a model has an ``AutoField`` but you want to define a new object's ID
+explicitly when saving, just define it explicitly before saving, rather than
+relying on the autoassignment of the ID::
+
+    >>> b3 = Blog(id=3, name='Cheddar Talk', tagline='Thoughts on cheese.')
+    >>> b3.id
+    3
+    >>> b3.save()
+    >>> b3.id
+    3
+
+If you assign auto-primary-key values manually, make sure not to use an
+already existing primary key value! If you create a new object with an explicit
+primary key value that already exists in the database, Django will assume you're
+changing the existing record rather than creating a new one.
+
+Given the preceding ``'Cheddar Talk'`` blog example, this example would override the
+previous record in the database::
+
+    >>> b4 = Blog(id=3, name='Not Cheddar', tagline='Anything but cheese.')
+    >>> b4.save()  # Overrides the previous blog with ID=3!
+
+Explicitly specifying auto-primary-key values is mostly useful for bulk-saving
+objects, when you're confident you won't have primary key collision.
+
+Saving Changes to Objects
+=========================
+
+To save changes to an object that's already in the database, use ``save()``.
+
+Given a ``Blog`` instance ``b5`` that has already been saved to the database,
+this example changes its name and updates its record in the database::
+
+    >>> b5.name = 'New name'
+    >>> b5.save()
+
+This performs an ``UPDATE`` SQL statement behind the scenes. Again, Django
+doesn't hit the database until you explicitly call ``save()``.
+
+.. admonition:: How Django Knows When to ``UPDATE`` and When to ``INSERT``
+
+    You may have noticed that Django database objects use the same ``save()`` method
+    for creating and changing objects. Django abstracts the need to use
+    ``INSERT`` or ``UPDATE`` SQL statements. Specifically, when you call
+    ``save()``, Django follows this algorithm:
+
+        * If the object's primary key attribute is set to a value that evaluates
+          to ``True`` (i.e., a value other than ``None`` or the empty string),
+          Django executes a ``SELECT`` query to determine whether a record with
+          the given primary key already exists.
+
+        * If the record with the given primary key does already exist, Django
+          executes an ``UPDATE`` query.
+
+        * If the object's primary key attribute is *not* set, or if it's set but
+          a record doesn't exist, Django executes an ``INSERT``.
+
+    Because of this, you should be careful not to specify a primary key value
+    explicitly when saving new objects if you cannot guarantee the primary key
+    value is unused.
+
+Updating ``ForeignKey`` fields works exactly the same way; simply assign an
+object of the right type to the field in question::
+
+    >>> joe = Author.objects.create(name="Joe")
+    >>> entry.author = joe
+    >>> entry.save()
+
+Django will complain if you try to assign an object of the wrong type.
+
+Retrieving Objects
+==================
+
+Throughout the book you've seen objects retrieved using code like the following::
+
+    >>> blogs = Blog.objects.filter(author__name__contains="Joe")
+
+There are quite a few "moving parts" behind the scenes here: when you
+retrieve objects from the database, you're actually constructing a ``QuerySet``
+using the model's ``Manager``. This ``QuerySet`` knows how to execute SQL and
+return the requested objects.
+
+Appendix A looked at both of these objects from a model-definition point of
+view; now we'll look at how they operate.
+
+A ``QuerySet`` represents a collection of objects from your database. It can
+have zero, one, or many *filters* -- criteria that narrow down the collection
+based on given parameters. In SQL terms, a ``QuerySet`` equates to a ``SELECT``
+statement, and a filter is a ``WHERE``.
+
+You get a ``QuerySet`` by using your model's ``Manager``. Each model has at
+least one ``Manager``, and it's called ``objects`` by default. Access it
+directly via the model class, like so::
+
+    >>> Blog.objects
+    <django.db.models.manager.Manager object at 0x137d00d>
+
+``Manager``\s are accessible only via model classes, rather than from model
+instances, to enforce a separation between "table-level" operations and
+"record-level" operations::
+
+    >>> b = Blog(name='Foo', tagline='Bar')
+    >>> b.objects
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    AttributeError: Manager isn't accessible via Blog instances.
+
+The ``Manager`` is the main source of ``QuerySet``\s for a model. It acts as a
+"root" ``QuerySet`` that describes all objects in the model's database table.
+For example, ``Blog.objects`` is the initial ``QuerySet`` that contains all
+``Blog`` objects in the database.
+
+Caching and QuerySets
+=====================
+
+Each ``QuerySet`` contains a cache, to minimize database access. It's important
+to understand how it works, in order to write the most efficient code.
+
+In a newly created ``QuerySet``, the cache is empty. The first time a
+``QuerySet`` is evaluated -- and, hence, a database query happens -- Django
+saves the query results in the ``QuerySet``'s cache and returns the results
+that have been explicitly requested (e.g., the next element, if the
+``QuerySet`` is being iterated over). Subsequent evaluations of the
+``QuerySet`` reuse the cached results.
+
+Keep this caching behavior in mind, because it may bite you if you don't use
+your ``QuerySet``\s correctly. For example, the following will create two
+``QuerySet``\s, evaluate them, and throw them away::
+
+    print [e.headline for e in Entry.objects.all()]
+    print [e.pub_date for e in Entry.objects.all()]
+
+That means the same database query will be executed twice, effectively doubling
+your database load. Also, there's a possibility the two lists may not include
+the same database records, because an ``Entry`` may have been added or deleted
+in the split second between the two requests.
+
+To avoid this problem, simply save the ``QuerySet`` and reuse it::
+
+    queryset = Poll.objects.all()
+    print [p.headline for p in queryset] # Evaluate the query set.
+    print [p.pub_date for p in queryset] # Reuse the cache from the evaluation.
+
+Filtering Objects
+=================
+
+The simplest way to retrieve objects from a table is to get all of them.
+To do this, use the ``all()`` method on a ``Manager``::
+
+    >>> Entry.objects.all()
+
+The ``all()`` method returns a ``QuerySet`` of all the objects in the database.
+
+Usually, though, you'll need to select only a subset of the complete set of
+objects. To create such a subset, you refine the initial ``QuerySet``, adding filter
+conditions. You'll usually do this using the ``filter()`` and/or ``exclude()``
+methods::
+
+    >>> y2006 = Entry.objects.filter(pub_date__year=2006)
+    >>> not2006 = Entry.objects.exclude(pub_date__year=2006)
+
+``filter()`` and ``exclude()`` both take *field lookup* arguments, which are
+discussed in detail shortly.
+
+Chaining Filters
 ----------------
 
-Like ``unique_for_date``, but requires the field to be unique with respect to
-the month of the given field.
+The result of refining a ``QuerySet`` is itself a ``QuerySet``, so it's
+possible to chain refinements together, for example::
 
-unique_for_year
----------------
+    >>> qs = Entry.objects.filter(headline__startswith='What')
+    >>> qs = qs.exclude(pub_date__gte=datetime.datetime.now())
+    >>> qs = qs.filter(pub_date__gte=datetime.datetime(2005, 1, 1))
 
-Like ``unique_for_date`` and ``unique_for_month``, but for an entire year.
+This takes the initial ``QuerySet`` of all entries in the database, adds a
+filter, then an exclusion, and then another filter. The final result is a
+``QuerySet`` containing all entries with a headline that starts with "What"
+that were published between January 1, 2005, and the current day.
 
-verbose_name
-------------
+It's important to point out here that ``QuerySets`` are lazy -- the act of creating
+a ``QuerySet`` doesn't involve any database activity. In fact, the three preceding lines
+don't make *any* database calls; you can chain filters together all day
+long and Django won't actually run the query until the ``QuerySet`` is
+*evaluated*.
 
-Each field type, except for ``ForeignKey``, ``ManyToManyField``, and
-``OneToOneField``, takes an optional first positional argument -- a
-verbose name. If the verbose name isn't given, Django will automatically create
-it using the field's attribute name, converting underscores to spaces.
+You can evaluate a ``QuerySet`` in any following ways:
 
-In this example, the verbose name is ``"Person's first name"``::
+    * *Iterating*: A ``QuerySet`` is iterable, and it executes its database query the first
+      time you iterate over it. For example, the following ``QuerySet`` isn't evaluated
+      until it's iterated over in the ``for`` loop::
+        
+          qs = Entry.objects.filter(pub_date__year=2006)
+          qs = qs.filter(headline__icontains="bill")
+          for e in qs:
+              print e.headline
 
-    first_name = models.CharField("Person's first name", maxlength=30)
+      This prints all headlines from 2006 that contain "bill" but causes
+      only one database hit.
 
-In this example, the verbose name is ``"first name"``::
+    * *Printing it*: A ``QuerySet`` is evaluated when you call ``repr()`` on it.
+      This is for convenience in the Python interactive interpreter, so you can
+      immediately see your results when using the API interactively.
 
-    first_name = models.CharField(maxlength=30)
+    * *Slicing*: As explained in the upcoming "Limiting QuerySets" section, 
+      a ``QuerySet`` can be sliced using Python's array-slicing syntax. 
+      Usually slicing a ``QuerySet`` returns another (unevaluated)``QuerySet``, 
+      but Django will execute the database query if you use the "step" 
+      parameter of slice syntax.
 
-``ForeignKey``, ``ManyToManyField``, and ``OneToOneField`` require the first
-argument to be a model class, so use the ``verbose_name`` keyword argument::
+    * *Converting to a list*: You can force evaluation of a ``QuerySet`` by calling
+      ``list()`` on it, for example::
 
-    poll = models.ForeignKey(Poll, verbose_name="the related poll")
-    sites = models.ManyToManyField(Site, verbose_name="list of sites")
-    place = models.OneToOneField(Place, verbose_name="related place")
+          >>> entry_list = list(Entry.objects.all())
 
-The convention is not to capitalize the first letter of the ``verbose_name``.
-Django will automatically capitalize the first letter where it needs to.
+      Be warned, though, that this could have a large memory overhead, because
+      Django will load each element of the list into memory. In contrast,
+      iterating over a ``QuerySet`` will take advantage of your database to load
+      data and instantiate objects only as you need them.
 
-Relationships
-=============
+.. admonition:: Filtered QuerySets Are Unique
 
-Clearly, the power of relational databases lies in relating tables to each
-other. Django offers ways to define the three most common types of database
-relationships: many-to-one, many-to-many, and one-to-one.
+    Each time you refine a ``QuerySet``, you get a brand-new ``QuerySet`` that
+    is in no way bound to the previous ``QuerySet``. Each refinement creates a
+    separate and distinct ``QuerySet`` that can be stored, used, and reused::
 
-However, the semantics of one-to-one relationships are being revisited as this
-book goes to print, so they're not covered in this section. Check the online
-documentation for the latest information.
+        q1 = Entry.objects.filter(headline__startswith="What")
+        q2 = q1.exclude(pub_date__gte=datetime.now())
+        q3 = q1.filter(pub_date__gte=datetime.now())
 
-Many-to-One Relationships
--------------------------
+    These three ``QuerySets`` are separate. The first is a base ``QuerySet``
+    containing all entries that contain a headline starting with "What". The
+    second is a subset of the first, with an additional criterion that excludes
+    records whose ``pub_date`` is greater than now. The third is a subset of the
+    first, with an additional criterion that selects only the records whose
+    ``pub_date`` is greater than now. The initial ``QuerySet`` (``q1``) is
+    unaffected by the refinement process.
 
-To define a many-to-one relationship, use ``ForeignKey``. You use it just like
-any other ``Field`` type: by including it as a class attribute of your model.
+Limiting QuerySets
+------------------
 
-``ForeignKey`` requires a positional argument: the class to which the model is
-related. 
+Use Python's array-slicing syntax to limit your ``QuerySet`` to a certain number
+of results. This is the equivalent of SQL's ``LIMIT`` and ``OFFSET`` clauses.
 
-For example, if a ``Car`` model has a ``Manufacturer`` -- that is, a
-``Manufacturer`` makes multiple cars but each ``Car`` only has one
-``Manufacturer`` -- use the following definitions::
+For example, this returns the first five entries (``LIMIT 5``)::
 
-    class Manufacturer(models.Model):
-        ...
+    >>> Entry.objects.all()[:5]
 
-    class Car(models.Model):
-        manufacturer = models.ForeignKey(Manufacturer)
-        ...
+This returns the sixth through tenth entries (``OFFSET 5 LIMIT 5``)::
 
-To create a *recursive* relationship -- an object that has a many-to-one
-relationship with itself -- use ``models.ForeignKey('self')``::
+    >>> Entry.objects.all()[5:10]
 
-    class Employee(models.Model):
-        manager = models.ForeignKey('self')
+Generally, slicing a ``QuerySet`` returns a new ``QuerySet`` -- it doesn't
+evaluate the query. An exception is if you use the "step" parameter
+of Python slice syntax. For example, this would actually execute the query in
+order to return a list of every *second* object of the first ten::
 
-If you need to create a relationship on a model that has not yet been defined,
-you can use the name of the model, rather than the model object itself::
+    >>> Entry.objects.all()[:10:2]
 
-    class Car(models.Model):
-        manufacturer = models.ForeignKey('Manufacturer')
-        ...
+To retrieve a *single* object rather than a list (e.g., ``SELECT foo FROM bar
+LIMIT 1``), use a simple index instead of a slice. For example, this returns the
+first ``Entry`` in the database, after ordering entries alphabetically by
+headline::
 
-    class Manufacturer(models.Model):
-        ...
+    >>> Entry.objects.order_by('headline')[0]
 
-Note, however, that you can only use strings to refer to models in the same
-``models.py`` file -- you cannot use a string to reference a model in a
-different application, or to reference a model that has been imported from
-elsewhere.
+This is roughly equivalent to the following::
 
-Behind the scenes, Django appends ``"_id"`` to the field name to create its
-database column name. In the preceding example, the database table for the ``Car``
-model will have a ``manufacturer_id`` column. (You can change this explicitly
-by specifying ``db_column``; see the earlier "db_column" section.) However, your code
-should never have to deal with the database column name, unless you write
-custom SQL. You'll always deal with the field names of your model object.
+    >>> Entry.objects.order_by('headline')[0:1].get()
 
-It's suggested, but not required, that the name of a ``ForeignKey`` field
-(``manufacturer`` in the example) be the name of the model, in lowercase letters.
-You can, of course, call the field whatever you want, for example::
+Note, however, that the first of these will raise ``IndexError`` while the
+second will raise ``DoesNotExist`` if no objects match the given criteria.
 
-    class Car(models.Model):
-        company_that_makes_it = models.ForeignKey(Manufacturer)
+Query Methods That Return New QuerySets
+---------------------------------------
+
+Django provides a range of ``QuerySet`` refinement methods that modify either
+the types of results returned by the ``QuerySet`` or the way its SQL query is
+executed. These methods are described in the sections that follow. Some of the
+methods take field lookup arguments, which are discussed in detail a bit later
+on.
+
+filter(\*\*lookup)
+~~~~~~~~~~~~~~~~~~
+
+Returns a new ``QuerySet`` containing objects that match the given lookup
+parameters.
+
+exclude(\*\*lookup)
+~~~~~~~~~~~~~~~~~~~
+
+Returns a new ``QuerySet`` containing objects that do *not* match the given
+lookup parameters.
+
+order_by(\*fields)
+~~~~~~~~~~~~~~~~~~
+
+By default, results returned by a ``QuerySet`` are ordered by the ordering
+tuple given by the ``ordering`` option in the model's metadata (see Appendix A). You can
+override this for a particular query using the ``order_by()`` method::
+
+    >> Entry.objects.filter(pub_date__year=2005).order_by('-pub_date', 'headline')
+
+This result will be ordered by ``pub_date`` descending, then by
+``headline`` ascending. The negative sign in front of ``"-pub_date"`` indicates
+*descending* order. Ascending order is assumed if the ``-`` is absent. To order
+randomly, use ``"?"``, like so::
+
+    >>> Entry.objects.order_by('?')
+
+Ordering randomly incurs a performance penalty, though, so you shouldn't use it
+for anything with heavy load.
+
+If no ordering is specified in a model's ``class Meta`` and a ``QuerySet`` from
+that model doesn't include ``order_by()``, then ordering will be undefined and
+may differ from query to query.
+
+distinct()
+~~~~~~~~~~
+
+Returns a new ``QuerySet`` that uses ``SELECT DISTINCT`` in its SQL query. This
+eliminates duplicate rows from the query results.
+
+By default, a ``QuerySet`` will not eliminate duplicate rows. In practice, this
+is rarely a problem, because simple queries such as ``Blog.objects.all()`` don't
+introduce the possibility of duplicate result rows.
+
+However, if your query spans multiple tables, it's possible to get duplicate
+results when a ``QuerySet`` is evaluated. That's when you'd use ``distinct()``.
+
+values(\*fields)
+~~~~~~~~~~~~~~~~
+
+Returns a special ``QuerySet`` that evaluates to a list of dictionaries instead
+of model-instance objects. Each of those dictionaries represents an object, with
+the keys corresponding to the attribute names of model objects::
+
+    # This list contains a Blog object.
+    >>> Blog.objects.filter(name__startswith='Beatles')
+    [Beatles Blog]
+
+    # This list contains a dictionary.
+    >>> Blog.objects.filter(name__startswith='Beatles').values()
+    [{'id': 1, 'name': 'Beatles Blog', 'tagline': 'All the latest Beatles news.'}]
+
+``values()`` takes optional positional arguments, ``*fields``, which specify
+field names to which the ``SELECT`` should be limited. If you specify the
+fields, each dictionary will contain only the field keys/values for the fields
+you specify. If you don't specify the fields, each dictionary will contain a
+key and value for every field in the database table::
+
+    >>> Blog.objects.values()
+    [{'id': 1, 'name': 'Beatles Blog', 'tagline': 'All the latest Beatles news.'}],
+    >>> Blog.objects.values('id', 'name')
+    [{'id': 1, 'name': 'Beatles Blog'}]
+
+This method is useful when you know you're only going to need values from a
+small number of the available fields and you won't need the functionality of a
+model instance object. It's more efficient to select only the fields you need to
+use.
+
+dates(field, kind, order)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Returns a special ``QuerySet`` that evaluates to a list of ``datetime.datetime``
+objects representing all available dates of a particular kind within the
+contents of the ``QuerySet``.
+
+The ``field`` argument must be the name of a ``DateField`` or ``DateTimeField``
+of your model. The ``kind`` argument must be either ``"year"``, ``"month"``, or
+``"day"``. Each ``datetime.datetime`` object in the result list is "truncated"
+to the given ``type``:
+
+    * ``"year"`` returns a list of all distinct year values for the field.
+    
+    * ``"month"`` returns a list of all distinct year/month values for the field.
+    
+    * ``"day"`` returns a list of all distinct year/month/day values for the field.
+
+``order``, which defaults to ``'ASC'``, should be either ``'ASC'`` or
+``'DESC'``. This specifies how to order the results.
+
+Here are a few examples::
+
+    >>> Entry.objects.dates('pub_date', 'year')
+    [datetime.datetime(2005, 1, 1)]
+    
+    >>> Entry.objects.dates('pub_date', 'month')
+    [datetime.datetime(2005, 2, 1), datetime.datetime(2005, 3, 1)]
+    
+    >>> Entry.objects.dates('pub_date', 'day')
+    [datetime.datetime(2005, 2, 20), datetime.datetime(2005, 3, 20)]
+    
+    >>> Entry.objects.dates('pub_date', 'day', order='DESC')
+    [datetime.datetime(2005, 3, 20), datetime.datetime(2005, 2, 20)]
+    
+    >>> Entry.objects.filter(headline__contains='Lennon').dates('pub_date', 'day')
+    [datetime.datetime(2005, 3, 20)]
+
+select_related()
+~~~~~~~~~~~~~~~~
+
+Returns a ``QuerySet`` that will automatically "follow" foreign key
+relationships, selecting that additional related-object data when it executes
+its query. This is a performance booster that results in (sometimes much)
+larger queries but means later use of foreign key relationships won't require
+database queries.
+
+The following examples illustrate the difference between plain lookups and
+``select_related()`` lookups. Here's standard lookup::
+
+    # Hits the database.
+    >>> e = Entry.objects.get(id=5)
+
+    # Hits the database again to get the related Blog object.
+    >>> b = e.blog
+
+And here's ``select_related`` lookup::
+
+    # Hits the database.
+    >>> e = Entry.objects.select_related().get(id=5)
+
+    # Doesn't hit the database, because e.blog has been prepopulated
+    # in the previous query.
+    >>> b = e.blog
+
+``select_related()`` follows foreign keys as far as possible. If you have the
+following models::
+
+    class City(models.Model):
         # ...
 
-``ForeignKey`` fields take a number of extra arguments for defining how the
-relationship should work (see Table B-5). All are optional.
+    class Person(models.Model):
+        # ...
+        hometown = models.ForeignKey(City)
 
-.. table:: Table B-5. ForeignKey Options
+    class Book(models.Model):
+        # ...
+        author = models.ForeignKey(Person)
 
-    =======================  ============================================================
-    Argument                 Description
-    =======================  ============================================================
-    ``edit_inline``          If not ``False``, this related object is edited
-                             "inline" on the related object's page. This means
-                             that the object will not have its own admin
-                             interface. Use either ``models.TABULAR`` or ``models.STACKED``,
-                             which, respectively, designate whether the inline-editable
-                             objects are displayed as a table or as a "stack" of
-                             fieldsets.
+then a call to ``Book.objects.select_related().get(id=4)`` will cache the
+related ``Person`` *and* the related ``City``::
 
-    ``limit_choices_to``     A dictionary of lookup arguments and values (see
-                             Appendix C) that limit the
-                             available admin choices for this object. Use this
-                             with functions from the Python ``datetime`` module
-                             to limit choices of objects by date. For example, the following::
+    >>> b = Book.objects.select_related().get(id=4)
+    >>> p = b.author         # Doesn't hit the database.
+    >>> c = p.hometown       # Doesn't hit the database.
 
-                                limit_choices_to = {'pub_date__lte': datetime.now}
+    >>> b = Book.objects.get(id=4) # No select_related() in this example.
+    >>> p = b.author         # Hits the database.
+    >>> c = p.hometown       # Hits the database.
 
-                             only allows the choice of related objects with a
-                             ``pub_date`` before the current date/time to be
-                             chosen.
+Note that ``select_related()`` does not follow foreign keys that have
+``null=True``.
 
-                             Instead of a dictionary, this can be a ``Q``
-                             object (see Appendix C) for more complex queries.
+Usually, using ``select_related()`` can vastly improve performance because your
+application can avoid many database calls. However, in situations with deeply nested
+sets of relationships, ``select_related()`` can sometimes end up following "too
+many" relations and can generate queries so large that they end up being slow.
 
-                             This is not compatible with ``edit_inline``.
+QuerySet Methods That Do Not Return QuerySets
+---------------------------------------------
 
-    ``max_num_in_admin``     For inline-edited objects, this is the maximum
-                             number of related objects to display in the admin interface.
-                             Thus, if a pizza could have only up to ten
-                             toppings, ``max_num_in_admin=10`` would ensure
-                             that a user never enters more than ten toppings.
+The following ``QuerySet`` methods evaluate the ``QuerySet`` and return
+something *other than* a ``QuerySet`` -- a single object, value, and so forth.
 
-                             Note that this doesn't ensure more than ten related
-                             toppings ever get created. It simply controls the
-                             admin interface; it doesn't enforce things at the
-                             Python API level or database level.
+get(\*\*lookup)
+~~~~~~~~~~~~~~~
 
-    ``min_num_in_admin``     The minimum number of related objects displayed in
-                             the admin interface. Normally, at the creation stage,
-                             ``num_in_admin`` inline objects are shown, and at
-                             the edit stage, ``num_extra_on_change`` blank
-                             objects are shown in addition to all pre-existing
-                             related objects. However, no fewer than
-                             ``min_num_in_admin`` related objects will ever be
-                             displayed.
+Returns the object matching the given lookup parameters, which should be in the
+format described in the "Field Lookups" section. This raises ``AssertionError`` if
+more than one object was found.
 
-    ``num_extra_on_change``  The number of extra blank related-object fields to
-                             show at the change stage.
+``get()`` raises a ``DoesNotExist`` exception if an object wasn't found for the
+given parameters. The ``DoesNotExist`` exception is an attribute of the model
+class, for example::
 
-    ``num_in_admin``         The default number of inline objects to display
-                             on the object page at the add stage.
+    >>> Entry.objects.get(id='foo') # raises Entry.DoesNotExist
 
-    ``raw_id_admin``         Only display a field for the integer to be entered
-                             instead of a drop-down menu. This is useful when
-                             related to an object type that will have too many
-                             rows to make a select box practical.
+The ``DoesNotExist`` exception inherits from
+``django.core.exceptions.ObjectDoesNotExist``, so you can target multiple
+``DoesNotExist`` exceptions::
 
-                             This is not used with ``edit_inline``.
+    >>> from django.core.exceptions import ObjectDoesNotExist
+    >>> try:
+    ...     e = Entry.objects.get(id=3)
+    ...     b = Blog.objects.get(id=1)
+    ... except ObjectDoesNotExist:
+    ...     print "Either the entry or blog doesn't exist."
 
-    ``related_name``         The name to use for the relation from the related
-                             object back to this one. See Appendix C for
-                             more information.
+create(\*\*kwargs)
+~~~~~~~~~~~~~~~~~~
 
-    ``to_field``             The field on the related object that the relation
-                             is to. By default, Django uses the primary key of
-                             the related object.
-    =======================  ============================================================
+This is a convenience method for creating an object and saving it all in one step. 
+It lets you compress two common steps::
+
+    >>> p = Person(first_name="Bruce", last_name="Springsteen")
+    >>> p.save()
+
+into a single line:: 
+
+    >>> p = Person.objects.create(first_name="Bruce", last_name="Springsteen")
+
+get_or_create(\*\*kwargs)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is a convenience method for looking up an object and creating one if it doesn't
+exist. It returns a tuple of ``(object, created)``, where ``object`` is the retrieved or
+created object and ``created`` is a Boolean specifying whether a new object was
+created.
+
+This method is meant as a shortcut to boilerplate code and is mostly useful for
+data-import scripts. For example::
+
+    try:
+        obj = Person.objects.get(first_name='John', last_name='Lennon')
+    except Person.DoesNotExist:
+        obj = Person(first_name='John', last_name='Lennon', birthday=date(1940, 10, 9))
+        obj.save()
+
+This pattern gets quite unwieldy as the number of fields in a model increases. The
+previous example can be rewritten using ``get_or_create()`` like so::
+
+    obj, created = Person.objects.get_or_create(
+        first_name = 'John', 
+        last_name  = 'Lennon',
+        defaults   = {'birthday': date(1940, 10, 9)}
+    )
+
+Any keyword arguments passed to ``get_or_create()`` -- *except* an optional one
+called ``defaults`` -- will be used in a ``get()`` call. If an object is found,
+``get_or_create()`` returns a tuple of that object and ``False``. If an object
+is *not* found, ``get_or_create()`` will instantiate and save a new object,
+returning a tuple of the new object and ``True``. The new object will be created
+according to this algorithm::
+
+    defaults = kwargs.pop('defaults', {})
+    params = dict([(k, v) for k, v in kwargs.items() if '__' not in k])
+    params.update(defaults)
+    obj = self.model(**params)
+    obj.save()
+
+In English, that means start with any non-``'defaults'`` keyword argument that
+doesn't contain a double underscore (which would indicate a nonexact lookup).
+Then add the contents of ``defaults``, overriding any keys if necessary, and
+use the result as the keyword arguments to the model class.
+
+If you have a field named ``defaults`` and want to use it as an exact lookup in
+``get_or_create()``, just use ``'defaults__exact'`` like so::
+
+    Foo.objects.get_or_create(
+        defaults__exact = 'bar', 
+        defaults={'defaults': 'bar'}
+    )
+
+.. note::
+      
+    As mentioned earlier, ``get_or_create()`` is mostly useful in scripts that
+    need to parse data and create new records if existing ones aren't available.
+    But if you need to use ``get_or_create()`` in a view, please make sure to
+    use it only in ``POST`` requests unless you have a good reason not to.
+    ``GET`` requests shouldn't have any effect on data; use ``POST`` whenever a
+    request to a page has a side effect on your data.
+
+count()
+~~~~~~~
+
+Returns an integer representing the number of objects in the database matching
+the ``QuerySet``. ``count()`` never raises exceptions. Here's an example:: 
+
+    # Returns the total number of entries in the database.
+    >>> Entry.objects.count()
+    4
+
+    # Returns the number of entries whose headline contains 'Lennon'
+    >>> Entry.objects.filter(headline__contains='Lennon').count()
+    1
+
+``count()`` performs a ``SELECT COUNT(*)`` behind the scenes, so you should
+always use ``count()`` rather than loading all of the records into Python objects
+and calling ``len()`` on the result.
+
+Depending on which database you're using (e.g., PostgreSQL or MySQL),
+``count()`` may return a long integer instead of a normal Python integer. This
+is an underlying implementation quirk that shouldn't pose any real-world
+problems.
+
+in_bulk(id_list)
+~~~~~~~~~~~~~~~~
+
+Takes a list of primary key values and returns a dictionary mapping each
+primary key value to an instance of the object with the given ID, for example::
+
+    >>> Blog.objects.in_bulk([1])
+    {1: Beatles Blog}
+    >>> Blog.objects.in_bulk([1, 2])
+    {1: Beatles Blog, 2: Cheddar Talk}
+    >>> Blog.objects.in_bulk([])
+    {}
+
+IDs of objects that don't exist are silently dropped from the result dictionary.
+If you pass ``in_bulk()`` an empty list, you'll get an empty dictionary.
+
+latest(field_name=None)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Returns the latest object in the table, by date, using the ``field_name``
+provided as the date field. This example returns the latest ``Entry`` in the 
+table, according to the ``pub_date`` field::
+
+    >>> Entry.objects.latest('pub_date')
+
+If your model's ``Meta`` specifies ``get_latest_by``, you can leave off the
+``field_name`` argument to ``latest()``. Django will use the field specified in
+``get_latest_by`` by default.
+
+Like ``get()``, ``latest()`` raises ``DoesNotExist`` if an object doesn't exist
+with the given parameters.
+
+Field Lookups
+=============
+
+Field lookups are how you specify the meat of an SQL ``WHERE`` clause. They're
+specified as keyword arguments to the ``QuerySet`` methods ``filter()``,
+``exclude()``, and ``get()``.
+
+Basic lookup keyword arguments take the form ``field__lookuptype=value``
+(note the double underscore). For example::
+
+    >>> Entry.objects.filter(pub_date__lte='2006-01-01')
+
+translates (roughly) into the following SQL::
+
+    SELECT * FROM blog_entry WHERE pub_date <= '2006-01-01';
+
+If you pass an invalid keyword argument, a lookup function will raise
+``TypeError``.
+
+The supported lookup types follow.
+
+exact
+-----
+
+Performs an exact match::
+
+    >>> Entry.objects.get(headline__exact="Man bites dog")
+    
+This matches any object with the exact headline "Man bites dog".
+
+If you don't provide a lookup type -- that is, if your keyword argument doesn't
+contain a double underscore -- the lookup type is assumed to be ``exact``.
+
+For example, the following two statements are equivalent::
+
+    >>> Blog.objects.get(id__exact=14) # Explicit form
+    >>> Blog.objects.get(id=14) # __exact is implied
+
+This is for convenience, because ``exact`` lookups are the common case.
+
+iexact
+------
+
+Performs a case-insensitive exact match:: 
+
+    >>> Blog.objects.get(name__iexact='beatles blog')
+
+This will match ``'Beatles Blog'``, ``'beatles blog'``,
+``'BeAtLes BLoG'``, and so forth.
+
+contains
+--------
+
+Performs a case-sensitive containment test::
+
+    Entry.objects.get(headline__contains='Lennon')
+
+This will match the headline ``'Today Lennon honored'`` but not
+``'today lennon honored'``.
+
+SQLite doesn't support case-sensitive ``LIKE`` statements; when using
+SQLite,``contains`` acts like ``icontains``.
+
+.. admonition:: Escaping Percent Signs and Underscores in LIKE Statements
+
+    The field lookups that equate to ``LIKE`` SQL statements (``iexact``,
+    ``contains``, ``icontains``, ``startswith``, ``istartswith``, ``endswith``,
+    and ``iendswith``) will automatically escape the two special characters used in
+    ``LIKE`` statements -- the percent sign and the underscore. (In a ``LIKE``
+    statement, the percent sign signifies a multiple-character wildcard and the
+    underscore signifies a single-character wildcard.)
+
+    This means things should work intuitively, so the abstraction doesn't leak.
+    For example, to retrieve all the entries that contain a percent sign, just use
+    the percent sign as any other character::
+
+        Entry.objects.filter(headline__contains='%')
+
+    Django takes care of the quoting for you. The resulting SQL will look something
+    like this::
+
+        SELECT ... WHERE headline LIKE '%\%%';
+
+    The same goes for underscores. Both percentage signs and underscores are handled
+    for you transparently.
+
+icontains
+---------
+
+Performs a case-insensitive containment test::
+
+    >>> Entry.objects.get(headline__icontains='Lennon')
+
+Unlike ``contains``, ``icontains`` *will* match ``'today lennon honored'``.
+
+gt, gte, lt, and lte
+--------------------
+
+These represent greater than, greater than or equal to, less than, and less 
+than or equal to::
+
+    >>> Entry.objects.filter(id__gt=4)
+    >>> Entry.objects.filter(id__lt=15)
+    >>> Entry.objects.filter(id__gte=0)
+
+These queries return any object with an ID greater than 4, an ID less than 15,
+and an ID greater than or equal to 1, respectively.
+
+You'll usually use these on numeric fields. Be careful with character fields
+since character order isn't always what you'd expect (i.e., the string "4" sorts
+*after* the string "10").
+
+in
+--
+
+Filters where a value is on a given list::
+
+    Entry.objects.filter(id__in=[1, 3, 4])
+
+This returns all objects with the ID 1, 3, or 4.
+
+startswith
+----------
+
+Performs a case-sensitive starts-with::
+
+    >>> Entry.objects.filter(headline__startswith='Will')
+
+This will return the headlines "Will he run?" and "Willbur named judge", but not
+"Who is Will?" or "will found in crypt".
+
+istartswith
+-----------
+
+Performs a case-insensitive starts-with::
+
+    >>> Entry.objects.filter(headline__istartswith='will')
+    
+This will return the headlines "Will he run?", "Willbur named judge", and
+"will found in crypt", but not "Who is Will?"
+
+endswith and iendswith
+----------------------
+
+Perform case-sensitive and case-insensitive ends-with::
+
+    >>> Entry.objects.filter(headline__endswith='cats')
+    >>> Entry.objects.filter(headline__iendswith='cats')
+
+Similar to ``startswith`` and ``istartswith``.
+
+range
+-----
+
+Performs an inclusive range check::
+
+    >>> start_date = datetime.date(2005, 1, 1)
+    >>> end_date = datetime.date(2005, 3, 31)
+    >>> Entry.objects.filter(pub_date__range=(start_date, end_date))
+
+You can use ``range`` anywhere you can use ``BETWEEN`` in SQL -- for dates,
+numbers, and even characters.
+
+year, month, and day
+--------------------
+
+For date/datetime fields, perform exact year, month, or day matches::
+
+    # Return all entries published in 2005
+    >>>Entry.objects.filter(pub_date__year=2005)
+
+    # Return all entries published in December
+    >>> Entry.objects.filter(pub_date__month=12)
+
+    # Return all entries published on the 3rd of the month
+    >>> Entry.objects.filter(pub_date__day=3)
+
+    # Combination: return all entries on Christmas of any year
+    >>> Entry.objects.filter(pub_date__month=12, pub_date_day=25)
+
+isnull
+------
+
+Takes either ``True`` or ``False``, which correspond to SQL queries of
+``IS NULL`` and ``IS NOT NULL``, respectively::
+
+    >>> Entry.objects.filter(pub_date__isnull=True)
+
+search
+------
+
+A Boolean full-text search that takes advantage of full-text indexing. This is like
+``contains`` but is significantly faster due to full-text indexing.
+
+Note this is available only in MySQL and requires direct manipulation of the
+database to add the full-text index.
+
+The pk Lookup Shortcut
+----------------------
+
+For convenience, Django provides a ``pk`` lookup type, which stands for
+"primary_key".
+
+In the example ``Blog`` model, the primary key is the ``id`` field, so these
+three statements are equivalent::
+
+    >>> Blog.objects.get(id__exact=14) # Explicit form
+    >>> Blog.objects.get(id=14) # __exact is implied
+    >>> Blog.objects.get(pk=14) # pk implies id__exact
+
+The use of ``pk`` isn't limited to ``__exact`` queries -- any query term can be
+combined with ``pk`` to perform a query on the primary key of a model::
+
+    # Get blogs entries  with id 1, 4, and 7
+    >>> Blog.objects.filter(pk__in=[1,4,7])
+    
+    # Get all blog entries with id > 14
+    >>> Blog.objects.filter(pk__gt=14)
+
+``pk`` lookups also work across joins. For example, these three statements are
+equivalent::
+
+    >>> Entry.objects.filter(blog__id__exact=3) # Explicit form
+    >>> Entry.objects.filter(blog__id=3) # __exact is implied
+    >>> Entry.objects.filter(blog__pk=3) # __pk implies __id__exact
+
+The point of ``pk`` is to give you a generic way to refer to the primary key in
+cases where you're not sure whether the model's primary key is called ``id``.
+
+Complex Lookups with Q Objects
+==============================
+
+Keyword argument queries -- in ``filter()`` and so on -- are ANDed together. If
+you need to execute more complex queries (e.g., queries with ``OR``
+statements), you can use ``Q`` objects.
+
+A ``Q`` object (``django.db.models.Q``) is an object used to encapsulate a
+collection of keyword arguments. These keyword arguments are specified as in
+the "Field Lookups" section.
+
+For example, this ``Q`` object encapsulates a single ``LIKE`` query::
+
+    Q(question__startswith='What')
+
+``Q`` objects can be combined using the ``&`` and ``|`` operators. When an
+operator is used on two ``Q`` objects, it yields a new ``Q`` object. For example, 
+this statement yields a single ``Q`` object that represents the
+OR of two ``"question__startswith"`` queries::
+
+    Q(question__startswith='Who') | Q(question__startswith='What')
+
+This is equivalent to the following SQL ``WHERE`` clause::
+
+    WHERE question LIKE 'Who%' OR question LIKE 'What%'
+
+You can compose statements of arbitrary complexity by combining ``Q`` objects
+with the ``&`` and ``|`` operators. You can also use parenthetical grouping.
+
+Each lookup function that takes keyword arguments (e.g., ``filter()``,
+``exclude()``, ``get()``) can also be passed one or more ``Q`` objects as
+positional (not-named) arguments. If you provide multiple ``Q`` object
+arguments to a lookup function, the arguments will be ANDed together, for
+example::
+
+    Poll.objects.get(
+        Q(question__startswith='Who'),
+        Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6))
+    )
+
+roughly translates into the following SQL::
+
+    SELECT * from polls WHERE question LIKE 'Who%'
+        AND (pub_date = '2005-05-02' OR pub_date = '2005-05-06')
+
+Lookup functions can mix the use of ``Q`` objects and keyword arguments. All
+arguments provided to a lookup function (be they keyword arguments or ``Q``
+objects) are ANDed together. However, if a ``Q`` object is provided, it must
+precede the definition of any keyword arguments. For example, the following::
+
+    Poll.objects.get(
+        Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6)),
+        question__startswith='Who')
+
+would be a valid query, equivalent to the previous example, but this::
+
+    # INVALID QUERY
+    Poll.objects.get(
+        question__startswith='Who',
+        Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6)))
+
+would not be valid.
+
+You can find some examples online at http://www.djangoproject.com/documentation/models/or_lookups/.
+
+Related Objects
+===============
+
+When you define a relationship in a model (i.e., a ``ForeignKey``,
+``OneToOneField``, or ``ManyToManyField``), instances of that model will have
+a convenient API to access the related object(s).
+
+For example, an ``Entry`` object ``e`` can get its associated ``Blog`` object by
+accessing the ``blog`` attribute ``e.blog``.
+
+Django also creates API accessors for the "other" side of the relationship --
+the link from the related model to the model that defines the relationship.
+For example, a ``Blog`` object ``b`` has access to a list of all related
+``Entry`` objects via the ``entry_set`` attribute: ``b.entry_set.all()``.
+
+All examples in this section use the sample ``Blog``, ``Author``, and ``Entry``
+models defined at the start of the appendix.
+
+Lookups That Span Relationships
+-------------------------------
+
+Django offers a powerful and intuitive way to "follow" relationships in
+lookups, taking care of the SQL ``JOIN``\s for you automatically behind the
+scenes. To span a relationship, just use the field name of related fields
+across models, separated by double underscores, until you get to the field you
+want.
+
+This example retrieves all ``Entry`` objects with a ``Blog`` whose ``name``
+is ``'Beatles Blog'``::
+
+    >>> Entry.objects.filter(blog__name__exact='Beatles Blog')
+
+This spanning can be as deep as you'd like.
+
+It works backward, too. To refer to a "reverse" relationship, just use the
+lowercase name of the model.
+
+This example retrieves all ``Blog`` objects that have at least one ``Entry``
+whose ``headline`` contains ``'Lennon'``::
+
+    >>> Blog.objects.filter(entry__headline__contains='Lennon')
+
+Foreign Key Relationships
+-------------------------
+
+If a model has a ``ForeignKey``, instances of that model will have access to
+the related (foreign) object via a simple attribute of the model, for example::
+
+    e = Entry.objects.get(id=2)
+    e.blog # Returns the related Blog object.
+
+You can get and set via a foreign key attribute. As you may expect, changes to
+the foreign key aren't saved to the database until you call ``save()``, for example::
+
+    e = Entry.objects.get(id=2)
+    e.blog = some_blog
+    e.save()
+
+If a ``ForeignKey`` field has ``null=True`` set (i.e., it allows ``NULL``
+values), you can set it to ``NULL`` by assigning ``None`` to it and saving::
+
+    e = Entry.objects.get(id=2)
+    e.blog = None
+    e.save() # "UPDATE blog_entry SET blog_id = NULL ...;"
+
+Forward access to one-to-many relationships is cached the first time the
+related object is accessed. Subsequent accesses to the foreign key on the same
+object instance are cached, for example::
+
+    e = Entry.objects.get(id=2)
+    print e.blog  # Hits the database to retrieve the associated Blog.
+    print e.blog  # Doesn't hit the database; uses cached version.
+
+Note that the ``select_related()`` ``QuerySet`` method recursively prepopulates
+the cache of all one-to-many relationships ahead of time::
+
+    e = Entry.objects.select_related().get(id=2)
+    print e.blog  # Doesn't hit the database; uses cached version.
+    print e.blog  # Doesn't hit the database; uses cached version.
+
+``select_related()`` is documented in the "QuerySet Methods That Return New
+QuerySets" section.
+
+"Reverse" Foreign Key Relationships
+-----------------------------------
+
+Foreign key relationships are automatically symmetrical -- a reverse
+relationship is inferred from the presence of a ``ForeignKey`` pointing to
+another model.
+
+If a model has a ``ForeignKey``, instances of the foreign key model will have
+access to a ``Manager`` that returns all instances of the first model that
+relate to that object. By default, this ``Manager`` is named ``FOO_set``, where
+``FOO`` is the source model name, lowercased. This ``Manager`` returns
+``QuerySets``, which can be filtered and manipulated as described in the
+"Retrieving Objects" section.
+
+Here's an example::
+
+    b = Blog.objects.get(id=1)
+    b.entry_set.all() # Returns all Entry objects related to Blog.
+
+    # b.entry_set is a Manager that returns QuerySets.
+    b.entry_set.filter(headline__contains='Lennon')
+    b.entry_set.count()
+
+You can override the ``FOO_set`` name by setting the ``related_name``
+parameter in the ``ForeignKey()`` definition. For example, if the ``Entry``
+model was altered to ``blog = ForeignKey(Blog, related_name='entries')``, the
+preceding example code would look like this::
+
+    b = Blog.objects.get(id=1)
+    b.entries.all() # Returns all Entry objects related to Blog.
+
+    # b.entries is a Manager that returns QuerySets.
+    b.entries.filter(headline__contains='Lennon')
+    b.entries.count()
+
+``related_name`` is particularly useful if a model has two foreign keys to the
+same second model.
+
+You cannot access a reverse ``ForeignKey`` ``Manager`` from the class; it must
+be accessed from an instance::
+
+    Blog.entry_set # Raises AttributeError: "Manager must be accessed via instance".
+
+In addition to the ``QuerySet`` methods defined in the "Retrieving Objects" section,
+the ``ForeignKey`` ``Manager`` has these additional methods:
+
+    * ``add(obj1, obj2, ...)``: Adds the specified model objects to the related
+      object set, for example::
+
+          b = Blog.objects.get(id=1)
+          e = Entry.objects.get(id=234)
+          b.entry_set.add(e) # Associates Entry e with Blog b.
+
+    * ``create(**kwargs)``: Creates a new object, saves it, and puts it in the
+      related object set. It returns the newly created object::
+
+          b = Blog.objects.get(id=1)
+          e = b.entry_set.create(headline='Hello', body_text='Hi', pub_date=datetime.date(2005, 1, 1))
+          # No need to call e.save() at this point -- it's already been saved.
+
+      This is equivalent to (but much simpler than) the following::
+
+          b = Blog.objects.get(id=1)
+          e = Entry(blog=b, headline='Hello', body_text='Hi', pub_date=datetime.date(2005, 1, 1))
+          e.save()
+
+      Note that there's no need to specify the keyword argument of the model
+      that defines the relationship. In the preceding example, we don't pass the
+      parameter ``blog`` to ``create()``. Django figures out that the new
+      ``Entry`` object's ``blog`` field should be set to ``b``.
+
+    * ``remove(obj1, obj2, ...)``: Removes the specified model objects from the
+      related object set::
+
+          b = Blog.objects.get(id=1)
+          e = Entry.objects.get(id=234)
+          b.entry_set.remove(e) # Disassociates Entry e from Blog b.
+
+      In order to prevent database inconsistency, this method only exists on
+      ``ForeignKey`` objects where ``null=True``. If the related field can't be
+      set to ``None`` (``NULL``), then an object can't be removed from a
+      relation without being added to another. In the preceding example, removing
+      ``e`` from ``b.entry_set()`` is equivalent to doing ``e.blog = None``,
+      and because the ``blog`` ``ForeignKey`` doesn't have ``null=True``, this
+      is invalid.
+
+    * ``clear()``: Removes all objects from the related object set::
+
+          b = Blog.objects.get(id=1)
+          b.entry_set.clear()
+
+      Note this doesn't delete the related objects -- it just disassociates
+      them.
+
+      Just like ``remove()``, ``clear()`` is only available on ``ForeignKey``s
+      where ``null=True``.
+
+To assign the members of a related set in one fell swoop, just assign to it
+from any iterable object, for example::
+
+    b = Blog.objects.get(id=1)
+    b.entry_set = [e1, e2]
+
+If the ``clear()`` method is available, any pre-existing objects will be
+removed from the ``entry_set`` before all objects in the iterable (in this
+case, a list) are added to the set. If the ``clear()`` method is *not*
+available, all objects in the iterable will be added without removing any
+existing elements.
+
+Each "reverse" operation described in this section has an immediate effect on
+the database. Every addition, creation, and deletion is immediately and
+automatically saved to the database.
 
 Many-to-Many Relationships
 --------------------------
 
-To define a many-to-many relationship, use ``ManyToManyField``. Like
-``ForeignKey``, ``ManyToManyField`` requires a positional argument: the class
-to which the model is related.
+Both ends of a many-to-many relationship get automatic API access to the other
+end. The API works just as a "reverse" one-to-many relationship (described
+in the previous section).
 
-For example, if a ``Pizza`` has multiple ``Topping`` objects -- that is, a
-``Topping`` can be on multiple pizzas and each ``Pizza`` has multiple toppings --
-here's how you'd represent that::
+The only difference is in the attribute naming: the model that defines the
+``ManyToManyField`` uses the attribute name of that field itself, whereas the
+"reverse" model uses the lowercased model name of the original model, plus
+``'_set'`` (just like reverse one-to-many relationships).
 
-    class Topping(models.Model):
-        ...
+An example makes this concept easier to understand::
 
-    class Pizza(models.Model):
-        toppings = models.ManyToManyField(Topping)
-        ...
-        
-As with ``ForeignKey``, a relationship to self can be defined by using the
-string ``'self'`` instead of the model name, and you can refer to as-yet
-undefined models by using a string containing the model name. However, you
-can only use strings to refer to models in the same ``models.py`` file -- you
-cannot use a string to reference a model in a different application, or to
-reference a model that has been imported from elsewhere.
+    e = Entry.objects.get(id=3)
+    e.authors.all() # Returns all Author objects for this Entry.
+    e.authors.count()
+    e.authors.filter(name__contains='John')
 
-It's suggested, but not required, that the name of a ``ManyToManyField``
-(``toppings`` in the example) be a plural term describing the set of related
-model objects.
+    a = Author.objects.get(id=5)
+    a.entry_set.all() # Returns all Entry objects for this Author.
 
-Behind the scenes, Django creates an intermediary join table to represent the
-many-to-many relationship.
+Like ``ForeignKey``, ``ManyToManyField`` can specify ``related_name``. In the
+preceding example, if the ``ManyToManyField`` in ``Entry`` had specified
+``related_name='entries'``, then each ``Author`` instance would have an
+``entries`` attribute instead of ``entry_set``.
 
-It doesn't matter which model gets the ``ManyToManyField``, but you need
-it in only one of the models -- not in both.
+.. admonition:: How Are the Backward Relationships Possible?
 
-If you're using the admin interface, ``ManyToManyField`` instances should go
-in the object that's going to be edited in the admin interface. In the preceding example,
-``toppings`` is in ``Pizza`` (rather than ``Topping`` having a ``pizzas``
-``ManyToManyField`` ) because it's more natural to think about a ``Pizza``
-having toppings than a topping being on multiple pizzas. The way it's set up 
-in the example, the ``Pizza`` admin form would let users select the toppings.
-
-``ManyToManyField`` objects take a number of extra arguments for defining how
-the relationship should work (see Table B-6). All are optional.
-
-.. table:: Table B-6. ManyToManyField Options
-
-    =======================  ============================================================
-    Argument                 Description
-    =======================  ============================================================
-    ``related_name``         The name to use for the relation from the related
-                             object back to this one. See Appendix C for
-                             more information.
-
-    ``filter_interface``     Use a nifty, unobtrusive JavaScript "filter" interface
-                             instead of the usability-challenged ``<select multiple>``
-                             in the admin form for this object. The value should be
-                             ``models.HORIZONTAL`` or ``models.VERTICAL`` (i.e.,
-                             should the interface be stacked horizontally or
-                             vertically).
-
-    ``limit_choices_to``     See the description under ``ForeignKey``.
-
-    ``symmetrical``          Only used in the definition of ``ManyToManyField`` on self.
-                             Consider the following model::
-
-                                class Person(models.Model):
-                                    friends = models.ManyToManyField("self")
-
-                             When Django processes this model, it identifies that it has
-                             a ``ManyToManyField`` on itself, and as a result, it
-                             doesn't add a ``person_set`` attribute to the ``Person``
-                             class. Instead, the ``ManyToManyField`` is assumed to be
-                             symmetrical -- that is, if I am your friend, then you are
-                             my friend.
-
-                             If you do not want symmetry in ``ManyToMany`` relationships
-                             with ``self``, set ``symmetrical`` to ``False``. This will
-                             force Django to add the descriptor for the reverse
-                             relationship, allowing ``ManyToMany`` relationships to be
-                             nonsymmetrical.
-
-    ``db_table``             The name of the table to create for storing the many-to-many
-                             data. If this is not provided, Django will assume a default
-                             name based upon the names of the two tables being joined.
-
-    =======================  ============================================================
-
-Model Metadata Options
-======================
-
-Model-specific metadata lives in a ``class Meta`` defined in the body of your
-model class::
-
-    class Book(models.Model):
-        title = models.CharField(maxlength=100)
-
-        class Meta:
-            # model metadata options go here
-            ...
-
-Model metadata is "anything that's not a field," such as ordering options and so forth.
-
-The sections that follow present a list of all possible ``Meta`` options. 
-No options are required. Adding ``class Meta`` to a model is completely optional.
-
-db_table
---------
-
-The name of the database table to use for the model.
-
-To save you time, Django automatically derives the name of the database table
-from the name of your model class and the application that contains it. A model's
-database table name is constructed by joining the model's "app label" -- the
-name you used in ``manage.py startapp`` -- to the model's class name, with an
-underscore between them.
-
-For example, if you have an application ``books`` (as created by
-``manage.py startapp books``), a model defined as ``class Book`` will have
-a database table named ``books``.
-
-To override the database table name, use the ``db_table`` parameter in
-``class Meta``::
-
-    class Book(models.Model):
-        ...
-
-        class Meta:
-            db_table = 'things_to_read'
-
-If this isn't given, Django will use ``app_label + '_' + model_class_name``.
-See the section "Table Names" for more information.
-
-If your database table name is an SQL reserved word, or it contains characters
-that aren't allowed in Python variable names (notably the hyphen), that's
-OK. Django quotes column and table names behind the scenes.
-
-get_latest_by
--------------
-
-The name of a ``DateField`` or ``DateTimeField`` in the model. This specifies
-the default field to use in your model ``Manager``'s ``latest()`` method.
-
-Here's an example::
-
-    class CustomerOrder(models.Model):
-        order_date = models.DateTimeField()
-        ...
-        
-        class Meta:
-            get_latest_by = "order_date"
-
-See Appendix C for more information on the ``latest()`` method.
-
-order_with_respect_to
----------------------
-
-Marks this object as "orderable" with respect to the given field. This is
-almost always used with related objects to allow them to be ordered with
-respect to a parent object. For example, if an ``Answer`` relates to a
-``Question`` object, and a question has more than one answer, and the order of
-answers matters, you'd do this::
-
-    class Answer(models.Model):
-        question = models.ForeignKey(Question)
-        # ...
-
-        class Meta:
-            order_with_respect_to = 'question'
-
-ordering
---------
-
-The default ordering for the object, for use when obtaining lists of objects::
-
-    class Book(models.Model):
-        title = models.CharField(maxlength=100)
-
-        class Meta:
-            ordering = ['title']
-
-This is a tuple or list of strings. Each string is a field name with an
-optional ``-`` prefix, which indicates descending order. Fields without a
-leading ``-`` will be ordered ascending. Use the string ``"?"`` to order randomly.
-
-For example, to order by a ``title`` field in ascending order (i.e., A-Z), use this::
-
-    ordering = ['title']
-
-To order by ``title`` in descending order (i.e., Z-A), use this::
-
-    ordering = ['-title']
-
-To order by ``title`` in descending order, and then by ``title`` in ascending order, 
-use this::
-
-    ordering = ['-title', 'author']
-
-Note that, regardless of how many fields are in ``ordering``, the admin
-site uses only the first field.
-
-permissions
------------
-
-Extra permissions to enter into the permissions table when creating this
-object. Add, delete, and change permissions are automatically created for each
-object that has ``admin`` set. This example specifies an extra permission,
-``can_deliver_pizzas``::
-
-    class Employee(models.Model):
-        ...
-        
-        class Meta:
-            permissions = (
-                ("can_deliver_pizzas", "Can deliver pizzas"),
-            )
-
-This is a list or tuple of two tuples in the format ``(permission_code,
-human_readable_permission_name)``.
-
-See Chapter 12 for more on permissions.
-
-unique_together
----------------
-
-Sets of field names that, taken together, must be unique::
-
-    class Employee(models.Model):
-        department = models.ForeignKey(Department)
-        extension = models.CharField(maxlength=10)
-        ...
+    Other object-relational mappers require you to define relationships on both
+    sides. The Django developers believe this is a violation of the DRY (Don't
+    Repeat Yourself) principle, so Django requires you to define the
+    relationship on only one end. But how is this possible, given that a model
+    class doesn't know which other model classes are related to it until those
+    other model classes are loaded?
     
-        class Meta:
-            unique_together = [("department", "extension")]
+    The answer lies in the ``INSTALLED_APPS`` setting. The first time any model
+    is loaded, Django iterates over every model in ``INSTALLED_APPS`` and
+    creates the backward relationships in memory as needed. Essentially, one of
+    the functions of ``INSTALLED_APPS`` is to tell Django the entire model
+    domain.
 
-This is a list of lists of fields that must be unique when considered
-together. It's used in the Django admin interface and is enforced at the database level
-(i.e., the appropriate ``UNIQUE`` statements are included in the ``CREATE
-TABLE`` statement).
+Queries Over Related Objects
+----------------------------
 
-verbose_name
-------------
+Queries involving related objects follow the same rules as queries involving
+normal value fields. When specifying the value for a query to match, you
+may use either an object instance itself or the primary key value for the
+object.
 
-A human-readable name for the object, singular::
+For example, if you have a ``Blog`` object ``b`` with ``id=5``, the following
+three queries would be identical::
 
-    class CustomerOrder(models.Model):
-        order_date = models.DateTimeField()
-        ...
-    
-        class Meta:
-            verbose_name = "order"
+    Entry.objects.filter(blog=b) # Query using object instance
+    Entry.objects.filter(blog=b.id) # Query using id from instance
+    Entry.objects.filter(blog=5) # Query using id directly
 
-If this isn't given, Django will use a adapted version of the class name in
-which ``CamelCase`` becomes ``camel case``.
+Deleting Objects
+================
 
-verbose_name_plural
+The delete method, conveniently, is named ``delete()``. This method immediately
+deletes the object and has no return value::
+
+    e.delete()
+
+You can also delete objects in bulk. Every ``QuerySet`` has a ``delete()``
+method, which deletes all members of that ``QuerySet``. For example, this 
+deletes all ``Entry`` objects with a ``pub_date`` year of 2005::
+
+    Entry.objects.filter(pub_date__year=2005).delete()
+
+When Django deletes an object, it emulates the behavior of the SQL
+constraint ``ON DELETE CASCADE`` -- in other words, any objects that
+had foreign keys pointing at the object to be deleted will be deleted
+along with it, for example::
+
+    b = Blog.objects.get(pk=1)
+    # This will delete the Blog and all of its Entry objects.
+    b.delete()
+
+Note that ``delete()`` is the only ``QuerySet`` method that is not exposed on a
+``Manager`` itself. This is a safety mechanism to prevent you from accidentally
+requesting ``Entry.objects.delete()`` and deleting *all* the entries. If you
+*do* want to delete all the objects, then you have to explicitly request a
+complete query set::
+
+    Entry.objects.all().delete()
+
+Shortcuts
+=========
+
+As you develop views, you will discover a number of common idioms in the
+way you use the database API. Django encodes some of these idioms as
+shortcuts that can be used to simplify the process of writing views. These
+functions are in the ``django.shortcuts`` module.
+
+get_object_or_404()
 -------------------
 
-The plural name for the object::
-
-    class Sphynx(models.Model):
-        ...
-        
-        class Meta:
-            verbose_name_plural = "sphynges"
-
-If this isn't given, Django will add an "s" to the ``verbose_name``.
-
-Managers
-========
-
-A ``Manager`` is the interface through which database query operations are
-provided to Django models. At least one ``Manager`` exists for every model in
-a Django application.
-
-The way ``Manager`` classes work is documented in Appendix C. This section
-specifically touches on model options that customize ``Manager`` behavior.
-
-Manager Names
--------------
-
-By default, Django adds a ``Manager`` with the name ``objects`` to every
-Django model class. However, if you want to use ``objects`` as a field name,
-or if you want to use a name other than ``objects`` for the ``Manager``, you
-can rename it on a per-model basis. To rename the ``Manager`` for a given
-class, define a class attribute of type ``models.Manager()`` on that model,
-for example::
-
-    from django.db import models
-
-    class Person(models.Model):
-        ...
-        
-        people = models.Manager()
-
-Using this example model, ``Person.objects`` will generate an
-``AttributeError`` exception (since ``Person`` doesn't have a ``objects``
-attribute), but ``Person.people.all()`` will provide a list of all ``Person``
-objects.
-
-Custom Managers
----------------
-
-You can use a custom ``Manager`` in a particular model by extending the base
-``Manager`` class and instantiating your custom ``Manager`` in your model.
-
-There are two reasons you might want to customize a ``Manager``: to add extra
-``Manager`` methods, and/or to modify the initial ``QuerySet`` the ``Manager``
-returns.
-
-Adding Extra Manager Methods
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Adding extra ``Manager`` methods is the preferred way to add "table-level"
-functionality to your models. (For "row-level" functionality -- that is,
-functions that act on a single instance of a model object -- use model
-methods (see below), not custom ``Manager`` methods.)
-
-A custom ``Manager`` method can return anything you want. It doesn't have to
-return a ``QuerySet``.
-
-For example, this custom ``Manager`` offers a method ``with_counts()``, which
-returns a list of all ``OpinionPoll`` objects, each with an extra
-``num_responses`` attribute that is the result of an aggregate query::
-
-    from django.db import connection
-
-    class PollManager(models.Manager):
-        
-        def with_counts(self):
-            cursor = connection.cursor()
-            cursor.execute("""
-                SELECT p.id, p.question, p.poll_date, COUNT(*)
-                FROM polls_opinionpoll p, polls_response r
-                WHERE p.id = r.poll_id
-                GROUP BY 1, 2, 3
-                ORDER BY 3 DESC""")
-            result_list = []
-            for row in cursor.fetchall():
-                p = self.model(id=row[0], question=row[1], poll_date=row[2])
-                p.num_responses = row[3]
-                result_list.append(p)
-            return result_list
-
-    class OpinionPoll(models.Model):
-        question = models.CharField(maxlength=200)
-        poll_date = models.DateField()
-        objects = PollManager()
-
-    class Response(models.Model):
-        poll = models.ForeignKey(Poll)
-        person_name = models.CharField(maxlength=50)
-        response = models.TextField()
-
-With this example, you'd use ``OpinionPoll.objects.with_counts()`` to return
-that list of ``OpinionPoll`` objects with ``num_responses`` attributes.
-
-Another thing to note about this example is that ``Manager`` methods can
-access ``self.model`` to get the model class to which they're attached.
-
-Modifying Initial Manager QuerySets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A ``Manager``'s base ``QuerySet`` returns all objects in the system. For
-example, using this model::
-
-    class Book(models.Model):
-        title = models.CharField(maxlength=100)
-        author = models.CharField(maxlength=50)
-
-the statement ``Book.objects.all()`` will return all books in the database.
-
-You can override the base ``QuerySet`` by overriding the
-``Manager.get_query_set()`` method. ``get_query_set()`` should return a
-``QuerySet`` with the properties you require.
-
-For example, the following model has *two* managers -- one that returns all
-objects, and one that returns only the books by Roald Dahl::
-
-    # First, define the Manager subclass.
-    class DahlBookManager(models.Manager):
-        def get_query_set(self):
-            return super(DahlBookManager, self).get_query_set().filter(author='Roald Dahl')
-
-    # Then hook it into the Book model explicitly.
-    class Book(models.Model):
-        title = models.CharField(maxlength=100)
-        author = models.CharField(maxlength=50)
-
-        objects = models.Manager() # The default manager.
-        dahl_objects = DahlBookManager() # The Dahl-specific manager.
-
-With this sample model, ``Book.objects.all()`` will return all books in the
-database, but ``Book.dahl_objects.all()`` will return only the ones written by
-Roald Dahl.
-
-Of course, because ``get_query_set()`` returns a ``QuerySet`` object, you can
-use ``filter()``, ``exclude()``, and all the other ``QuerySet`` methods on it.
-So these statements are all legal::
-
-    Book.dahl_objects.all()
-    Book.dahl_objects.filter(title='Matilda')
-    Book.dahl_objects.count()
-
-This example also points out another interesting technique: using multiple
-managers on the same model. You can attach as many ``Manager()`` instances to
-a model as you'd like. This is an easy way to define common "filters" for your
-models. Here's an example::
-
-    class MaleManager(models.Manager):
-        def get_query_set(self):
-            return super(MaleManager, self).get_query_set().filter(sex='M')
-
-    class FemaleManager(models.Manager):
-        def get_query_set(self):
-            return super(FemaleManager, self).get_query_set().filter(sex='F')
-
-    class Person(models.Model):
-        first_name = models.CharField(maxlength=50)
-        last_name = models.CharField(maxlength=50)
-        sex = models.CharField(maxlength=1, choices=(('M', 'Male'), ('F', 'Female')))
-        people = models.Manager()
-        men = MaleManager()
-        women = FemaleManager()
-
-This example allows you to request ``Person.men.all()``,
-``Person.women.all()``, and ``Person.people.all()``, yielding predictable
-results.
-
-If you use custom ``Manager`` objects, take note that the first ``Manager``
-Django encounters (in order by which they're defined in the model) has a
-special status. Django interprets the first ``Manager`` defined in a class as
-the "default" ``Manager``. Certain operations -- such as Django's admin site
--- use the default ``Manager`` to obtain lists of objects, so it's generally a
-good idea for the first ``Manager`` to be relatively unfiltered. In the last
-example, the ``people`` ``Manager`` is defined first -- so it's the default
-``Manager``.
-
-Model Methods
-=============
-
-Define custom methods on a model to add custom "row-level" functionality to
-your objects. Whereas ``Manager`` methods are intended to do "tablewide"
-things, model methods should act on a particular model instance.
-
-This is a valuable technique for keeping business logic in one place: the
-model. For example, this model has a few custom methods::
-
-    class Person(models.Model):
-        first_name = models.CharField(maxlength=50)
-        last_name = models.CharField(maxlength=50)
-        birth_date = models.DateField()
-        address = models.CharField(maxlength=100)
-        city = models.CharField(maxlength=50)
-        state = models.USStateField() # Yes, this is America-centric...
-
-        def baby_boomer_status(self):
-            """Returns the person's baby-boomer status."""
-            import datetime
-            if datetime.date(1945, 8, 1) <= self.birth_date <= datetime.date(1964, 12, 31):
-                return "Baby boomer"
-            if self.birth_date < datetime.date(1945, 8, 1):
-                return "Pre-boomer"
-            return "Post-boomer"
-
-        def is_midwestern(self):
-            """Returns True if this person is from the Midwest."""
-            return self.state in ('IL', 'WI', 'MI', 'IN', 'OH', 'IA', 'MO')
-
-        @property
-        def full_name(self):
-            """Returns the person's full name."""
-            return '%s %s' % (self.first_name, self.last_name)
-
-The last method in this example is a *property* -- an attribute implemented by
-custom getter/setter user code. Properties are a nifty trick added to Python
-2.2; you can read more about them at
-http://www.python.org/download/releases/2.2/descrintro/#property.
-
-There are also a handful of model methods that have "special" meaning to
-Python or Django. These methods are described in the sections that follow.
-
-__str__
--------
-
-``__str__()`` is a Python "magic method" that defines what should be returned
-if you call ``str()`` on the object. Django uses ``str(obj)`` (or the related
-function, ``unicode(obj)``, described shortly) in a number of places, most notably
-as the value displayed to render an object in the Django admin site and as the
-value inserted into a template when it displays an object. Thus, you should
-always return a nice, human-readable string for the object's ``__str__``.
-Although this isn't required, it's strongly encouraged.
-
-Here's an example::
-
-    class Person(models.Model):
-        first_name = models.CharField(maxlength=50)
-        last_name = models.CharField(maxlength=50)
-
-        def __str__(self):
-            return '%s %s' % (self.first_name, self.last_name)
-
-get_absolute_url
-----------------
-
-Define a ``get_absolute_url()`` method to tell Django how to calculate the URL
-for an object, for example::
-
-    def get_absolute_url(self):
-        return "/people/%i/" % self.id
-
-Django uses this in its admin interface. If an object defines
-``get_absolute_url()``, the object-editing page will have a "View on site"
-link that will take you directly to the object's public view, according to
-``get_absolute_url()``.
-
-Also, a couple of other bits of Django, such as the syndication-feed framework,
-use ``get_absolute_url()`` as a convenience to reward people who've defined the
-method.
-
-It's good practice to use ``get_absolute_url()`` in templates, instead of
-hard-coding your objects' URLs. For example, this template code is bad::
-
-    <a href="/people/{{ object.id }}/">{{ object.name }}</a>
-
-But this template code is good::
-
-    <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
-
-The problem with the way we just wrote ``get_absolute_url()`` is that it
-slightly violates the DRY principle: the URL for this object is defined both
-in the URLconf file and in the model.
-
-You can further decouple your models from the URLconf using the ``permalink``
-decorator. This decorator is passed the view function, a list of positional
-parameters, and (optionally) a dictionary of named parameters. Django then
-works out the correct full URL path using the URLconf, substituting the
-parameters you have given into the URL. For example, if your URLconf
-contained a line such as the following::
-
-    (r'^people/(\d+)/$', 'people.views.details'),
-
-your model could have a ``get_absolute_url`` method that looked like this::
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('people.views.details', [str(self.id)])
-
-Similarly, if you had a URLconf entry that looked like this::
-
-    (r'/archive/(?P<year>\d{4})/(?P<month>\d{1,2})/(?P<day>\d{1,2})/$', archive_view)
-
-you could reference this using ``permalink()`` as follows::
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('archive_view', (), {
-            'year': self.created.year,
-            'month': self.created.month,
-            'day': self.created.day})
-
-Notice that we specify an empty sequence for the second argument in this case,
-because we want to pass only keyword arguments, not named arguments.
-
-In this way, you're tying the model's absolute URL to the view that is used
-to display it, without repeating the URL information anywhere. You can still
-use the ``get_absolute_url`` method in templates, as before.
-
-Executing Custom SQL
---------------------
-
-Feel free to write custom SQL statements in custom model methods and
-module-level methods. The object ``django.db.connection`` represents the
-current database connection. To use it, call ``connection.cursor()`` to get a
-cursor object. Then, call ``cursor.execute(sql, [params])`` to execute the SQL,
-and ``cursor.fetchone()`` or ``cursor.fetchall()`` to return the resulting
-rows::
-
-    def my_custom_sql(self):
-        from django.db import connection
-        cursor = connection.cursor()
-        cursor.execute("SELECT foo FROM bar WHERE baz = %s", [self.baz])
-        row = cursor.fetchone()
-        return row
-
-``connection`` and ``cursor`` mostly implement the standard Python DB-API
-(http://www.python.org/peps/pep-0249.html). If you're not familiar with the
-Python DB-API, note that the SQL statement in ``cursor.execute()`` uses
-placeholders, ``"%s"``, rather than adding parameters directly within the SQL.
-If you use this technique, the underlying database library will automatically
-add quotes and escaping to your parameter(s) as necessary. (Also note that
-Django expects the ``"%s"`` placeholder, *not* the ``"?"`` placeholder, which
-is used by the SQLite Python bindings. This is for the sake of consistency and
-sanity.)
-
-A final note: If all you want to do is use a custom ``WHERE`` clause, you can just
-use the ``where``, ``tables``, and ``params`` arguments to the standard lookup
-API. See Appendix C.
-
-Overriding Default Model Methods
---------------------------------
-
-As explained in Appendix C, each model gets a few methods automatically
--- most notably, ``save()`` and ``delete()``. You can override these methods
-to alter behavior.
-
-A classic use-case for overriding the built-in methods is if you want something
-to happen whenever you save an object, for example::
-
-    class Blog(models.Model):
-        name = models.CharField(maxlength=100)
-        tagline = models.TextField()
-
-        def save(self):
-            do_something()
-            super(Blog, self).save() # Call the "real" save() method.
-            do_something_else()
-
-You can also prevent saving::
-
-    class Blog(models.Model):
-        name = models.CharField(maxlength=100)
-        tagline = models.TextField()
-
-        def save(self):
-            if self.name == "Yoko Ono's blog":
-                return # Yoko shall never have her own blog!
-            else:
-                super(Blog, self).save() # Call the "real" save() method
-
-Admin Options
-=============
-
-The ``Admin`` class tells Django how to display the model in the admin site.
-
-The following sections present a list of all possible ``Admin`` options. None of 
-these options is required. To use an admin interface without specifying any options, use
-``pass``, like so::
-
-    class Admin:
-        pass
-
-Adding ``class Admin`` to a model is completely optional.
-
-date_hierarchy
---------------
-
-Set ``date_hierarchy`` to the name of a ``DateField`` or ``DateTimeField`` in
-your model, and the change list page will include a date-based navigation
-using that field.
-
-Here's an example::
-
-    class CustomerOrder(models.Model):
-        order_date = models.DateTimeField()
-        ...
-
-        class Admin:
-            date_hierarchy = "order_date"
-
-fields
-------
-
-Set ``fields`` to control the layout of admin interface "add" and "change" pages.
-
-``fields`` is a pretty complex nested data structure best demonstrated with an example. 
-The following is taken from the ``FlatPage`` model that's part of 
-``django.contrib.flatpages``::
-
-    class FlatPage(models.Model):
-        ...
-
-        class Admin:
-            fields = (
-                (None, {
-                    'fields': ('url', 'title', 'content', 'sites')
-                }),
-                ('Advanced options', {
-                    'classes': 'collapse',
-                    'fields' : ('enable_comments', 'registration_required', 'template_name')
-                }),
-            )
-
-Formally, ``fields`` is a list of two tuples, in which each two-tuple
-represents a ``<fieldset>`` on the admin form page. (A ``<fieldset>`` is a
-"section" of the form.)
-
-The two-tuples are in the format ``(name, field_options)``, where ``name`` is a
-string representing the title of the fieldset and ``field_options`` is a
-dictionary of information about the fieldset, including a list of fields to be
-displayed in it.
-
-If ``fields`` isn't given, Django will default to displaying each field that
-isn't an ``AutoField`` and has ``editable=True``, in a single fieldset, in
-the same order as the fields are defined in the model.
-
-The ``field_options`` dictionary can have the keys described in the sections that follow.
-
-fields
-~~~~~~
-
-A tuple of field names to display in this fieldset. This key is required.
-
-To display multiple fields on the same line, wrap those fields in their own
-tuple. In this example, the ``first_name`` and ``last_name`` fields will
-display on the same line::
-
-    'fields': (('first_name', 'last_name'), 'address', 'city', 'state'),
-
-classes
-~~~~~~~
-
-A string containing extra CSS classes to apply to the fieldset.
-
-Apply multiple classes by separating them with spaces::
-
-    'classes': 'wide extrapretty',
-
-Two useful classes defined by the default admin site stylesheet are
-``collapse`` and ``wide``. Fieldsets with the ``collapse`` style will be
-initially collapsed in the admin site and replaced with a small "click to expand"
-link. Fieldsets with the ``wide`` style will be given extra horizontal space.
-
-description
-~~~~~~~~~~~
-
-A string of optional extra text to be displayed at the top of each fieldset,
-under the heading of the fieldset. It's used verbatim, so you can use any HTML
-and you must escape any special HTML characters (such as ampersands) yourself.
-
-js
---
-
-A list of strings representing URLs of JavaScript files to link into the admin
-screen via ``<script src="">`` tags. This can be used to tweak a given type of
-admin page in JavaScript or to provide "quick links" to fill in default values
-for certain fields.
-
-If you use relative URLs -- that is, URLs that don't start with ``http://`` or ``/`` --
-then the admin site will automatically prefix these links with
-``settings.ADMIN_MEDIA_PREFIX``.
-
-list_display
-------------
-
-Set ``list_display`` to control which fields are displayed on the change list
-page of the admin.
-
-If you don't set ``list_display``, the admin site will display a single column
-that displays the ``__str__()`` representation of each object.
-
-Here are a few special cases to note about ``list_display``:
-
-    * If the field is a ``ForeignKey``, Django will display the ``__str__()``
-      of the related object.
-
-    * ``ManyToManyField`` fields aren't supported, because that would entail
-      executing a separate SQL statement for each row in the table. If you
-      want to do this nonetheless, give your model a custom method, and add
-      that method's name to ``list_display``. (More information on custom
-      methods in ``list_display`` shortly.)
-
-    * If the field is a ``BooleanField`` or ``NullBooleanField``, Django will
-      display a pretty "on" or "off" icon instead of ``True`` or ``False``.
-
-    * If the string given is a method of the model, Django will call it and
-      display the output. This method should have a ``short_description``
-      function attribute, for use as the header for the field.
-
-      Here's a full example model::
-
-          class Person(models.Model):
-              name = models.CharField(maxlength=50)
-              birthday = models.DateField()
-
-              class Admin:
-                  list_display = ('name', 'decade_born_in')
-
-              def decade_born_in(self):
-                  return self.birthday.strftime('%Y')[:3] + "0's"
-              decade_born_in.short_description = 'Birth decade'
-
-    * If the string given is a method of the model, Django will HTML-escape the
-      output by default. If you'd rather not escape the output of the method,
-      give the method an ``allow_tags`` attribute whose value is ``True``.
-
-      Here's a full example model::
-
-          class Person(models.Model):
-              first_name = models.CharField(maxlength=50)
-              last_name = models.CharField(maxlength=50)
-              color_code = models.CharField(maxlength=6)
-
-              class Admin:
-                  list_display = ('first_name', 'last_name', 'colored_name')
-
-              def colored_name(self):
-                  return '<span style="color: #%s;">%s %s</span>' % (self.color_code, self.first_name, self.last_name)
-              colored_name.allow_tags = True
-
-    * If the string given is a method of the model that returns ``True`` or ``False``,
-      Django will display a pretty "on" or "off" icon if you give the method a
-      ``boolean`` attribute whose value is ``True``.
-
-      Here's a full example model::
-
-          class Person(models.Model):
-              first_name = models.CharField(maxlength=50)
-              birthday = models.DateField()
-
-              class Admin:
-                  list_display = ('name', 'born_in_fifties')
-
-              def born_in_fifties(self):
-                  return self.birthday.strftime('%Y')[:3] == 5
-              born_in_fifties.boolean = True
-
-
-    * The ``__str__()`` methods are just as valid in ``list_display`` as any 
-      other model method, so it's perfectly OK to do this::
-
-          list_display = ('__str__', 'some_other_field')
-
-    * Usually, elements of ``list_display`` that aren't actual database fields
-      can't be used in sorting (because Django does all the sorting at the
-      database level).
-
-      However, if an element of ``list_display`` represents a certain database
-      field, you can indicate this fact by setting the ``admin_order_field``
-      attribute of the item, for example::
-
-        class Person(models.Model):
-            first_name = models.CharField(maxlength=50)
-            color_code = models.CharField(maxlength=6)
-
-            class Admin:
-                list_display = ('first_name', 'colored_first_name')
-
-            def colored_first_name(self):
-                return '<span style="color: #%s;">%s</span>' % (self.color_code, self.first_name)
-            colored_first_name.allow_tags = True
-            colored_first_name.admin_order_field = 'first_name'
-
-      The preceding code will tell Django to order by the ``first_name`` field when
-      trying to sort by ``colored_first_name`` in the admin site.
-
-list_display_links
-------------------
-
-Set ``list_display_links`` to control which fields in ``list_display`` should
-be linked to the "change" page for an object.
-
-By default, the change list page will link the first column -- the first field
-specified in ``list_display`` -- to the change page for each item. But
-``list_display_links`` lets you change which columns are linked. Set
-``list_display_links`` to a list or tuple of field names (in the same format as
-``list_display``) to link.
-
-``list_display_links`` can specify one or many field names. As long as the
-field names appear in ``list_display``, Django doesn't care how many (or how
-few) fields are linked. The only requirement is that if you want to use
-``list_display_links``, you must define ``list_display``.
-
-In this example, the ``first_name`` and ``last_name`` fields will be linked on
-the change list page::
-
-    class Person(models.Model):
-        ...
-
-        class Admin:
-            list_display = ('first_name', 'last_name', 'birthday')
-            list_display_links = ('first_name', 'last_name')
-
-Finally, note that in order to use ``list_display_links``, you must define
-``list_display``, too.
-
-list_filter
------------
-
-Set ``list_filter`` to activate filters in the right sidebar of the change list
-page of the admin interface. This should be a list of field names, and each specified
-field should be either a ``BooleanField``, ``DateField``, ``DateTimeField``,
-or ``ForeignKey``.
-
-This example, taken from the ``django.contrib.auth.models.User`` model, shows
-how both ``list_display`` and ``list_filter`` work::
-
-    class User(models.Model):
-        ...
-        
-        class Admin:
-            list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
-            list_filter = ('is_staff', 'is_superuser')
-
-list_per_page
--------------
-
-Set ``list_per_page`` to control how many items appear on each paginated admin
-change list page. By default, this is set to ``100``.
-
-list_select_related
--------------------
-
-Set ``list_select_related`` to tell Django to use ``select_related()`` in
-retrieving the list of objects on the admin change list page. This can save
-you a bunch of database queries if you're using related objects in the admin
-change list display.
-
-The value should be either ``True`` or ``False``. The default is ``False``
-unless one of the ``list_display`` fields is a ``ForeignKey``.
-
-For more on ``select_related()``, see Appendix C.
-
-ordering
---------
-
-Set ``ordering`` to specify how objects on the admin change list page should
-be ordered. This should be a list or tuple in the same format as a model's
-``ordering`` parameter.
-
-If this isn't provided, the Django admin interface will use the model's default
-ordering.
-
-save_as
--------
-
-Set ``save_as`` to ``True`` to enable a "save as" feature on admin change
-forms.
-
-Normally, objects have three save options: "Save," "Save and continue editing,"
-and "Save and add another." If ``save_as`` is ``True``, "Save and add another"
-will be replaced by a "Save as" button.
-
-"Save as" means the object will be saved as a new object (with a new ID),
-rather than the old object.
-
-By default, ``save_as`` is set to ``False``.
-
-save_on_top
------------
-
-Set ``save_on_top`` to add save buttons across the top of your admin change
-forms.
-
-Normally, the save buttons appear only at the bottom of the forms. If you set
-``save_on_top``, the buttons will appear both on the top and the bottom.
-
-By default, ``save_on_top`` is set to ``False``.
-
-search_fields
--------------
-
-Set ``search_fields`` to enable a search box on the admin change list page.
-This should be set to a list of field names that will be searched whenever
-somebody submits a search query in that text box.
-
-These fields should be some kind of text field, such as ``CharField`` or
-``TextField``. You can also perform a related lookup on a ``ForeignKey`` with
-the lookup API "follow" notation::
-    
-    class Employee(models.Model):
-        department = models.ForeignKey(Department)
-        ...
-        
-        class Admin:
-            search_fields = ['department__name']
-
-When somebody does a search in the admin search box, Django splits the search
-query into words and returns all objects that contain each of the words, case
-insensitive, where each word must be in at least one of ``search_fields``. For
-example, if ``search_fields`` is set to ``['first_name', 'last_name']`` and a
-user searches for ``john lennon``, Django will do the equivalent of this SQL
-``WHERE`` clause::
-
-    WHERE (first_name ILIKE '%john%' OR last_name ILIKE '%john%')
-    AND (first_name ILIKE '%lennon%' OR last_name ILIKE '%lennon%')
-
-For faster and/or more restrictive searches, prefix the field name
-with an operator, as shown in Table B-7.
-
-.. table:: Table B-7. Operators Allowed in search_fields
-    
-    ==========  =================================================================
-    Operator    Meaning
-    ==========  =================================================================
-    ``^``       Matches the beginning of the field. For example, if
-                ``search_fields`` is set to ``['^first_name', '^last_name']``,
-                and a user searches for ``john lennon``, Django will do the
-                equivalent of this SQL ``WHERE`` clause::
-
-                    WHERE (first_name ILIKE 'john%' OR last_name ILIKE 'john%')
-                    AND (first_name ILIKE 'lennon%' OR last_name ILIKE 'lennon%')
-
-                This query is more efficient than the normal ``'%john%'``
-                query, because the database only needs to check the beginning
-                of a column's data, rather than seeking through the entire
-                column's data. Plus, if the column has an index on it, some
-                databases may be able to use the index for this query, even
-                though it's a ``LIKE`` query.
-
-    ``=``       Matches exactly, case-insensitive. For example, if
-                ``search_fields`` is set to ``['=first_name', '=last_name']``
-                and a user searches for ``john lennon``, Django will do the
-                equivalent of this SQL ``WHERE`` clause::
-                
-                     WHERE (first_name ILIKE 'john' OR last_name ILIKE 'john') 
-                     AND (first_name ILIKE 'lennon' OR last_name ILIKE 'lennon')
-                
-                Note that the query input is split by spaces, so, following
-                this example, it's currently not possible to search for
-                all records in which ``first_name`` is exactly ``'john
-                winston'`` (containing a space).
-
-    ``@``       Performs a full-text match. This is like the default search 
-                method, but it uses an index. Currently this is available only for
-                MySQL.
-    ==========  =================================================================
+One common idiom to use ``get()`` and raise ``Http404`` if the
+object doesn't exist. This idiom is captured by ``get_object_or_404()``.
+This function takes a Django model as its first argument and an
+arbitrary number of keyword arguments, which it passes to the default
+manager's ``get()`` function. It raises ``Http404`` if the object doesn't
+exist, for example::
+
+    # Get the Entry with a primary key of 3
+    e = get_object_or_404(Entry, pk=3)
+
+When you provide a model to this shortcut function, the default manager
+is used to execute the underlying ``get()`` query. If you don't want to
+use the default manager, or if you want to search a list of related objects,
+you can provide ``get_object_or_404()`` with a ``Manager`` object instead::
+
+    # Get the author of blog instance e with a name of 'Fred'
+    a = get_object_or_404(e.authors, name='Fred')
+
+    # Use a custom manager 'recent_entries' in the search for an
+    # entry with a primary key of 3
+    e = get_object_or_404(Entry.recent_entries, pk=3)
+
+get_list_or_404()
+-----------------
+
+``get_list_or_404`` behaves the same way as ``get_object_or_404()``,
+except that it uses ``filter()`` instead of ``get()``. It raises
+``Http404`` if the list is empty.
+
+Falling Back to Raw SQL
+=======================
+
+If you find yourself needing to write an SQL query that is too complex for
+Django's database mapper to handle, you can fall back into raw SQL statement
+mode.
+
+The preferred way to do this is by giving your model custom methods or custom
+manager methods that execute queries. Although there's nothing in Django that
+*requires* database queries to live in the model layer, this approach keeps all
+your data access logic in one place, which is smart from a code organization
+standpoint. For instructions, see Appendix A.
+
+Finally, it's important to note that the Django database layer is merely an
+interface to your database. You can access your database via other tools,
+programming languages, or database frameworks -- there's nothing Django-specific
+about your database.

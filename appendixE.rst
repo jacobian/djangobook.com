@@ -1,970 +1,1427 @@
-====================
-Appendix E: Settings
-====================
+==============================================
+Appendix E: Built-in Template Tags and Filters
+==============================================
 
-Your Django settings file contains all the configuration of your Django
-installation. This appendix explains how settings work and which settings are
-available.
+Chapter 4 lists a number of the most useful built-in template tags and
+filters. However, Django ships with many more built-in tags and filters.
+This appendix covers them.
 
-.. note::
+Built-in Tag Reference
+======================
 
-    As Django grows, it's occasionally necessary to add or (rarely) change
-    settings. You should always check the online settings documentation at
-    http://www.djangoproject.com/documentation/0.96/settings/ for the latest
-    information.
+autoescape
+----------
 
-What's a Settings File?
-=======================
+Control the current auto-escaping behavior. This tag takes either ``on`` or
+``off`` as an argument and that determines whether auto-escaping is in effect
+inside the block.
 
-A *settings file* is just a Python module with module-level variables.
+When auto-escaping is in effect, all variable content has HTML escaping applied
+to it before placing the result into the output (but after any filters have
+been applied). This is equivalent to manually applying the ``escape`` filter
+to each variable.
 
-Here are a couple of example settings::
+The only exceptions are variables that are already marked as "safe" from
+escaping, either by the code that populated the variable, or because it has had
+the ``safe`` or ``escape`` filters applied.
 
-    DEBUG = False
-    DEFAULT_FROM_EMAIL = 'webmaster@example.com'
-    TEMPLATE_DIRS = ('/home/templates/mike', '/home/templates/john')
-
-Because a settings file is a Python module, the following apply:
-
-    * It must be valid Python code; syntax errors aren't allowed.
-    
-    * It can assign settings dynamically using normal Python syntax,
-      for example::
-
-          MY_SETTING = [str(i) for i in range(30)]
-
-    * It can import values from other settings files.
-    
-Default Settings
-----------------
-
-A Django settings file doesn't have to define any settings if it doesn't need
-to. Each setting has a sensible default value. These defaults live in the file
-``django/conf/global_settings.py``.
-
-Here's the algorithm Django uses in compiling settings:
-
-    * Load settings from ``global_settings.py``.
-    * Load settings from the specified settings file, overriding the global
-      settings as necessary.
-
-Note that a settings file should *not* import from ``global_settings``, because
-that's redundant.
-
-Seeing Which Settings You've Changed
-------------------------------------
-
-There's an easy way to view which of your settings deviate from the default
-settings. The command ``manage.py diffsettings`` displays differences between
-the current settings file and Django's default settings.
-
-``manage.py`` is described in more detail in Appendix G.
-
-Using Settings in Python Code
------------------------------
-
-In your Django applications, use settings by importing the object
-``django.conf.settings``, for example::
-
-    from django.conf import settings
-
-    if settings.DEBUG:
-        # Do something
-
-Note that ``django.conf.settings`` isn't a module -- it's an object. So
-importing individual settings is not possible::
-
-    from django.conf.settings import DEBUG  # This won't work.
-
-Also note that your code should *not* import from either ``global_settings`` or
-your own settings file. ``django.conf.settings`` abstracts the concepts of
-default settings and site-specific settings; it presents a single interface.
-It also decouples the code that uses settings from the location of your
-settings.
-
-Altering Settings at Runtime
-----------------------------
-
-You shouldn't alter settings in your applications at runtime. For example,
-don't do this in a view::
-
-    from django.conf import settings
-
-    settings.DEBUG = True   # Don't do this!
-
-The only place you should assign to ``settings`` is in a settings file.
-
-Security
---------
-
-Because a settings file contains sensitive information, such as the database
-password, you should make every attempt to limit access to it. For example,
-change its file permissions so that only you and your Web server's user can
-read it. This is especially important in a shared-hosting environment.
-
-
-Creating Your Own Settings
---------------------------
-
-There's nothing stopping you from creating your own settings, for your own
-Django applications. Just follow these conventions:
-
-    * Use all uppercase for setting names.
-    
-    * For settings that are sequences, use tuples instead of lists. Settings
-      should be considered immutable and shouldn't be changed once they're
-      defined. Using tuples mirrors these semantics.
-      
-    * Don't reinvent an already existing setting.
-
-Designating the Settings: DJANGO_SETTINGS_MODULE
-================================================
-
-When you use Django, you have to tell it which settings you're using. Do this
-by using the environment variable ``DJANGO_SETTINGS_MODULE``.
-
-The value of ``DJANGO_SETTINGS_MODULE`` should be in Python path syntax (e.g.,
-``mysite.settings``). Note that the settings module should be on the
-Python import search path (``PYTHONPATH``).
-
-.. admonition:: Tip:
-
-    A good guide to ``PYTHONPATH`` can be found at
-    http://diveintopython.org/getting_to_know_python/everything_is_an_object.html.
-
-The django-admin.py Utility
----------------------------
-
-When using ``django-admin.py`` (see Appendix G), you can either set the
-environment variable once or explicitly pass in the settings module each time
-you run the utility.
-
-Here's an example using the Unix Bash shell::
-
-    export DJANGO_SETTINGS_MODULE=mysite.settings
-    django-admin.py runserver
-
-Here's an example using the Windows shell::
-
-    set DJANGO_SETTINGS_MODULE=mysite.settings
-    django-admin.py runserver
-
-Use the ``--settings`` command-line argument to specify the settings manually::
-
-    django-admin.py runserver --settings=mysite.settings
-
-The ``manage.py`` utility created by ``startproject`` as part of the project
-skeleton sets ``DJANGO_SETTINGS_MODULE`` automatically; see Appendix G for more
-about ``manage.py``.
-
-On the Server (mod_python)
---------------------------
-
-In your live server environment, you'll need to tell Apache/mod_python which
-settings file to use. Do that with ``SetEnv``::
-
-    <Location "/mysite/">
-        SetHandler python-program
-        PythonHandler django.core.handlers.modpython
-        SetEnv DJANGO_SETTINGS_MODULE mysite.settings
-    </Location>
-
-For more information, read the Django mod_python documentation online at
-http://www.djangoproject.com/documentation/0.96/modpython/.
-
-Using Settings Without Setting DJANGO_SETTINGS_MODULE
-=====================================================
-
-In some cases, you might want to bypass the ``DJANGO_SETTINGS_MODULE``
-environment variable. For example, if you're using the template system by
-itself, you likely don't want to have to set up an environment variable
-pointing to a settings module.
-
-In these cases, you can configure Django's settings manually. Do this by
-calling ``django.conf.settings.configure()``. Here's an example::
-
-    from django.conf import settings
-
-    settings.configure(
-        DEBUG = True, 
-        TEMPLATE_DEBUG = True,
-        TEMPLATE_DIRS = [
-            '/home/web-apps/myapp',
-            '/home/web-apps/base',
-        ]
-    )
-
-Pass ``configure()`` as many keyword arguments as you'd like, with each keyword
-argument representing a setting and its value. Each argument name should be all
-uppercase, with the same name as the settings described earlier. If a particular
-setting is not passed to ``configure()`` and is needed at some later point,
-Django will use the default setting value.
-
-Configuring Django in this fashion is mostly necessary -- and, indeed,
-recommended -- when you're using a piece of the framework inside a larger
-application.
-
-Consequently, when configured via ``settings.configure()``, Django will not
-make any modifications to the process environment variables. (See the
-explanation of ``TIME_ZONE`` later in this appendix for why this would normally occur.)
-It's assumed that you're already in full control of your environment in these cases.
-
-Custom Default Settings
------------------------
-
-If you'd like default values to come from somewhere other than
-``django.conf.global_settings``, you can pass in a module or class that
-provides the default settings as the ``default_settings`` argument (or as the
-first positional argument) in the call to ``configure()``.
-
-In this example, default settings are taken from ``myapp_defaults``, and the
-``DEBUG`` setting is set to ``True``, regardless of its value in
-``myapp_defaults``::
-
-    from django.conf import settings
-    from myapp import myapp_defaults
-
-    settings.configure(default_settings=myapp_defaults, DEBUG=True)
-
-The following example, which uses ``myapp_defaults`` as a positional argument,
-is equivalent::
-
-    settings.configure(myapp_defaults, DEBUG = True)
-
-Normally, you will not need to override the defaults in this fashion. The
-Django defaults are sufficiently tame that you can safely use them. Be aware
-that if you do pass in a new default module, it entirely *replaces* the Django
-defaults, so you must specify a value for every possible setting that might be
-used in that code you are importing. Check in
-``django.conf.settings.global_settings`` for the full list.
-
-Either configure() or DJANGO_SETTINGS_MODULE Is Required
---------------------------------------------------------
-
-If you're not setting the ``DJANGO_SETTINGS_MODULE`` environment variable, you
-*must* call ``configure()`` at some point before using any code that reads
-settings.
-
-If you don't set ``DJANGO_SETTINGS_MODULE`` and don't call ``configure()``,
-Django will raise an ``EnvironmentError`` exception the first time a setting
-is accessed.
-
-If you set ``DJANGO_SETTINGS_MODULE``, access settings values somehow, and *then*
-call ``configure()``, Django will raise an ``EnvironmentError`` stating that settings
-have already been configured.
-
-Also, it's an error to call ``configure()`` more than once, or to call
-``configure()`` after any setting has been accessed.
-
-It boils down to this: use exactly one of either ``configure()`` or
-``DJANGO_SETTINGS_MODULE``. Not both, and not neither.
-
-Available Settings
-==================
-
-The following sections consist of a full list of all available settings, 
-in alphabetical order, and their default values.
-
-ABSOLUTE_URL_OVERRIDES
-----------------------
-
-*Default*: ``{}`` (empty dictionary)
-
-This is a dictionary mapping ``"app_label.model_name"`` strings to functions that take
-a model object and return its URL. This is a way of overriding
-``get_absolute_url()`` methods on a per-installation basis. Here's an example::
-
-    ABSOLUTE_URL_OVERRIDES = {
-        'blogs.weblog': lambda o: "/blogs/%s/" % o.slug,
-        'news.story': lambda o: "/stories/%s/%s/" % (o.pub_year, o.slug),
-    }
-
-Note that the model name used in this setting should be all lowercase, regardless
-of the case of the actual model class name.
-
-ADMIN_FOR
----------
-
-*Default*: ``()`` (empty list)
-
-This setting is used for admin site settings modules. It should be a tuple of settings
-modules (in the format ``'foo.bar.baz'``) for which this site is an admin.
-
-The admin site uses this in its automatically introspected documentation of
-models, views, and template tags.
-
-ADMIN_MEDIA_PREFIX
-------------------
-
-*Default*: ``'/media/'``
-
-This setting is the URL prefix for admin media: CSS, JavaScript, and images. 
-Make sure to use a trailing slash.
-
-ADMINS
-------
-
-*Default*: ``()`` (empty tuple)
-
-This is a tuple that lists people who get code error notifications. When
-``DEBUG=False`` and a view raises an exception, Django will email these people
-with the full exception information. Each member of the tuple should be a tuple
-of (Full name, e-mail address), for example::
-
-    (('John', 'john@example.com'), ('Mary', 'mary@example.com'))
-
-Note that Django will email *all* of these people whenever an error happens.
-
-ALLOWED_INCLUDE_ROOTS
----------------------
-
-*Default*: ``()`` (empty tuple)
-
-This is a tuple of strings representing allowed prefixes for the ``{% ssi %}`` template
-tag. This is a security measure, so that template authors can't access files
-that they shouldn't be accessing.
-
-For example, if ``ALLOWED_INCLUDE_ROOTS`` is ``('/home/html', '/var/www')``,
-then ``{% ssi /home/html/foo.txt %}`` would work, but ``{% ssi /etc/passwd %}``
-wouldn't.
-
-APPEND_SLASH
-------------
-
-*Default*: ``True``
-
-This setting indicates whether to append trailing slashes to URLs. This is used only if
-``CommonMiddleware`` is installed (see Chapter 15). See also ``PREPEND_WWW``.
-
-CACHE_BACKEND
--------------
-
-*Default*: ``'simple://'``
-
-This is the cache back-end to use (see Chapter 13).
-
-CACHE_MIDDLEWARE_KEY_PREFIX
----------------------------
-
-*Default*: ``''`` (empty string)
-
-This is the cache key prefix that the cache middleware should use (see Chapter 13).
-
-DATABASE_ENGINE
----------------
-
-*Default*: ``''`` (empty string)
-
-This setting indicates which database back-end to use: ``'postgresql_psycopg2'``,
-``'postgresql'``, ``'mysql'``, ``'mysql_old'`` or ``'sqlite3'``.
-
-DATABASE_HOST
--------------
-
-*Default*: ``''`` (empty string)
-
-This setting indicates which host to use when connecting to the database. 
-An empty string means ``localhost``. This is not used with SQLite.
-
-If this value starts with a forward slash (``'/'``) and you're using MySQL,
-MySQL will connect via a Unix socket to the specified socket::
-
-    DATABASE_HOST = '/var/run/mysql'
-
-If you're using MySQL and this value *doesn't* start with a forward slash, then
-this value is assumed to be the host.
-
-DATABASE_NAME
--------------
-
-*Default*: ``''`` (empty string)
-
-This is the name of the database to use. For SQLite, it's the full path to the database
-file.
-
-DATABASE_OPTIONS
-----------------
-
-*Default*: ``{}`` (empty dictionary)
-
-This is extra parameters to use when connecting to the database. Consult the back-end
-module's document for available keywords.
-
-DATABASE_PASSWORD
------------------
-
-*Default*: ``''`` (empty string)
-
-This setting is the password to use when connecting to the database. It is not used with SQLite.
-
-DATABASE_PORT
--------------
-
-*Default*: ``''`` (empty string)
-
-This is the port to use when connecting to the database. An empty string means the
-default port. It is not used with SQLite.
-
-DATABASE_USER
--------------
-
-*Default*: ``''`` (empty string)
-
-This setting is the username to use when connecting to the database. It is not used with SQLite.
-
-DATE_FORMAT
------------
-
-*Default*: ``'N j, Y'`` (e.g., ``Feb. 4, 2003``)
-
-This is the default formatting to use for date fields on Django admin change-list pages
--- and, possibly, by other parts of the system. It accepts the same format as the
-``now`` tag (see Appendix F, Table F-2).
-
-See also ``DATETIME_FORMAT``, ``TIME_FORMAT``, ``YEAR_MONTH_FORMAT``, and
-``MONTH_DAY_FORMAT``.
-
-DATETIME_FORMAT
----------------
-
-*Default*: ``'N j, Y, P'`` (e.g., ``Feb. 4, 2003, 4 p.m.``)
-
-This is the default formatting to use for datetime fields on Django admin change-list
-pages -- and, possibly, by other parts of the system. It accepts the same format as the
-``now`` tag (see Appendix F, Table F-2).
-
-See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``,
-``YEAR_MONTH_FORMAT``, and ``MONTH_DAY_FORMAT``.
-
-DEBUG
+block
 -----
 
-*Default*: ``False``
+Define a block that can be overridden by child templates. See
+Chapter 4 for more information on template inheritance.
 
-This setting is a Boolean that turns debug mode on and off.
-
-If you define custom settings, ``django/views/debug.py`` has a ``HIDDEN_SETTINGS``
-regular expression that will hide from the ``DEBUG`` view anything that contains
-``'SECRET``, ``PASSWORD``, or ``PROFANITIES'``. This allows untrusted users to
-be able to give backtraces without seeing sensitive (or offensive) settings.
-
-Still, note that there are always going to be sections of your debug output that
-are inappropriate for public consumption. File paths, configuration options, and
-the like all give attackers extra information about your server. Never deploy a
-site with ``DEBUG`` turned on.
-
-DEFAULT_CHARSET
----------------
-
-*Default*: ``'utf-8'``
-
-This is the default charset to use for all ``HttpResponse`` objects, if a MIME type isn't
-manually specified. It is used with ``DEFAULT_CONTENT_TYPE`` to construct the
-``Content-Type`` header. See Appendix H for more about ``HttpResponse`` objects.
-
-DEFAULT_CONTENT_TYPE
---------------------
-
-*Default*: ``'text/html'``
-
-This is the default content type to use for all ``HttpResponse`` objects, if a MIME type
-isn't manually specified. It is used with ``DEFAULT_CHARSET`` to construct the
-``Content-Type`` header. See Appendix H for more about ``HttpResponse`` objects.
-
-DEFAULT_FROM_EMAIL
-------------------
-
-*Default*: ``'webmaster@localhost'``
-
-This is the default email address to use for various automated correspondence from the
-site manager(s).
-
-DISALLOWED_USER_AGENTS
-----------------------
-
-*Default*: ``()`` (empty tuple)
-
-This is a list of compiled regular expression objects representing User-Agent strings
-that are not allowed to visit any page, systemwide. Use this for bad
-robots/crawlers. This is used only if ``CommonMiddleware`` is installed (see
-Chapter 15).
-
-EMAIL_HOST
-----------
-
-*Default*: ``'localhost'``
-
-This is the host to use for sending email. See also ``EMAIL_PORT``.
-
-EMAIL_HOST_PASSWORD
--------------------
-
-*Default*: ``''`` (empty string)
-
-This is the password to use for the SMTP server defined in ``EMAIL_HOST``. This setting is
-used in conjunction with ``EMAIL_HOST_USER`` when authenticating to the SMTP
-server. If either of these settings is empty, Django won't attempt
-authentication.
-
-See also ``EMAIL_HOST_USER``.
-
-EMAIL_HOST_USER
----------------
-
-*Default*: ``''`` (empty string)
-
-This is the username to use for the SMTP server defined in ``EMAIL_HOST``. If it's empty,
-Django won't attempt authentication. See also ``EMAIL_HOST_PASSWORD``.
-
-EMAIL_PORT
-----------
-
-*Default*: ``25``
-
-This is the port to use for the SMTP server defined in ``EMAIL_HOST``.
-
-EMAIL_SUBJECT_PREFIX
---------------------
-
-*Default*: ``'[Django] '``
-
-This is the subject-line prefix for email messages sent with ``django.core.mail.mail_admins``
-or ``django.core.mail.mail_managers``. You'll probably want to include the
-trailing space.
-
-FIXTURE_DIRS
--------------
-
-*Default*: ``()`` (empty tuple)
-
-This is a list of locations of the fixture data files, in search order. Note that these
-paths should use Unix-style forward slashes, even on Windows. It is used by Django's
-testing framework, which is covered online at
-http://www.djangoproject.com/documentation/0.96/testing/.
-
-IGNORABLE_404_ENDS
-------------------
-
-*Default*: ``('mail.pl', 'mailform.pl', 'mail.cgi', 'mailform.cgi', 'favicon.ico',
-'.php')``
-
-See also ``IGNORABLE_404_STARTS`` and ``Error reporting via e-mail``.
-
-IGNORABLE_404_STARTS
---------------------
-
-*Default*: ``('/cgi-bin/', '/_vti_bin', '/_vti_inf')``
-
-This is a tuple of strings that specify beginnings of URLs that should be ignored by the
-404 emailer. See also ``SEND_BROKEN_LINK_EMAILS`` and ``IGNORABLE_404_ENDS``.
-
-INSTALLED_APPS
---------------
-
-*Default*: ``()`` (empty tuple)
-
-A tuple of strings designating all applications that are enabled in this Django
-installation. Each string should be a full Python path to a Python package that
-contains a Django application. See Chapter 5 for more about applications.
-
-INTERNAL_IPS
-------------
-
-*Default*: ``()`` (empty tuple)
-
-A tuple of IP addresses, as strings, that
-
-    * See debug comments, when ``DEBUG`` is ``True``
-    
-    * Receive X headers if the ``XViewMiddleware`` is installed (see Chapter
-      15)
-
-JING_PATH
----------
-
-*Default*: ``'/usr/bin/jing'``
-
-This is the path to the Jing executable. Jing is a RELAX NG validator, and Django uses it
-to validate each ``XMLField`` in your models. See
-http://www.thaiopensource.com/relaxng/jing.html.
-
-LANGUAGE_CODE
--------------
-
-*Default*: ``'en-us'``
-
-This is a string representing the language code for this installation. This should be
-in standard language format -- for example, U.S. English is ``"en-us"``. See 
-Chapter 18.
-
-LANGUAGES
----------
-
-*Default*: A tuple of all available languages. This list is continually growing
-and any copy included here would inevitably become rapidly out of date. You can
-see the current list of translated languages by looking in
-``django/conf/global_settings.py``.
-
-The list is a tuple of two-tuples in the format (language code, language name)
--- for example, ``('ja', 'Japanese')``. This specifies which languages are
-available for language selection. See Chapter 18 for more on language selection.
-
-Generally, the default value should suffice. Only set this setting if you want
-to restrict language selection to a subset of the Django-provided languages.
-
-If you define a custom ``LANGUAGES`` setting, it's OK to mark the languages as
-translation strings, but you should *never* import ``django.utils.translation``
-from within your settings file, because that module in itself depends on the
-settings, and that would cause a circular import.
-
-The solution is to use a "dummy" ``gettext()`` function. Here's a sample
-settings file::
-
-    gettext = lambda s: s
-
-    LANGUAGES = (
-        ('de', gettext('German')),
-        ('en', gettext('English')),
-    )
-
-With this arrangement, ``make-messages.py`` will still find and mark these
-strings for translation, but the translation won't happen at runtime -- so
-you'll have to remember to wrap the languages in the *real* ``gettext()`` in
-any code that uses ``LANGUAGES`` at runtime.
-
-MANAGERS
---------
-
-*Default*: ``()`` (empty tuple)
-
-This tuple is in the same format as ``ADMINS`` that specifies who should get
-broken-link notifications when ``SEND_BROKEN_LINK_EMAILS=True``.
-
-MEDIA_ROOT
-----------
-
-*Default*: ``''`` (empty string)
-
-This is an absolute path to the directory that holds media for this installation (e.g.,
-``"/home/media/media.lawrence.com/"``). See also ``MEDIA_URL``.
-
-MEDIA_URL
----------
-
-*Default*: ``''`` (empty string)
-
-This URL handles the media served from ``MEDIA_ROOT`` (e.g.,
-``"http://media.lawrence.com"``).
-
-Note that this should have a trailing slash if it has a path component:
-
-    * *Correct*: ``"http://www.example.com/static/"``
-    * *Incorrect*: ``"http://www.example.com/static"``
-
-MIDDLEWARE_CLASSES
-------------------
-
-*Default*::
-
-    ("django.contrib.sessions.middleware.SessionMiddleware",
-     "django.contrib.auth.middleware.AuthenticationMiddleware",
-     "django.middleware.common.CommonMiddleware",
-     "django.middleware.doc.XViewMiddleware")
-
-This is a tuple of middleware classes to use. See Chapter 15.
-
-MONTH_DAY_FORMAT
-----------------
-
-*Default*: ``'F j'``
-
-This is the default formatting to use for date fields on Django admin change-list
-pages -- and, possibly, by other parts of the system -- in cases when only the
-month and day are displayed. It accepts the same format as the
-``now`` tag (see Appendix F, Table F-2).
-
-For example, when a Django admin change-list page is being filtered by a date,
-the header for a given day displays the day and month. Different locales have
-different formats. For example, U.S. English would have "January 1," whereas
-Spanish might have "1 Enero."
-
-See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``, and
-``YEAR_MONTH_FORMAT``.
-
-PREPEND_WWW
------------
-
-*Default*: ``False``
-
-This setting indicates whether to prepend the "www." subdomain to URLs that don't have it. 
-This is used only if ``CommonMiddleware`` is installed (see the Chapter 15). See also
-``APPEND_SLASH``.
-
-PROFANITIES_LIST
-----------------
-
-This is a tuple of profanities, as strings, that will trigger a validation error when
-the ``hasNoProfanities`` validator is called.
-
-We don't list the default values here, because that might bring the MPAA ratings
-board down on our heads. To view the default values, see the file
-``django/conf/global_settings.py``.
-
-ROOT_URLCONF
-------------
-
-*Default*: Not defined
-
-This is a string representing the full Python import path to your root URLconf (e.g.,
-``"mydjangoapps.urls"``). See Chapter 3.
-
-SECRET_KEY
-----------
-
-*Default*: (Generated automatically when you start a project)
-
-This is a secret key for this particular Django installation. It is used to provide a seed in
-secret-key hashing algorithms. Set this to a random string -- the longer, the
-better. ``django-admin.py startproject`` creates one automatically and most
-of the time you won't need to change it
-
-SEND_BROKEN_LINK_EMAILS
------------------------
-
-*Default*: ``False``
-
-This setting indicates whether to send an email to the ``MANAGERS`` each time somebody visits a
-Django-powered page that is 404-ed with a nonempty referer (i.e., a broken
-link). This is only used if ``CommonMiddleware`` is installed (see Chapter 15).
-See also ``IGNORABLE_404_STARTS`` and ``IGNORABLE_404_ENDS``.
-
-SERIALIZATION_MODULES
----------------------
-
-*Default*: Not defined.
-
-Serialization is a feature still under heavy development. Refer to the online
-documentation at http://www.djangoproject.com/documentation/0.96/serialization/
-for more information.
-
-SERVER_EMAIL
-------------
-
-*Default*: ``'root@localhost'``
-
-This is the email address that error messages come from, such as those sent to
-``ADMINS`` and ``MANAGERS``.
-
-SESSION_COOKIE_AGE
-------------------
-
-*Default*: ``1209600`` (two weeks, in seconds)
-
-This is the age of session cookies, in seconds. See Chapter 12.
-
-SESSION_COOKIE_DOMAIN
----------------------
-
-*Default*: ``None``
-
-This is the domain to use for session cookies. Set this to a string such as
-``".lawrence.com"`` for cross-domain cookies, or use ``None`` for a standard
-domain cookie. See Chapter 12.
-
-SESSION_COOKIE_NAME
--------------------
-
-*Default*: ``'sessionid'``
-
-This is the name of the cookie to use for sessions; it can be whatever you want.
-See Chapter 12.
-
-SESSION_COOKIE_SECURE
----------------------
-
-*Default*: ``False``
-
-This setting indicates whether to use a secure cookie for the session cookie. 
-If this is set to ``True``, the cookie will be marked as "secure," 
-which means browsers may ensure that the cookie is only sent under an HTTPS connection.
-See Chapter 12.
-
-SESSION_EXPIRE_AT_BROWSER_CLOSE
--------------------------------
-
-*Default*: ``False``
-
-This setting indicates whether to expire the session when the user closes 
-his browser. See Chapter 12.
-
-SESSION_SAVE_EVERY_REQUEST
---------------------------
-
-*Default*: ``False``
-
-This setting indicates whether to save the session data on every request. See Chapter 12.
-
-SITE_ID
+comment
 -------
 
-*Default*: Not defined
+Ignore everything between ``{% comment %}`` and ``{% endcomment %}``
 
-This is the ID, as an integer, of the current site in the ``django_site`` database
-table. It is used so that application data can hook into specific site(s)
-and a single database can manage content for multiple sites. See Chapter 14.
+cycle
+-----
 
-TEMPLATE_CONTEXT_PROCESSORS
----------------------------
+Cycle among the given strings or variables each time this tag is encountered.
 
-*Default*::
+Within a loop, cycles among the given strings each time through the
+loop::
 
-    ("django.core.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n")
+    {% for o in some_list %}
+        <tr class="{% cycle 'row1' 'row2' %}">
+            ...
+        </tr>
+    {% endfor %}
 
-This is a tuple of callables that are used to populate the context in ``RequestContext``.
-These callables take a request object as their argument and return a dictionary
-of items to be merged into the context. See Chapter 10.
+You can use variables, too. For example, if you have two template variables,
+``rowvalue1`` and ``rowvalue2``, you can cycle between their values like this::
 
-TEMPLATE_DEBUG
---------------
+    {% for o in some_list %}
+        <tr class="{% cycle rowvalue1 rowvalue2 %}">
+            ...
+        </tr>
+    {% endfor %}
 
-*Default*: ``False``
+Yes, you can mix variables and strings::
 
-This Boolean turns template debug mode on and off. If it is ``True``, the fancy
-error page will display a detailed report for any ``TemplateSyntaxError``. This
-report contains the relevant snippet of the template, with the appropriate line
-highlighted.
+    {% for o in some_list %}
+        <tr class="{% cycle 'row1' rowvalue2 'row3' %}">
+            ...
+        </tr>
+    {% endfor %}
 
-Note that Django only displays fancy error pages if ``DEBUG`` is ``True``, so
-you'll want to set that to take advantage of this setting.
+In some cases you might want to refer to the next value of a cycle from
+outside of a loop. To do this, just give the ``{% cycle %}`` tag a name, using
+"as", like this::
 
-See also ``DEBUG``.
+    {% cycle 'row1' 'row2' as rowcolors %}
 
-TEMPLATE_DIRS
--------------
+From then on, you can insert the current value of the cycle wherever you'd like
+in your template::
 
-*Default*: ``()`` (empty tuple)
+    <tr class="{% cycle rowcolors %}">...</tr>
+    <tr class="{% cycle rowcolors %}">...</tr>
 
-This is a list of locations of the template source files, in search order. Note that these
-paths should use Unix-style forward slashes, even on Windows. See Chapters 4 and
-10.
+You can use any number of values in a ``{% cycle %}`` tag, separated by spaces.
+Values enclosed in single (``'``) or double quotes (``"``) are treated as
+string literals, while values without quotes are treated as template variables.
 
-TEMPLATE_LOADERS
-----------------
+For backwards compatibility, the ``{% cycle %}`` tag supports the much inferior
+old syntax from previous Django versions. You shouldn't use this in any new
+projects, but for the sake of the people who are still using it, here's what it
+looks like::
 
-*Default*: ``('django.template.loaders.filesystem.load_template_source',)``
+    {% cycle row1,row2,row3 %}
 
-This is a tuple of callables (as strings) that know how to import templates from
-various sources. See Chapter 10.
+In this syntax, each value gets interpreted as a literal string, and there's no
+way to specify variable values. Or literal commas. Or spaces. Did we mention
+you shouldn't use this syntax in any new projects?
 
-TEMPLATE_STRING_IF_INVALID
---------------------------
+debug
+-----
 
-*Default*: ``''`` (Empty string)
+Output a whole load of debugging information, including the current context and
+imported modules.
 
-This is output, as a string, that the template system should use for invalid (e.g.,
-misspelled) variables. See Chapter 10.
+extends
+-------
 
-TEST_RUNNER
------------
+Signal that this template extends a parent template.
 
-*Default*: ``'django.test.simple.run_tests'``
+This tag can be used in two ways:
 
-This is the name of the method to use for starting the test suite. It is used by Django's
-testing framework, which is covered online at
-http://www.djangoproject.com/documentation/0.96/testing/.
+   * ``{% extends "base.html" %}`` (with quotes) uses the literal value
+     ``"base.html"`` as the name of the parent template to extend.
 
-TEST_DATABASE_NAME
-------------------
+   * ``{% extends variable %}`` uses the value of ``variable``. If the variable
+     evaluates to a string, Django will use that string as the name of the
+     parent template. If the variable evaluates to a ``Template`` object,
+     Django will use that object as the parent template.
 
-*Default*: ``None``
+See Chapter 4 for more information on template inheritance.
 
-This is the name of database to use when running the test suite. If a value of ``None``
-is specified, the test database will use the name ``'test_' +
-settings.DATABASE_NAME``. See the documentation for Django's testing framework,
-which is covered online at http://www.djangoproject.com/documentation/0.96/testing/.
+filter
+------
 
-TIME_FORMAT
------------
+Filter the contents of the variable through variable filters.
 
-*Default*: ``'P'`` (e.g., ``4 p.m.``)
+Filters can also be piped through each other, and they can have arguments --
+just like in variable syntax.
 
-This is the default formatting to use for time fields on Django admin change-list pages
--- and, possibly, by other parts of the system. It accepts the same format as the
-``now`` tag (see Appendix F, Table F-2).
+Sample usage::
 
-See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``,
-``YEAR_MONTH_FORMAT``, and ``MONTH_DAY_FORMAT``.
+    {% filter force_escape|lower %}
+        This text will be HTML-escaped, and will appear in all lowercase.
+    {% endfilter %}
 
-TIME_ZONE
+firstof
+-------
+
+Outputs the first variable passed that is not False.  Outputs nothing if all the
+passed variables are False.
+
+Sample usage::
+
+    {% firstof var1 var2 var3 %}
+
+This is equivalent to::
+
+    {% if var1 %}
+        {{ var1 }}
+    {% else %}{% if var2 %}
+        {{ var2 }}
+    {% else %}{% if var3 %}
+        {{ var3 }}
+    {% endif %}{% endif %}{% endif %}
+
+You can also use a literal string as a fallback value in case all
+passed variables are False::
+
+    {% firstof var1 var2 var3 "fallback value" %}
+
+for
+---
+
+Loop over each item in an array.  For example, to display a list of athletes
+provided in ``athlete_list``::
+
+    <ul>
+    {% for athlete in athlete_list %}
+        <li>{{ athlete.name }}</li>
+    {% endfor %}
+    </ul>
+
+You can loop over a list in reverse by using ``{% for obj in list reversed %}``.
+
+If you need to loop over a list of lists, you can unpack the values
+in each sub-list into individual variables. For example, if your context
+contains a list of (x,y) coordinates called ``points``, you could use the
+following to output the list of points::
+
+    {% for x, y in points %}
+        There is a point at {{ x }},{{ y }}
+    {% endfor %}
+
+This can also be useful if you need to access the items in a dictionary.
+For example, if your context contained a dictionary ``data``, the following
+would display the keys and values of the dictionary::
+
+    {% for key, value in data.items %}
+        {{ key }}: {{ value }}
+    {% endfor %}
+
+The ``for`` loop sets a number of variables available within the loop (see
+Table E-1).
+
+.. table:: Table E-1. Variables Available Inside {% for %} Loops
+
+    ==========================  ================================================
+    Variable                    Description
+    ==========================  ================================================
+    ``forloop.counter``         The current iteration of the loop (1-indexed)
+    ``forloop.counter0``        The current iteration of the loop (0-indexed)
+    ``forloop.revcounter``      The number of iterations from the end of the
+                                loop (1-indexed)
+    ``forloop.revcounter0``     The number of iterations from the end of the
+                                loop (0-indexed)
+    ``forloop.first``           True if this is the first time through the loop
+    ``forloop.last``            True if this is the last time through the loop
+    ``forloop.parentloop``      For nested loops, this is the loop "above" the
+                                current one
+    ==========================  ================================================
+
+The ``for`` tag can take an optional ``{% empty %}`` clause that will be
+displayed if the given array is empty or could not be found::
+
+    <ul>
+    {% for athlete in athlete_list %}
+        <li>{{ athlete.name }}</li>
+    {% empty %}
+        <li>Sorry, no athlete in this list!</li>
+    {% endfor %}
+    <ul>
+
+The above is equivalent to -- but shorter, cleaner, and possibly faster
+than -- the following::
+
+    <ul>
+      {% if athlete_list %}
+        {% for athlete in athlete_list %}
+          <li>{{ athlete.name }}</li>
+        {% endfor %}
+      {% else %}
+        <li>Sorry, no athletes in this list.</li>
+      {% endif %}
+    </ul>
+
+if
+--
+
+The ``{% if %}`` tag evaluates a variable, and if that variable is "true" (i.e.
+exists, is not empty, and is not a false boolean value) the contents of the
+block are output::
+
+    {% if athlete_list %}
+        Number of athletes: {{ athlete_list|length }}
+    {% else %}
+        No athletes.
+    {% endif %}
+
+In the above, if ``athlete_list`` is not empty, the number of athletes will be
+displayed by the ``{{ athlete_list|length }}`` variable.
+
+As you can see, the ``if`` tag can take an optional ``{% else %}`` clause that
+will be displayed if the test fails.
+
+``if`` tags may use ``and``, ``or`` or ``not`` to test a number of variables or
+to negate a given variable::
+
+    {% if athlete_list and coach_list %}
+        Both athletes and coaches are available.
+    {% endif %}
+
+    {% if not athlete_list %}
+        There are no athletes.
+    {% endif %}
+
+    {% if athlete_list or coach_list %}
+        There are some athletes or some coaches.
+    {% endif %}
+
+    {% if not athlete_list or coach_list %}
+        There are no athletes or there are some coaches (OK, so
+        writing English translations of boolean logic sounds
+        stupid; it's not our fault).
+    {% endif %}
+
+    {% if athlete_list and not coach_list %}
+        There are some athletes and absolutely no coaches.
+    {% endif %}
+
+``if`` tags don't allow ``and`` and ``or`` clauses within the same tag, because
+the order of logic would be ambiguous. For example, this is invalid::
+
+    {% if athlete_list and coach_list or cheerleader_list %}
+
+If you need to combine ``and`` and ``or`` to do advanced logic, just use nested
+``if`` tags. For example::
+
+    {% if athlete_list %}
+        {% if coach_list or cheerleader_list %}
+            We have athletes, and either coaches or cheerleaders!
+        {% endif %}
+    {% endif %}
+
+Multiple uses of the same logical operator are fine, as long as you use the
+same operator. For example, this is valid::
+
+    {% if athlete_list or coach_list or parent_list or teacher_list %}
+
+ifchanged
 ---------
 
-*Default*: ``'America/Chicago'``
+Check if a value has changed from the last iteration of a loop.
 
-This is a string representing the time zone for this installation. Time zones are in the
-Unix-standard ``zic`` format. One relatively complete list of time zone strings
-can be found at
-http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE.
+The ``ifchanged`` tag is used within a loop. It has two possible uses.
 
-This is the time zone to which Django will convert all dates/times --
-not necessarily the time zone of the server. For example, one server may serve
-multiple Django-powered sites, each with a separate time-zone setting.
+1. Checks its own rendered contents against its previous state and only
+   displays the content if it has changed. For example, this displays a list of
+   days, only displaying the month if it changes::
 
-Normally, Django sets the ``os.environ['TZ']`` variable to the time zone you
-specify in the ``TIME_ZONE`` setting. Thus, all your views and models will
-automatically operate in the correct time zone. However, if you're using the
-manually configuring settings (described above in the section titled "Using
-Settings Without Setting DJANGO_SETTINGS_MODULE"), Django will *not* touch the
-``TZ`` environment variable, and it will be up to you to ensure your processes
-are running in the correct environment.
+        <h1>Archive for {{ year }}</h1>
 
-.. note::
-    Django cannot reliably use alternate time zones in a Windows environment. If
-    you're running Django on Windows, this variable must be set to match the
-    system time zone.
+        {% for date in days %}
+            {% ifchanged %}<h3>{{ date|date:"F" }}</h3>{% endifchanged %}
+            <a href="{{ date|date:"M/d"|lower }}/">{{ date|date:"j" }}</a>
+        {% endfor %}
 
-URL_VALIDATOR_USER_AGENT
-------------------------
+2. If given a variable, check whether that variable has changed. For
+   example, the following shows the date every time it changes, but
+   only shows the hour if both the hour and the date has changed::
 
-*Default*: ``Django/<version> (http://www.djangoproject.com/)``
+        {% for date in days %}
+            {% ifchanged date.date %} {{ date.date }} {% endifchanged %}
+            {% ifchanged date.hour date.date %}
+                {{ date.hour }}
+            {% endifchanged %}
+        {% endfor %}
 
-This is the string to use as the ``User-Agent`` header when checking to see if URLs
-exist (see the ``verify_exists`` option on ``URLField``; see Appendix B).
+The ``ifchanged`` tag can also take an optional ``{% else %}`` clause that
+will be displayed if the value has not changed::
 
-USE_ETAGS
+        {% for match in matches %}
+            <div style="background-color:
+                {% ifchanged match.ballot_id %}
+                    {% cycle red,blue %}
+                {% else %}
+                    grey
+                {% endifchanged %}
+            ">{{ match }}</div>
+        {% endfor %}
+
+ifequal
+-------
+
+Output the contents of the block if the two arguments equal each other.
+
+Example::
+
+    {% ifequal user.id comment.user_id %}
+        ...
+    {% endifequal %}
+
+As in the ``{% if %}`` tag, an ``{% else %}`` clause is optional.
+
+The arguments can be hard-coded strings, so the following is valid::
+
+    {% ifequal user.username "adrian" %}
+        ...
+    {% endifequal %}
+
+It is only possible to compare an argument to template variables or strings.
+You cannot check for equality with Python objects such as ``True`` or
+``False``.  If you need to test if something is true or false, use the ``if``
+tag instead.
+
+ifnotequal
+----------
+
+Just like ``ifequal``, except it tests that the two arguments are not equal.
+
+include
+-------
+
+Loads a template and renders it with the current context. This is a way of
+"including" other templates within a template.
+
+The template name can either be a variable or a hard-coded (quoted) string,
+in either single or double quotes.
+
+This example includes the contents of the template ``"foo/bar.html"``::
+
+    {% include "foo/bar.html" %}
+
+This example includes the contents of the template whose name is contained in
+the variable ``template_name``::
+
+    {% include template_name %}
+
+An included template is rendered with the context of the template that's
+including it. This example produces the output ``"Hello, John"``:
+
+    * Context: variable ``person`` is set to ``"john"``.
+    * Template::
+
+        {% include "name_snippet.html" %}
+
+    * The ``name_snippet.html`` template::
+
+        Hello, {{ person }}
+
+See also: ``{% ssi %}``.
+
+load
+----
+
+Load a custom template tag set. See Chapter 9 for more information on custom
+template libraries.
+
+now
+---
+
+Display the date, formatted according to the given string.
+
+Uses the same format as PHP's ``date()`` function (http://php.net/date)
+with some custom extensions.
+
+Table E-2 shows the available format strings.
+
+.. table:: Table E-2. Available Date Format Strings
+
+    ================  ========================================  =====================
+    Format character  Description                               Example output
+    ================  ========================================  =====================
+    a                 ``'a.m.'`` or ``'p.m.'`` (Note that       ``'a.m.'``
+                      this is slightly different than PHP's
+                      output, because this includes periods
+                      to match Associated Press style.)
+    A                 ``'AM'`` or ``'PM'``.                     ``'AM'``
+    b                 Month, textual, 3 letters, lowercase.     ``'jan'``
+    B                 Not implemented.
+    d                 Day of the month, 2 digits with           ``'01'`` to ``'31'``
+                      leading zeros.
+    D                 Day of the week, textual, 3 letters.      ``'Fri'``
+    f                 Time, in 12-hour hours and minutes,       ``'1'``, ``'1:30'``
+                      with minutes left off if they're zero.
+                      Proprietary extension.
+    F                 Month, textual, long.                     ``'January'``
+    g                 Hour, 12-hour format without leading      ``'1'`` to ``'12'``
+                      zeros.
+    G                 Hour, 24-hour format without leading      ``'0'`` to ``'23'``
+                      zeros.
+    h                 Hour, 12-hour format.                     ``'01'`` to ``'12'``
+    H                 Hour, 24-hour format.                     ``'00'`` to ``'23'``
+    i                 Minutes.                                  ``'00'`` to ``'59'``
+    I                 Not implemented.
+    j                 Day of the month without leading          ``'1'`` to ``'31'``
+                      zeros.
+    l                 Day of the week, textual, long.           ``'Friday'``
+    L                 Boolean for whether it's a leap year.     ``True`` or ``False``
+    m                 Month, 2 digits with leading zeros.       ``'01'`` to ``'12'``
+    M                 Month, textual, 3 letters.                ``'Jan'``
+    n                 Month without leading zeros.              ``'1'`` to ``'12'``
+    N                 Month abbreviation in Associated Press    ``'Jan.'``, ``'Feb.'``, ``'March'``, ``'May'``
+                      style. Proprietary extension.
+    O                 Difference to Greenwich time in hours.    ``'+0200'``
+    P                 Time, in 12-hour hours, minutes and       ``'1 a.m.'``, ``'1:30 p.m.'``, ``'midnight'``, ``'noon'``, ``'12:30 p.m.'``
+                      'a.m.'/'p.m.', with minutes left off
+                      if they're zero and the special-case
+                      strings 'midnight' and 'noon' if
+                      appropriate. Proprietary extension.
+    r                 RFC 2822 formatted date.                  ``'Thu, 21 Dec 2000 16:01:07 +0200'``
+    s                 Seconds, 2 digits with leading zeros.     ``'00'`` to ``'59'``
+    S                 English ordinal suffix for day of the     ``'st'``, ``'nd'``, ``'rd'`` or ``'th'``
+                      month, 2 characters.
+    t                 Number of days in the given month.        ``28`` to ``31``
+    T                 Time zone of this machine.                ``'EST'``, ``'MDT'``
+    U                 Not implemented.
+    w                 Day of the week, digits without           ``'0'`` (Sunday) to ``'6'`` (Saturday)
+                      leading zeros.
+    W                 ISO-8601 week number of year, with        ``1``, ``53``
+                      weeks starting on Monday.
+    y                 Year, 2 digits.                           ``'99'``
+    Y                 Year, 4 digits.                           ``'1999'``
+    z                 Day of the year.                          ``0`` to ``365``
+    Z                 Time zone offset in seconds. The          ``-43200`` to ``43200``
+                      offset for timezones west of UTC is
+                      always negative, and for those east of
+                      UTC is always positive.
+    ================  ========================================  =====================
+
+Example::
+
+    It is {% now "jS F Y H:i" %}
+
+Note that you can backslash-escape a format string if you want to use the
+"raw" value. In this example, "f" is backslash-escaped, because otherwise
+"f" is a format string that displays the time. The "o" doesn't need to be
+escaped, because it's not a format character::
+
+    It is the {% now "jS o\f F" %}
+
+This would display as "It is the 4th of September".
+
+regroup
+-------
+
+Regroup a list of alike objects by a common attribute.
+
+This complex tag is best illustrated by use of an example: say that ``people``
+is a list of people represented by dictionaries with ``first_name``,
+``last_name``, and ``gender`` keys:
+
+.. code-block:: python
+
+    people = [
+        {'first_name': 'George', 'last_name': 'Bush', 'gender': 'Male'},
+        {'first_name': 'Bill', 'last_name': 'Clinton', 'gender': 'Male'},
+        {'first_name': 'Margaret', 'last_name': 'Thatcher', 'gender': 'Female'},
+        {'first_name': 'Condoleezza', 'last_name': 'Rice', 'gender': 'Female'},
+        {'first_name': 'Pat', 'last_name': 'Smith', 'gender': 'Unknown'},
+    ]
+
+...and you'd like to display a hierarchical list that is ordered by gender,
+like this:
+
+    * Male:
+        * George Bush
+        * Bill Clinton
+    * Female:
+        * Margaret Thatcher
+        * Condoleezza Rice
+    * Unknown:
+        * Pat Smith
+
+You can use the ``{% regroup %}`` tag to group the list of people by gender.
+The following snippet of template code would accomplish this::
+
+    {% regroup people by gender as gender_list %}
+
+    <ul>
+    {% for gender in gender_list %}
+        <li>{{ gender.grouper }}
+        <ul>
+            {% for item in gender.list %}
+            <li>{{ item.first_name }} {{ item.last_name }}</li>
+            {% endfor %}
+        </ul>
+        </li>
+    {% endfor %}
+    </ul>
+
+Let's walk through this example. ``{% regroup %}`` takes three arguments: the
+list you want to regroup, the attribute to group by, and the name of the
+resulting list. Here, we're regrouping the ``people`` list by the ``gender``
+attribute and calling the result ``gender_list``.
+
+``{% regroup %}`` produces a list (in this case, ``gender_list``) of
+**group objects**. Each group object has two attributes:
+
+    * ``grouper`` -- the item that was grouped by (e.g., the string "Male" or
+      "Female").
+    * ``list`` -- a list of all items in this group (e.g., a list of all people
+      with gender='Male').
+
+Note that ``{% regroup %}`` does not order its input! Our example relies on
+the fact that the ``people`` list was ordered by ``gender`` in the first place.
+If the ``people`` list did *not* order its members by ``gender``, the regrouping
+would naively display more than one group for a single gender. For example,
+say the ``people`` list was set to this (note that the males are not grouped
+together):
+
+.. code-block:: python
+
+    people = [
+        {'first_name': 'Bill', 'last_name': 'Clinton', 'gender': 'Male'},
+        {'first_name': 'Pat', 'last_name': 'Smith', 'gender': 'Unknown'},
+        {'first_name': 'Margaret', 'last_name': 'Thatcher', 'gender': 'Female'},
+        {'first_name': 'George', 'last_name': 'Bush', 'gender': 'Male'},
+        {'first_name': 'Condoleezza', 'last_name': 'Rice', 'gender': 'Female'},
+    ]
+
+With this input for ``people``, the example ``{% regroup %}`` template code
+above would result in the following output:
+
+    * Male:
+        * Bill Clinton
+    * Unknown:
+        * Pat Smith
+    * Female:
+        * Margaret Thatcher
+    * Male:
+        * George Bush
+    * Female:
+        * Condoleezza Rice
+
+The easiest solution to this gotcha is to make sure in your view code that the
+data is ordered according to how you want to display it.
+
+Another solution is to sort the data in the template using the ``dictsort``
+filter, if your data is in a list of dictionaries::
+
+    {% regroup people|dictsort:"gender" by gender as gender_list %}
+
+spaceless
 ---------
 
-*Default*: ``False``
+Removes whitespace between HTML tags. This includes tab
+characters and newlines.
 
-This Boolean specifies whether to output the ETag header. It saves
-bandwidth but slows down performance. This is only used if ``CommonMiddleware``
-is installed (see Chapter 15).
+Example usage::
 
-USE_I18N
+    {% spaceless %}
+        <p>
+            <a href="foo/">Foo</a>
+        </p>
+    {% endspaceless %}
+
+This example would return this HTML::
+
+    <p><a href="foo/">Foo</a></p>
+
+Only space between *tags* is removed -- not space between tags and text. In
+this example, the space around ``Hello`` won't be stripped::
+
+    {% spaceless %}
+        <strong>
+            Hello
+        </strong>
+    {% endspaceless %}
+
+ssi
+---
+
+Output the contents of a given file into the page.
+
+Like a simple "include" tag, ``{% ssi %}`` includes the contents of another
+file -- which must be specified using an absolute path -- in the current
+page::
+
+    {% ssi /home/html/ljworld.com/includes/right_generic.html %}
+
+If the optional "parsed" parameter is given, the contents of the included
+file are evaluated as template code, within the current context::
+
+    {% ssi /home/html/ljworld.com/includes/right_generic.html parsed %}
+
+Note that if you use ``{% ssi %}``, you'll need to define
+``ALLOWED_INCLUDE_ROOTS`` in your Django settings, as a security measure.
+
+See also: ``{% include %}``.
+
+templatetag
+-----------
+
+Output one of the syntax characters used to compose template tags.
+
+Since the template system has no concept of "escaping", to display one of the
+bits used in template tags, you must use the ``{% templatetag %}`` tag.
+
+See Table E-3 for the available arguments.
+
+.. table:: Table E-3. Available Arguments for templatetag Filter
+
+    ==================  =======
+    Argument            Outputs
+    ==================  =======
+    ``openblock``       ``{%``
+    ``closeblock``      ``%}``
+    ``openvariable``    ``{{``
+    ``closevariable``   ``}}``
+    ``openbrace``       ``{``
+    ``closebrace``      ``}``
+    ``opencomment``     ``{#``
+    ``closecomment``    ``#}``
+    ==================  =======
+
+url
+---
+
+Returns an absolute URL (i.e., a URL without the domain name) matching a given
+view function and optional parameters. This is a way to output links without
+violating the DRY principle by having to hard-code URLs in your templates::
+
+    {% url path.to.some_view arg1,arg2,name1=value1 %}
+
+The first argument is a path to a view function in the format
+``package.package.module.function``. Additional arguments are optional and
+should be comma-separated values that will be used as positional and keyword
+arguments in the URL. All arguments required by the URLconf should be present.
+
+For example, suppose you have a view, ``app_views.client``, whose URLconf
+takes a client ID (here, ``client()`` is a method inside the views file
+``app_views.py``). The URLconf line might look like this::
+
+    ('^client/(\d+)/$', 'app_views.client')
+
+If this app's URLconf is included into the project's URLconf under a path
+such as this::
+
+    ('^clients/', include('project_name.app_name.urls'))
+
+...then, in a template, you can create a link to this view like this::
+
+    {% url app_views.client client.id %}
+
+The template tag will output the string ``/clients/client/123/``.
+
+widthratio
+----------
+
+For creating bar charts and such, this tag calculates the ratio of a given value
+to a maximum value, and then applies that ratio to a constant.
+
+For example::
+
+    <img src="bar.gif" height="10" width="{% widthratio this_value max_value 100 %}" />
+
+Above, if ``this_value`` is 175 and ``max_value`` is 200, the image in the
+above example will be 88 pixels wide (because 175/200 = .875; .875 * 100 = 87.5
+which is rounded up to 88).
+
+with
+----
+
+Caches a complex variable under a simpler name. This is useful when accessing
+an "expensive" method (e.g., one that hits the database) multiple times.
+
+For example::
+
+    {% with business.employees.count as total %}
+        {{ total }} employee{{ total|pluralize }}
+    {% endwith %}
+
+The populated variable (in the example above, ``total``) is only available
+between the ``{% with %}`` and ``{% endwith %}`` tags.
+
+Built-in Filter Reference
+=========================
+
+add
+---
+
+Adds the argument to the value.
+
+For example::
+
+    {{ value|add:"2" }}
+
+If ``value`` is ``4``, then the output will be ``6``.
+
+addslashes
+----------
+
+Adds slashes before quotes. Useful for escaping strings in CSV, for example.
+
+capfirst
 --------
 
-*Default*: ``True``
+Capitalizes the first character of the value.
 
-This Boolean specifies whether Django's internationalization system (see
-Chapter 18) should be enabled. It provides an easy way to turn off internationalization, for
-performance. If this is set to ``False``, Django will make some optimizations so
-as not to load the internationalization machinery.
+center
+------
 
-YEAR_MONTH_FORMAT
------------------
+Centers the value in a field of a given width.
 
-*Default*: ``'F Y'``
+cut
+---
 
-This is the default formatting to use for date fields on Django admin change-list pages
--- and, possibly, by other parts of the system -- in cases when only the year
-and month are displayed. It accepts the same format as the ``now`` tag (see
-Appendix F).
+Removes all values of arg from the given string.
 
-For example, when a Django admin change-list page is being filtered by a date
-drill-down, the header for a given month displays the month and the year.
-Different locales have different formats. For example, U.S. English would use
-"January 2006," whereas another locale might use "2006/January."
+For example::
 
-See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``, and
-``MONTH_DAY_FORMAT``.
+    {{ value|cut:" "}}
+
+If ``value`` is ``"String with spaces"``, the output will be ``"Stringwithspaces"``.
+
+date
+----
+
+Formats a date according to the given format (same as the ``{% now %}`` tag).
+
+For example::
+
+    {{ value|date:"D d M Y" }}
+
+If ``value`` is a ``datetime`` object (e.g., the result of
+``datetime.datetime.now()``), the output will be the string
+``'Wed 09 Jan 2008'``.
+
+When used without a format string::
+
+    {{ value|date }}
+
+...the formatting string defined in the ``DATE_FORMAT`` setting will be
+used.
+
+default
+-------
+
+If value evaluates to ``False``, use given default. Otherwise, use the value.
+
+For example::
+
+    {{ value|default:"nothing" }}
+
+If ``value`` is ``""`` (the empty string), the output will be ``nothing``.
+
+default_if_none
+---------------
+
+If (and only if) value is ``None``, use given default. Otherwise, use the
+value.
+
+Note that if an empty string is given, the default value will *not* be used.
+Use the ``default`` filter if you want to fallback for empty strings.
+
+For example::
+
+    {{ value|default_if_none:"nothing" }}
+
+If ``value`` is ``None``, the output will be the string ``"nothing"``.
+
+dictsort
+--------
+
+Takes a list of dictionaries and returns that list sorted by the key given in
+the argument.
+
+For example::
+
+    {{ value|dictsort:"name" }}
+
+If ``value`` is::
+
+    [
+        {'name': 'zed', 'age': 19},
+        {'name': 'amy', 'age': 22},
+        {'name': 'joe', 'age': 31},
+    ]
+
+then the output would be::
+
+    [
+        {'name': 'amy', 'age': 22},
+        {'name': 'joe', 'age': 31},
+        {'name': 'zed', 'age': 19},
+    ]
+
+dictsortreversed
+----------------
+
+Takes a list of dictionaries and returns that list sorted in reverse order by
+the key given in the argument. This works exactly the same as the above filter,
+but the returned value will be in reverse order.
+
+divisibleby
+-----------
+
+Returns ``True`` if the value is divisible by the argument.
+
+For example::
+
+    {{ value|divisibleby:"3" }}
+
+If ``value`` is ``21``, the output would be ``True``.
+
+escape
+------
+
+Escapes a string's HTML. Specifically, it makes these replacements:
+
+    * ``<`` is converted to ``&lt;``
+    * ``>`` is converted to ``&gt;``
+    * ``'`` (single quote) is converted to ``&#39;``
+    * ``"`` (double quote) is converted to ``&quot;``
+    * ``&`` is converted to ``&amp;``
+
+The escaping is only applied when the string is output, so it does not matter
+where in a chained sequence of filters you put ``escape``: it will always be
+applied as though it were the last filter. If you want escaping to be applied
+immediately, use the ``force_escape`` filter.
+
+Applying ``escape`` to a variable that would normally have auto-escaping
+applied to the result will only result in one round of escaping being done. So
+it is safe to use this function even in auto-escaping environments. If you want
+multiple escaping passes to be applied, use the ``force_escape`` filter.
+
+escapejs
+--------
+
+Escapes characters for use in JavaScript strings. This does *not* make the
+string safe for use in HTML, but does protect you from syntax errors when using
+templates to generate JavaScript/JSON.
+
+filesizeformat
+--------------
+
+Format the value like a 'human-readable' file size (i.e. ``'13 KB'``,
+``'4.1 MB'``, ``'102 bytes'``, etc).
+
+For example::
+
+    {{ value|filesizeformat }}
+
+If ``value`` is 123456789, the output would be ``117.7 MB``.
+
+first
+-----
+
+Returns the first item in a list.
+
+For example::
+
+    {{ value|first }}
+
+If ``value`` is the list ``['a', 'b', 'c']``, the output will be ``'a'``.
+
+fix_ampersands
+--------------
+
+Replaces ampersands with ``&amp;`` entities.
+
+For example::
+
+    {{ value|fix_ampersands }}
+
+If ``value`` is ``Tom & Jerry``, the output will be ``Tom &amp; Jerry``.
+
+floatformat
+-----------
+
+When used without an argument, rounds a floating-point number to one decimal
+place -- but only if there's a decimal part to be displayed. For example:
+
+============  ===========================  ========
+``value``     Template                     Output
+============  ===========================  ========
+``34.23234``  ``{{ value|floatformat }}``  ``34.2``
+``34.00000``  ``{{ value|floatformat }}``  ``34``
+``34.26000``  ``{{ value|floatformat }}``  ``34.3``
+============  ===========================  ========
+
+If used with a numeric integer argument, ``floatformat`` rounds a number to
+that many decimal places. For example:
+
+============  =============================  ==========
+``value``     Template                       Output
+============  =============================  ==========
+``34.23234``  ``{{ value|floatformat:3 }}``  ``34.232``
+``34.00000``  ``{{ value|floatformat:3 }}``  ``34.000``
+``34.26000``  ``{{ value|floatformat:3 }}``  ``34.260``
+============  =============================  ==========
+
+If the argument passed to ``floatformat`` is negative, it will round a number
+to that many decimal places -- but only if there's a decimal part to be
+displayed. For example:
+
+============  ================================  ==========
+``value``     Template                          Output
+============  ================================  ==========
+``34.23234``  ``{{ value|floatformat:"-3" }}``  ``34.232``
+``34.00000``  ``{{ value|floatformat:"-3" }}``  ``34``
+``34.26000``  ``{{ value|floatformat:"-3" }}``  ``34.260``
+============  ================================  ==========
+
+Using ``floatformat`` with no argument is equivalent to using ``floatformat``
+with an argument of ``-1``.
+
+force_escape
+------------
+
+Applies HTML escaping to a string (see the ``escape`` filter for details).
+This filter is applied *immediately* and returns a new, escaped string. This
+is useful in the rare cases where you need multiple escaping or want to apply
+other filters to the escaped results. Normally, you want to use the ``escape``
+filter.
+
+get_digit
+---------
+
+Given a whole number, returns the requested digit, where 1 is the right-most
+digit, 2 is the second-right-most digit, etc. Returns the original value for
+invalid input (if input or argument is not an integer, or if argument is less
+than 1). Otherwise, output is always an integer.
+
+For example::
+
+    {{ value|get_digit:"2" }}
+
+If ``value`` is ``123456789``, the output will be ``8``.
+
+iriencode
+---------
+
+Converts an IRI (Internationalized Resource Identifier) to a string that is
+suitable for including in a URL. This is necessary if you're trying to use
+strings containing non-ASCII characters in a URL.
+
+It's safe to use this filter on a string that has already gone through the
+``urlencode`` filter.
+
+join
+----
+
+Joins a list with a string, like Python's ``str.join(list)``
+
+For example::
+
+    {{ value|join:" // " }}
+
+If ``value`` is the list ``['a', 'b', 'c']``, the output will be the string
+``"a // b // c"``.
+
+last
+----
+
+Returns the last item in a list.
+
+For example::
+
+    {{ value|last }}
+
+If ``value`` is the list ``['a', 'b', 'c', 'd']``, the output will be the string
+``"d"``.
+
+length
+------
+
+Returns the length of the value. This works for both strings and lists.
+
+For example::
+
+    {{ value|length }}
+
+If ``value`` is ``['a', 'b', 'c', 'd']``, the output will be ``4``.
+
+length_is
+---------
+
+Returns ``True`` if the value's length is the argument, or ``False`` otherwise.
+
+For example::
+
+    {{ value|length_is:"4" }}
+
+If ``value`` is ``['a', 'b', 'c', 'd']``, the output will be ``True``.
+
+linebreaks
+----------
+
+Replaces line breaks in plain text with appropriate HTML; a single
+newline becomes an HTML line break (``<br />``) and a new line
+followed by a blank line becomes a paragraph break (``</p>``).
+
+For example::
+
+    {{ value|linebreaks }}
+
+If ``value`` is ``Joel\nis a slug``, the output will be ``<p>Joel<br />is a
+slug</p>``.
+
+linebreaksbr
+~~~~~~~~~~~~
+
+Converts all newlines in a piece of plain text to HTML line breaks
+(``<br />``).
+
+linenumbers
+-----------
+
+Displays text with line numbers.
+
+ljust
+-----
+
+Left-aligns the value in a field of a given width.
+
+**Argument:** field size
+
+lower
+-----
+
+Converts a string into all lowercase.
+
+For example::
+
+    {{ value|lower }}
+
+If ``value`` is ``Still MAD At Yoko``, the output will be ``still mad at yoko``.
+
+make_list
+---------
+
+Returns the value turned into a list. For an integer, it's a list of
+digits. For a string, it's a list of characters.
+
+For example::
+
+    {{ value|make_list }}
+
+If ``value`` is the string ``"Joel"``, the output would be the list
+``[u'J', u'o', u'e', u'l']``. If ``value`` is ``123``, the output will be the
+list ``[1, 2, 3]``.
+
+phone2numeric
+-------------
+
+Converts a phone number (possibly containing letters) to its numerical
+equivalent. For example, ``'800-COLLECT'`` will be converted to
+``'800-2655328'``.
+
+The input doesn't have to be a valid phone number. This will happily convert
+any string.
+
+pluralize
+---------
+
+Returns a plural suffix if the value is not 1. By default, this suffix is ``'s'``.
+
+Example::
+
+    You have {{ num_messages }} message{{ num_messages|pluralize }}.
+
+For words that require a suffix other than ``'s'``, you can provide an alternate
+suffix as a parameter to the filter.
+
+Example::
+
+    You have {{ num_walruses }} walrus{{ num_walrus|pluralize:"es" }}.
+
+For words that don't pluralize by simple suffix, you can specify both a
+singular and plural suffix, separated by a comma.
+
+Example::
+
+    You have {{ num_cherries }} cherr{{ num_cherries|pluralize:"y,ies" }}.
+
+pprint
+------
+
+A wrapper around the Python standard library's ``pprint.pprint`` function --
+for debugging, really.
+
+random
+------
+
+Returns a random item from the given list.
+
+For example::
+
+    {{ value|random }}
+
+If ``value`` is the list ``['a', 'b', 'c', 'd']``, the output could be ``"b"``.
+
+removetags
+----------
+
+Removes a space-separated list of [X]HTML tags from the output.
+
+For example::
+
+    {{ value|removetags:"b span"|safe }}
+
+If ``value`` is ``"<b>Joel</b> <button>is</button> a <span>slug</span>"`` the
+output will be ``"Joel <button>is</button> a slug"``.
+
+rjust
+-----
+
+Right-aligns the value in a field of a given width.
+
+**Argument:** field size
+
+safe
+----
+
+Marks a string as not requiring further HTML escaping prior to output. When
+autoescaping is off, this filter has no effect.
+
+safeseq
+-------
+
+Applies the ``safe`` filter to each element of a sequence.  Useful in
+conjunction with other filters that operate on sequences, such as
+``join``.  For example::
+
+    {{ some_list|safeseq|join:", " }}
+
+You couldn't use the ``safe`` filter directly in this case, as it would
+first convert the variable into a string, rather than working with the
+individual elements of the sequence.
+
+slice
+-----
+
+Returns a slice of the list.
+
+Uses the same syntax as Python's list slicing. See
+http://diveintopython.org/native_data_types/lists.html#odbchelper.list.slice
+for an introduction.
+
+Example::
+
+    {{ some_list|slice:":2" }}
+
+slugify
+-------
+
+Converts to lowercase, removes non-word characters (only alphanumerics and
+underscores are kept) and converts spaces to hyphens. Also strips leading and trailing
+whitespace.
+
+For example::
+
+    {{ value|slugify }}
+
+If ``value`` is ``"Joel is a slug"``, the output will be ``"joel-is-a-slug"``.
+
+stringformat
+------------
+
+Formats the variable according to the argument, a string formatting specifier.
+This specifier uses Python string formatting syntax, with the exception that
+the leading "%" is dropped.
+
+See http://docs.python.org/library/stdtypes.html#string-formatting-operations
+for documentation of Python string formatting.
+
+For example::
+
+    {{ value|stringformat:"s" }}
+
+If ``value`` is ``"Joel is a slug"``, the output will be ``"Joel is a slug"``.
+
+striptags
+---------
+
+Strips all [X]HTML tags.
+
+For example::
+
+    {{ value|striptags }}
+
+If ``value`` is ``"<b>Joel</b> <button>is</button> a <span>slug</span>"``, the
+output will be ``"Joel is a slug"``.
+
+time
+----
+
+Formats a time according to the given format (same as the `now`_ tag).
+The time filter will only accept parameters in the format string that relate
+to the time of day, not the date (for obvious reasons). If you need to
+format a date, use the `date`_ filter.
+
+For example::
+
+    {{ value|time:"H:i" }}
+
+If ``value`` is equivalent to ``datetime.datetime.now()``, the output will be
+the string ``"01:23"``.
+
+When used without a format string::
+
+    {{ value|time }}
+
+...the formatting string defined in the ``TIME_FORMAT`` setting will be
+used.
+
+timesince
+---------
+
+Formats a date as the time since that date (e.g., "4 days, 6 hours").
+
+Takes an optional argument that is a variable containing the date to use as
+the comparison point (without the argument, the comparison point is *now*).
+For example, if ``blog_date`` is a date instance representing midnight on 1
+June 2006, and ``comment_date`` is a date instance for 08:00 on 1 June 2006,
+then ``{{ blog_date|timesince:comment_date }}`` would return "8 hours".
+
+Comparing offset-naive and offset-aware datetimes will return an empty string.
+
+Minutes is the smallest unit used, and "0 minutes" will be returned for any
+date that is in the future relative to the comparison point.
+
+timeuntil
+---------
+
+Similar to ``timesince``, except that it measures the time from now until the
+given date or datetime. For example, if today is 1 June 2006 and
+``conference_date`` is a date instance holding 29 June 2006, then
+``{{ conference_date|timeuntil }}`` will return "4 weeks".
+
+Takes an optional argument that is a variable containing the date to use as
+the comparison point (instead of *now*). If ``from_date`` contains 22 June
+2006, then ``{{ conference_date|timeuntil:from_date }}`` will return "1 week".
+
+Comparing offset-naive and offset-aware datetimes will return an empty string.
+
+Minutes is the smallest unit used, and "0 minutes" will be returned for any
+date that is in the past relative to the comparison point.
+
+title
+-----
+
+Converts a string into titlecase.
+
+truncatewords
+-------------
+
+Truncates a string after a certain number of words.
+
+**Argument:** Number of words to truncate after
+
+For example::
+
+    {{ value|truncatewords:2 }}
+
+If ``value`` is ``"Joel is a slug"``, the output will be ``"Joel is ..."``.
+
+truncatewords_html
+------------------
+
+Similar to ``truncatewords``, except that it is aware of HTML tags. Any tags
+that are opened in the string and not closed before the truncation point, are
+closed immediately after the truncation.
+
+This is less efficient than ``truncatewords``, so should only be used when it
+is being passed HTML text.
+
+unordered_list
+--------------
+
+Recursively takes a self-nested list and returns an HTML unordered list --
+WITHOUT opening and closing <ul> tags.
+
+The list is assumed to be in the proper format. For example, if ``var`` contains
+``['States', ['Kansas', ['Lawrence', 'Topeka'], 'Illinois']]``, then
+``{{ var|unordered_list }}`` would return::
+
+    <li>States
+    <ul>
+            <li>Kansas
+            <ul>
+                    <li>Lawrence</li>
+                    <li>Topeka</li>
+            </ul>
+            </li>
+            <li>Illinois</li>
+    </ul>
+    </li>
+
+upper
+-----
+
+Converts a string into all uppercase.
+
+For example::
+
+    {{ value|upper }}
+
+If ``value`` is ``"Joel is a slug"``, the output will be ``"JOEL IS A SLUG"``.
+
+urlencode
+---------
+
+Escapes a value for use in a URL.
+
+urlize
+------
+
+Converts URLs in plain text into clickable links.
+
+Note that if ``urlize`` is applied to text that already contains HTML markup,
+things won't work as expected. Apply this filter only to *plain* text.
+
+For example::
+
+    {{ value|urlize }}
+
+If ``value`` is ``"Check out www.djangoproject.com"``, the output will be
+``"Check out <a
+href="http://www.djangoproject.com">www.djangoproject.com</a>"``.
+
+urlizetrunc
+-----------
+
+Converts URLs into clickable links, truncating URLs longer than the given
+character limit.
+
+As with urlize_, this filter should only be applied to *plain* text.
+
+**Argument:** Length to truncate URLs to
+
+For example::
+
+    {{ value|urlizetrunc:15 }}
+
+If ``value`` is ``"Check out www.djangoproject.com"``, the output would be
+``'Check out <a
+href="http://www.djangoproject.com">www.djangopr...</a>'``.
+
+wordcount
+---------
+
+Returns the number of words.
+
+wordwrap
+--------
+
+Wraps words at specified line length.
+
+**Argument:** number of characters at which to wrap the text
+
+For example::
+
+    {{ value|wordwrap:5 }}
+
+If ``value`` is ``Joel is a slug``, the output would be::
+
+    Joel
+    is a
+    slug
+
+yesno
+-----
+
+Given a string mapping values for ``True``, ``False``, and (optionally) ``None``,
+returns one of those strings according to the value (see Table F-4).
+
+.. table:: Table E-4. Examples of the yesno Filter
+
+    ==========  ======================  ==================================
+    Value       Argument                Outputs
+    ==========  ======================  ==================================
+    ``True``    ``"yeah,no,maybe"``     ``yeah``
+    ``False``   ``"yeah,no,maybe"``     ``no``
+    ``None``    ``"yeah,no,maybe"``     ``maybe``
+    ``None``    ``"yeah,no"``           ``"no"`` (converts None to False
+                                        if no mapping for None is given)
+    ==========  ======================  ==================================

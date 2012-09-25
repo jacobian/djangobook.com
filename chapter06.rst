@@ -1,14 +1,13 @@
-=========================================
-Chapter 6: The Django Administration Site
-=========================================
+================================
+Chapter 6: The Django Admin Site
+================================
 
 For a certain class of Web sites, an *admin interface* is an essential part of
 the infrastructure. This is a Web-based interface, limited to trusted site
 administrators, that enables the adding, editing and deletion of site content.
-The interface you use to post to your blog, the backend site managers use to
-moderate reader-generated comments, the tool your clients use to update the
-press releases on the Web site you built for them -- these are all examples of
-admin interfaces.
+Some common examples: the interface you use to post to your blog, the backend
+site managers use to moderate user-generated comments, the tool your clients
+use to update the press releases on the Web site you built for them.
 
 There's a problem with admin interfaces, though: it's boring to build them.
 Web development is fun when you're developing public-facing functionality, but
@@ -17,110 +16,100 @@ display and handle forms, validate input, and so on. It's boring, and it's
 repetitive.
 
 So what's Django's approach to these boring, repetitive tasks? It does it all
-for you--in just a couple of lines of code, no less. With Django, building an
+for you -- in just a couple of lines of code, no less. With Django, building an
 admin interface is a solved problem.
 
-This chapter is about Django's automatic admin interface. This feature works by
+This chapter is about Django's automatic admin interface. The feature works by
 reading metadata in your model to provide a powerful and production-ready
 interface that site administrators can start using immediately. Here, we discuss
 how to activate, use, and customize this feature.
 
+Note that we recommend reading this chapter even if you don't intend to use the
+Django admin site, because we introduce a few concepts that apply to all of
+Django, regardless of admin-site usage.
+
+The django.contrib packages
+===========================
+
+Django's automatic admin is part of a larger suite of Django functionality
+called ``django.contrib`` -- the part of the Django codebase that contains
+various useful add-ons to the core framework. You can think of
+``django.contrib`` as Django's equivalent of the Python standard library --
+optional, de facto implementations of common patterns. They're bundled with
+Django so that you don't have to reinvent the wheel in your own applications.
+
+The admin site is the first part of ``django.contrib`` that we're covering in
+this book; technically, it's called ``django.contrib.admin``. Other available
+features in ``django.contrib`` include a user authentication system
+(``django.contrib.auth``), support for anonymous sessions
+(``django.contrib.sessions``) and even a system for user comments
+(``django.contrib.comments``). You'll get to know the various ``django.contrib``
+features as you become a Django expert, and we'll spend some more time
+discussing them in Chapter 16. For now, just know that Django ships with many
+nice add-ons, and ``django.contrib`` is generally where they live.
+
 Activating the Admin Interface
 ==============================
 
-We think the admin interface is the coolest part of Django--and most
-Djangonauts agree--but since not everyone actually needs it, it's an
-optional piece. That means there are three steps you'll need to follow to
-activate it:
+The Django admin site is entirely optional, because only certain types of sites
+need this functionality. That means you'll need to take a few steps to activate
+it in your project.
 
-    1.  Add admin metadata to your models.
+First, make a few changes to your settings file:
 
-        Not all models can (or should) be editable by admin users, so you need
-        to "mark" models that should have an admin interface. You do that by
-        adding an inner ``Admin`` class to your model (alongside the ``Meta``
-        class, if you have one). So, to add an admin interface to our
-        ``Book`` model from the previous chapter, we use this:
+    1. Add ``'django.contrib.admin'`` to the ``INSTALLED_APPS`` setting. (The
+       order of ``INSTALLED_APPS`` doesn't matter, but we like to keep things
+       alphabetical so it's easy for a human to read.)
 
-        .. parsed-literal::
+    2. Make sure ``INSTALLED_APPS`` contains ``'django.contrib.auth'``,
+       ``'django.contrib.contenttypes'`` and ``'django.contrib.sessions'``. The
+       Django admin site requires these three packages. (If you're following
+       along with our ongoing ``mysite`` project, note that we commented out
+       these three ``INSTALLED_APPS`` entries in Chapter 5. Uncomment them now.)
 
-            class Book(models.Model):
-                title = models.CharField(maxlength=100)
-                authors = models.ManyToManyField(Author)
-                publisher = models.ForeignKey(Publisher)
-                publication_date = models.DateField()
-                num_pages = models.IntegerField(blank=True, null=True)
+    3. Make sure ``MIDDLEWARE_CLASSES`` contains
+       ``'django.middleware.common.CommonMiddleware'``,
+       ``'django.contrib.sessions.middleware.SessionMiddleware'`` and
+       ``'django.contrib.auth.middleware.AuthenticationMiddleware'``. (Again,
+       if you're following along, note that we commented them out in Chapter 5,
+       so uncomment them.)
 
-                def __str__(self):
-                    return self.title
+Second, run ``python manage.py syncdb``. This step will install the extra
+database tables that the admin interface uses. The first time you run
+``syncdb`` with ``'django.contrib.auth'`` in ``INSTALLED_APPS``, you'll be
+asked about creating a superuser. If you don't do this, you'll need to run
+``python manage.py createsuperuser`` separately to create an admin user
+account; otherwise, you won't be able to log in to the admin site. (Potential
+gotcha: the ``python manage.py createsuperuser`` command is only available if
+``'django.contrib.auth'`` is in your ``INSTALLED_APPS``.)
 
-                **class Admin:**
-                    **pass**
+Third, add the admin site to your URLconf (in ``urls.py``, remember). By
+default, the ``urls.py`` generated by ``django-admin.py startproject`` contains
+commented-out code for the Django admin, and all you have to do is uncomment
+it. For the record, here are the bits you need to make sure are in there::
 
-        The ``Admin`` declaration flags the class as having an admin
-        interface. There are a number of options that you can put beneath
-        ``Admin``, but for now we're sticking with all the defaults, so we put
-        ``pass`` in there to signify to Python that the ``Admin`` class is
-        empty.
+    # Include these import statements...
+    from django.contrib import admin
+    admin.autodiscover()
 
-        If you're following this example with your own code, it's probably a
-        good idea to add ``Admin`` declarations to the ``Publisher`` and
-        ``Author`` classes at this point.
+    # And include this URLpattern...
+    urlpatterns = patterns('',
+        # ...
+        (r'^admin/', include(admin.site.urls)),
+        # ...
+    )
 
-    2.  Install the admin application. Do this by adding ``"django.contrib.admin"``
-        to your ``INSTALLED_APPS`` setting.
+With that bit of configuration out of the way, now you can see the Django
+admin site in action. Just run the development server
+(``python manage.py runserver``, as in previous chapters) and visit
+``http://127.0.0.1:8000/admin/`` in your Web browser.
 
-    3.  If you've been following along, make sure that ``"django.contrib.sessions"``,
-        ``"django.contrib.auth"``, and ``"django.contrib.contenttypes"`` are
-        uncommented, since the admin application depends on them.  Also uncomment
-        all the lines in the ``MIDDLEWARE_CLASSES`` setting tuple and delete the
-        ``TEMPLATE_CONTEXT_PROCESSOR`` setting to allow it to take
-        the default values again.
+Using the Admin Site
+====================
 
-    4.  Run ``python manage.py syncdb``. This step will install the extra database
-        tables the admin interface uses.
-
-        .. note::
-
-            When you first run ``syncdb`` with ``"django.contrib.auth"`` in
-            INSTALLED_APPS, you'll be asked about creating a superuser. If you
-            didn't do so at that time, you'll need to run
-            ``django/contrib/auth/bin/create_superuser.py`` to create an
-            admin user. Otherwise, you won't be able to log in to the admin
-            interface.
-
-    5.  Add the URL pattern to your ``urls.py``. If you're still using the
-        one created by ``startproject``, the admin URL pattern should be
-        already there, but commented out. Either way, your URL patterns should
-        look like the following:
-
-        .. parsed-literal::
-
-            from django.conf.urls.defaults import *
-
-            urlpatterns = patterns('',
-                **(r'^admin/', include('django.contrib.admin.urls')),**
-            )
-
-That's it. Now run ``python manage.py runserver`` to start the development
-server. You'll see something like this::
-
-    Validating models...
-    0 errors found.
-
-    Django version 0.96, using settings 'mysite.settings'
-    Development server is running at http://127.0.0.1:8000/
-    Quit the server with CONTROL-C.
-
-Now you can visit the URL given to you by Django
-(``http://127.0.0.1:8000/admin/`` in the preceding example), log in, and play
-around.
-
-Using the Admin Interface
-=========================
-
-The admin interface is designed to be used by nontechnical users, and as such it
-should be pretty self-explanatory. Nevertheless, a few notes about the
-features of the admin interface are in order.
+The admin site is designed to be used by nontechnical users, and as such it
+should be pretty self-explanatory. Nevertheless, we'll give you a quick
+walkthrough of the basic features.
 
 The first thing you'll see is a login screen, as shown in Figure 6-1.
 
@@ -129,294 +118,867 @@ The first thing you'll see is a login screen, as shown in Figure 6-1.
 
    Figure 6-1. Django's login screen
 
-You'll use the username and password you set up when you added your superuser.
-Once you're logged in, you'll see that you can manage users, groups, and
-permissions (more on that shortly).
+Log in with the username and password you set up when you added your superuser.
+If you're unable to log in, make sure you've actually created a superuser --
+try running ``python manage.py createsuperuser``.
 
-Each object given an ``Admin`` declaration shows up on the main index page, as
-shown in Figure 6-2.
+Once you're logged in, the first thing you'll see will be the admin home page.
+This page lists all the available types of data that can be edited on the admin
+site. At this point, because we haven't activated any of our own models yet,
+the list is sparse: it includes only Groups and Users, which are the two
+default admin-editable models.
+
+.. DWP The screenshot contains books etc too.
 
 .. figure:: graphics/chapter06/admin_index.png
-   :alt: Screenshot of the main Django admin index.
+   :alt: Screenshot of the Django admin home page.
 
-   Figure 6-2. The main Django admin index
+   Figure 6-2. The Django admin home page
 
-Links to add and change objects lead to two pages we refer to as object
-*change lists* and *edit forms*. Change lists are essentially index pages
-of objects in the system, as shown in Figure 6-3.
+Each type of data in the Django admin site has a *change list* and an
+*edit form*. Change lists show you all the available objects in the database,
+and edit forms let you add, change or delete particular records in your
+database.
 
-.. figure:: graphics/chapter06/changelist.png
-   :alt: Screenshot of a typical change list view.
+.. admonition:: Other languages
 
-   Figure 6-3. A typical change list view
+    If your primary language is not English and your Web browser is configured
+    to prefer a language other than English, you can make a quick change to
+    see whether the Django admin site has been translated into your language.
+    Just add ``'django.middleware.locale.LocaleMiddleware'`` to your
+    ``MIDDLEWARE_CLASSES`` setting, making sure it appears *after*
+    ``'django.contrib.sessions.middleware.SessionMiddleware'``.
 
-A number of options control which fields appear on these
-lists and the appearance of extra features like date drill-downs, search
-fields, and filter interfaces. We discuss these features in more detail shortly.
+    When you've done that, reload the admin index page. If a translation for
+    your language is available, then the various parts of the interface -- from
+    the "Change password" and "Log out" links at the top of the page, to the
+    "Groups" and "Users" links in the middle -- will appear in your language
+    instead of English. Django ships with translations for dozens of languages.
 
-Edit forms are used to modify existing objects and create new ones (see Figure
-6-4). Each field defined in your model appears here, and you'll notice that
-fields of different types get different widgets (e.g., date/time fields have
-calendar controls, foreign keys use a select box, etc.).
+    For much more on Django's internationalization features, see Chapter 19.
 
-.. figure:: graphics/chapter06/editform.png
-   :alt: Screenshot of a typical edit form.
+Click the "Change" link in the "Users" row to load the change list page for
+users.
 
-   Figure 6-4. A typical edit form
+.. figure:: graphics/chapter06/user_changelist.png
+   :alt: Screenshot of the user change list page.
 
-You'll notice that the admin interface also handles input validation for you.
-Try leaving a required field blank or putting an invalid time into a time field,
-and you'll see those errors when you try to save, as shown in Figure 6-5.
+   Figure 6-3. The user change list page
 
-.. figure:: graphics/chapter06/editform_errors.png
+.. DWP This screenshot is actually the list for books.
+
+This page displays all users in the database; you can think of it as a
+prettied-up Web version of a ``SELECT * FROM auth_user;`` SQL query. If you're
+following along with our ongoing example, you'll only see one user here,
+assuming you've added only one, but once you have more users, you'll probably
+find the filtering, sorting and searching options useful. Filtering options are
+at right, sorting is available by clicking a column header, and the search box
+at the top lets you search by username.
+
+Click the username of the user you created, and you'll see the edit form for
+that user.
+
+.. figure:: graphics/chapter06/user_editform.png
+   :alt: Screenshot of the user edit form
+
+   Figure 6-4. The user edit form
+
+.. DWP The edit form screenshot is for a book.
+
+This page lets you change the attributes of the user, like the
+first/last names and various permissions. (Note that to change a user's
+password, you should click "change password form" under the password field
+rather than editing the hashed code.) Another thing to note here is that fields
+of different types get different widgets -- for example, date/time fields have
+calendar controls, boolean fields have checkboxes, character fields have simple
+text input fields.
+
+You can delete a record by clicking the delete button at the bottom left of its
+edit form. That'll take you to a confirmation page, which, in some cases, will
+display any dependent objects that will be deleted, too. (For example, if you
+delete a publisher, any book with that publisher will be deleted, too!)
+
+You can add a record by clicking "Add" in the appropriate column of the admin
+home page. This will give you an empty version of the edit page, ready for you
+to fill out.
+
+You'll also notice that the admin interface also handles input validation for
+you. Try leaving a required field blank or putting an invalid date into a date
+field, and you'll see those errors when you try to save, as shown in Figure 6-5.
+
+.. figure:: graphics/chapter06/user_editform_errors.png
    :alt: Screenshot of an edit form displaying errors.
 
    Figure 6-5. An edit form displaying errors
 
-When you edit an existing object, you'll notice a History button in the
+.. DWP The screenshots are still following a book example.
+
+When you edit an existing object, you'll notice a History link in the
 upper-right corner of the window. Every change made through the admin interface
-is logged, and you can examine this log by clicking the History button (see
+is logged, and you can examine this log by clicking the History link (see
 Figure 6-6).
 
-.. figure:: graphics/chapter06/history.png
-   :alt: Screenshot of Django's object history page.
+.. figure:: graphics/chapter06/user_history.png
+   :alt: Screenshot of an object history page.
 
-   Figure 6-6. Django's object history page
+   Figure 6-6. An object history page
 
-When you delete an existing object, the admin interface asks you to confirm the
-delete action to avoid costly mistakes. Deletions also *cascade*; the deletion
-confirmation page shows you all the related objects that will be deleted as well
-(see Figure 6-7).
+.. DWP Still using a book in the pictures.
 
-.. figure:: graphics/chapter06/delete_confirm.png
-   :alt: Screenshot of Django's delete confirmation page.
+Adding Your Models to the Admin Site
+====================================
 
-   Figure 6-7. Django's delete confirmation page
+There's one crucial part we haven't done yet. Let's add our own models to the
+admin site, so we can add, change and delete objects in our custom database
+tables using this nice interface. We'll continue the ``books`` example from
+Chapter 5, where we defined three models: ``Publisher``, ``Author`` and
+``Book``.
+
+Within the ``books`` directory (``mysite/books``), create a file called
+``admin.py``, and type in the following lines of code::
+
+    from django.contrib import admin
+    from mysite.books.models import Publisher, Author, Book
+
+    admin.site.register(Publisher)
+    admin.site.register(Author)
+    admin.site.register(Book)
+
+This code tells the Django admin site to offer an interface for each of these
+models.
+
+Once you've done this, go to your admin home page in your Web browser
+(``http://127.0.0.1:8000/admin/``), and you should see a "Books" section with
+links for Authors, Books and Publishers. (You might have to stop and start the
+``runserver`` for the changes to take effect.)
+
+.. SL Tested ok
+
+You now have a fully functional admin interface for each of those three models.
+That was easy!
+
+Take some time to add and change records, to populate your database with some
+data. If you followed Chapter 5's examples of creating ``Publisher`` objects
+(and you didn't delete them), you'll already see those records on the publisher
+change list page.
+
+One feature worth mentioning here is the admin site's handling of foreign keys
+and many-to-many relationships, both of which appear in the ``Book`` model. As
+a reminder, here's what the ``Book`` model looks like::
+
+    class Book(models.Model):
+        title = models.CharField(max_length=100)
+        authors = models.ManyToManyField(Author)
+        publisher = models.ForeignKey(Publisher)
+        publication_date = models.DateField()
+
+        def __unicode__(self):
+            return self.title
+
+On the Django admin site's "Add book" page
+(``http://127.0.0.1:8000/admin/books/book/add/``), the publisher (a
+``ForeignKey``) is represented by a select box, and the authors field
+(a ``ManyToManyField``) is represented by a multiple-select box. Both fields
+sit next to a green plus sign icon that lets you add related records of that
+type. For example, if you click the green plus sign next to the "Publisher"
+field, you'll get a pop-up window that lets you add a publisher. After you
+successfully create the publisher in the pop-up, the "Add book" form will be
+updated with the newly created publisher. Slick.
+
+How the Admin Site Works
+========================
+
+Behind the scenes, how does the admin site work? It's pretty straightforward.
+
+When Django loads your URLconf from ``urls.py`` at server startup, it executes
+the ``admin.autodiscover()`` statement that we added as part of activating the
+admin. This function iterates over your ``INSTALLED_APPS`` setting and looks
+for a file called ``admin.py`` in each installed app. If an ``admin.py``
+exists in a given app, it executes the code in that file.
+
+In the ``admin.py`` in our ``books`` app, each call to
+``admin.site.register()`` simply registers the given model with the admin. The
+admin site will only display an edit/change interface for models that have been
+explicitly registered.
+
+The app ``django.contrib.auth`` includes its own ``admin.py``, which is why
+Users and Groups showed up automatically in the admin. Other ``django.contrib``
+apps, such as ``django.contrib.redirects``, also add themselves to the admin,
+as do many third-party Django applications you might download from the Web.
+
+Beyond that, the Django admin site is just a Django application, with its own
+models, templates, views and URLpatterns. You add it to your application by
+hooking it into your URLconf, just as you hook in your own views. You can
+inspect its templates, views and URLpatterns by poking around in
+``django/contrib/admin`` in your copy of the Django codebase -- but don't be
+tempted to change anything directly in there, as there are plenty of hooks for
+you to customize the way the admin site works. (If you do decide to poke around
+the Django admin application, keep in mind it does some rather complicated
+things in reading metadata about models, so it would probably take a good
+amount of time to read and understand the code.)
+
+Making Fields Optional
+======================
+
+After you play around with the admin site for a while, you'll probably notice a
+limitation -- the edit forms require every field to be filled out, whereas in
+many cases you'd want certain fields to be optional. Let's say, for example,
+that we want our ``Author`` model's ``email`` field to be optional -- that is,
+a blank string should be allowed. In the real world, you might not have an
+e-mail address on file for every author.
+
+To specify that the ``email`` field is optional, edit the ``Book`` model
+(which, as you'll recall from Chapter 5, lives in ``mysite/books/models.py``).
+Simply add ``blank=True`` to the ``email`` field, like so:
+
+.. parsed-literal::
+
+    class Author(models.Model):
+        first_name = models.CharField(max_length=30)
+        last_name = models.CharField(max_length=40)
+        email = models.EmailField(**blank=True**)
+
+.. SL Tested ok
+
+This tells Django that a blank value is indeed allowed for authors' e-mail
+addresses. By default, all fields have ``blank=False``, which means blank
+values are not allowed.
+
+There's something interesting happening here. Until now, with the exception of
+the ``__unicode__()`` method, our models have served as definitions of our
+database tables -- Pythonic expressions of SQL ``CREATE TABLE`` statements,
+essentially. In adding ``blank=True``, we have begun expanding our model beyond
+a simple definition of what the database table looks like. Now, our model class
+is starting to become a richer collection of knowledge about what ``Author``
+objects are and what they can do. Not only is the ``email`` field represented
+by a ``VARCHAR`` column in the database; it's also an optional field in
+contexts such as the Django admin site.
+
+Once you've added that ``blank=True``, reload the "Add author" edit form
+(``http://127.0.0.1:8000/admin/books/author/add/``), and you'll notice the
+field's label -- "Email" -- is no longer bolded. This signifies it's not a
+required field. You can now add authors without needing to provide
+e-mail addresses; you won't get the loud red "This field is required" message
+anymore, if the field is submitted empty.
+
+Making Date and Numeric Fields Optional
+---------------------------------------
+
+A common gotcha related to ``blank=True`` has to do with date and numeric
+fields, but it requires a fair amount of background explanation.
+
+SQL has its own way of specifying blank values -- a special value called
+``NULL``. ``NULL`` could mean "unknown," or "invalid," or some other
+application-specific meaning.
+
+In SQL, a value of ``NULL`` is different than an empty string, just as the
+special Python object ``None`` is different than an empty Python string
+(``""``). This means it's possible for a particular character field (e.g., a
+``VARCHAR`` column) to contain both ``NULL`` values and empty string values.
+
+This can cause unwanted ambiguity and confusion: "Why does this record have a
+``NULL`` but this other one has an empty string? Is there a difference, or was
+the data just entered inconsistently?" And: "How do I get all the records that
+have a blank value -- should I look for both ``NULL`` records and empty
+strings, or do I only select the ones with empty strings?"
+
+To help avoid such ambiguity, Django's automatically generated ``CREATE TABLE``
+statements (which were covered in Chapter 5) add an explicit ``NOT NULL`` to
+each column definition. For example, here's the generated statement for our
+``Author`` model, from Chapter 5::
+
+    CREATE TABLE "books_author" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "first_name" varchar(30) NOT NULL,
+        "last_name" varchar(40) NOT NULL,
+        "email" varchar(75) NOT NULL
+    )
+    ;
+
+In most cases, this default behavior is optimal for your application and will
+save you from data-inconsistency headaches. And it works nicely with the rest
+of Django, such as the Django admin site, which inserts an empty string (*not*
+a ``NULL`` value) when you leave a character field blank.
+
+But there's an exception with database column types that do not accept empty
+strings as valid values -- such as dates, times and numbers. If you try to
+insert an empty string into a date or integer column, you'll likely get a
+database error, depending on which database you're using. (PostgreSQL, which is
+strict, will raise an exception here; MySQL might accept it or might not,
+depending on the version you're using, the time of day and the phase of the
+moon.) In this case, ``NULL`` is the only way to specify an empty
+value. In Django models, you can specify that ``NULL`` is allowed by adding
+``null=True`` to a field.
+
+So that's a long way of saying this: if you want to allow blank values in a
+date field (e.g., ``DateField``, ``TimeField``, ``DateTimeField``) or numeric
+field (e.g., ``IntegerField``, ``DecimalField``, ``FloatField``), you'll need
+to use both ``null=True`` *and* ``blank=True``.
+
+For sake of example, let's change our ``Book`` model to allow a blank
+``publication_date``. Here's the revised code:
+
+.. parsed-literal::
+
+    class Book(models.Model):
+        title = models.CharField(max_length=100)
+        authors = models.ManyToManyField(Author)
+        publisher = models.ForeignKey(Publisher)
+        publication_date = models.DateField(**blank=True, null=True**)
+
+.. SL Tested ok
+
+Adding ``null=True`` is more complicated than adding ``blank=True``, because
+``null=True`` changes the semantics of the database -- that is, it changes the
+``CREATE TABLE`` statement to remove the ``NOT NULL`` from the
+``publication_date`` field. To complete this change, we'll need to update the
+database.
+
+For a number of reasons, Django does not attempt to automate changes to
+database schemas, so it's your own responsibility to execute the appropriate
+``ALTER TABLE`` statement whenever you make such a change to a model. Recall
+that you can use ``manage.py dbshell`` to enter your database server's shell.
+Here's how to remove the ``NOT NULL`` in this particular case::
+
+    ALTER TABLE books_book ALTER COLUMN publication_date DROP NOT NULL;
+
+(Note that this SQL syntax is specific to PostgreSQL.)
+
+We'll cover schema changes in more depth in Chapter 10.
+
+Bringing this back to the admin site, now the "Add book" edit form should allow
+for empty publication date values.
+
+Customizing Field Labels
+========================
+
+On the admin site's edit forms, each field's label is generated from its model
+field name. The algorithm is simple: Django just replaces underscores with
+spaces and capitalizes the first character, so, for example, the ``Book``
+model's ``publication_date`` field has the label "Publication date."
+
+However, field names don't always lend themselves to nice admin field labels,
+so in some cases you might want to customize a label. You can do this by
+specifying ``verbose_name`` in the appropriate model field.
+
+For example, here's how we can change the label of the ``Author.email`` field
+to "e-mail," with a hyphen:
+
+.. parsed-literal::
+
+    class Author(models.Model):
+        first_name = models.CharField(max_length=30)
+        last_name = models.CharField(max_length=40)
+        email = models.EmailField(blank=True, **verbose_name='e-mail'**)
+
+Make that change and reload the server, and you should see the field's new
+label on the author edit form.
+
+Note that you shouldn't capitalize the first letter of a ``verbose_name``
+unless it should *always* be capitalized (e.g., ``"USA state"``). Django will
+automatically capitalize it when it needs to, and it will use the exact
+``verbose_name`` value in other places that don't require capitalization.
+
+Finally, note that you can pass the ``verbose_name`` as a positional argument,
+for a slightly more compact syntax. This example is equivalent to the previous
+one:
+
+.. parsed-literal::
+
+    class Author(models.Model):
+        first_name = models.CharField(max_length=30)
+        last_name = models.CharField(max_length=40)
+        email = models.EmailField(**'e-mail',** blank=True)
+
+.. SL Tested ok
+
+This won't work with ``ManyToManyField`` or ``ForeignKey`` fields, though,
+because they require the first argument to be a model class. In those cases,
+specifying ``verbose_name`` explicitly is the way to go.
+
+Custom ModelAdmin classes
+=========================
+
+The changes we've made so far -- ``blank=True``, ``null=True`` and
+``verbose_name`` -- are really model-level changes, not admin-level changes.
+That is, these changes are fundamentally a part of the model and just so happen
+to be used by the admin site; there's nothing admin-specific about them.
+
+Beyond these, the Django admin site offers a wealth of options that let you
+customize how the admin site works for a particular model. Such options live in
+*ModelAdmin classes*, which are classes that contain configuration for a
+specific model in a specific admin site instance.
+
+Customizing change lists
+------------------------
+
+Let's dive into admin customization by specifying the fields that are
+displayed on the change list for our ``Author`` model. By default, the change
+list displays the result of ``__unicode__()`` for each object. In Chapter 5, we
+defined the ``__unicode__()`` method for ``Author`` objects to display the
+first name and last name together:
+
+.. parsed-literal::
+
+    class Author(models.Model):
+        first_name = models.CharField(max_length=30)
+        last_name = models.CharField(max_length=40)
+        email = models.EmailField(blank=True, verbose_name='e-mail')
+
+        **def __unicode__(self):**
+            **return u'%s %s' % (self.first_name, self.last_name)**
+
+As a result, the change list for ``Author`` objects displays each other's
+first name and last name together, as you can see in Figure 6-7.
+
+.. DWP The image is of the change list for a book, not an author.
+
+.. figure:: graphics/chapter06/author_changelist1.png
+   :alt: Screenshot of the author change list page.
+
+   Figure 6-7. The author change list page
+
+We can improve on this default behavior by adding a few other fields to the
+change list display. It'd be handy, for example, to see each author's e-mail
+address in this list, and it'd be nice to be able to sort by first and last
+name.
+
+To make this happen, we'll define a ``ModelAdmin`` class for the ``Author``
+model. This class is the key to customizing the admin, and one of the most
+basic things it lets you do is specify the list of fields to display on change
+list pages. Edit ``admin.py`` to make these changes:
+
+.. parsed-literal::
+
+    from django.contrib import admin
+    from mysite.books.models import Publisher, Author, Book
+
+    **class AuthorAdmin(admin.ModelAdmin):**
+        **list_display = ('first_name', 'last_name', 'email')**
+
+    admin.site.register(Publisher)
+    **admin.site.register(Author, AuthorAdmin)**
+    admin.site.register(Book)
+
+.. SL Tested ok
+
+Here's what we've done:
+
+    * We created the class ``AuthorAdmin``. This class, which subclasses
+      ``django.contrib.admin.ModelAdmin``, holds custom configuration
+      for a specific admin model. We've only specified one customization --
+      ``list_display``, which is set to a tuple of field names to display on
+      the change list page. These field names must exist in the model, of
+      course.
+
+    * We altered the ``admin.site.register()`` call to add ``AuthorAdmin`` after
+      ``Author``. You can read this as: "Register the ``Author`` model with the
+      ``AuthorAdmin`` options."
+
+      The ``admin.site.register()`` function takes a ``ModelAdmin`` subclass as
+      an optional second argument. If you don't specify a second argument (as
+      is the case for ``Publisher`` and ``Book``), Django will use the default
+      admin options for that model.
+
+With that tweak made, reload the author change list page, and you'll see it's
+now displaying three columns -- the first name, last name and e-mail address.
+In addition, each of those columns is sortable by clicking on the column
+header. (See Figure 6-8.)
+
+.. figure:: graphics/chapter06/author_changelist2.png
+   :alt: Screenshot of the author change list page after list_display.
+
+   Figure 6-8. The author change list page after list_display
+
+.. DWP This figure has the same filename as the last one.
+
+Next, let's add a simple search bar. Add ``search_fields`` to the
+``AuthorAdmin``, like so:
+
+.. parsed-literal::
+
+    class AuthorAdmin(admin.ModelAdmin):
+        list_display = ('first_name', 'last_name', 'email')
+        **search_fields = ('first_name', 'last_name')**
+
+.. SL Tested ok
+
+Reload the page in your browser, and you should see a search bar at the top.
+(See Figure 6-9.) We've just told the admin change list page to include a
+search bar that searches against the ``first_name`` and ``last_name`` fields.
+As a user might expect, this is case-insensitive and searches both fields, so
+searching for the string ``"bar"`` would find both an author with the first
+name Barney and an author with the last name Hobarson.
+
+.. DWP Again, same screenshot.
+
+.. figure:: graphics/chapter06/author_changelist3.png
+   :alt: Screenshot of the author change list page after search_fields.
+
+   Figure 6-9. The author change list page after search_fields
+
+Next, let's add some date filters to our ``Book`` model's change list page:
+
+.. parsed-literal::
+
+    from django.contrib import admin
+    from mysite.books.models import Publisher, Author, Book
+
+    class AuthorAdmin(admin.ModelAdmin):
+        list_display = ('first_name', 'last_name', 'email')
+        search_fields = ('first_name', 'last_name')
+
+    **class BookAdmin(admin.ModelAdmin):**
+        **list_display = ('title', 'publisher', 'publication_date')**
+        **list_filter = ('publication_date',)**
+
+    admin.site.register(Publisher)
+    admin.site.register(Author, AuthorAdmin)
+    **admin.site.register(Book, BookAdmin)**
+
+.. SL Tested ok
+
+Here, because we're dealing with a different set of options, we created a
+separate ``ModelAdmin`` class -- ``BookAdmin``. First, we defined a
+``list_display`` just to make the change list look a bit nicer. Then, we
+used ``list_filter``, which is set to a tuple of fields to use to create
+filters along the right side of the change list page. For date fields, Django
+provides shortcuts to filter the list to "Today," "Past 7 days," "This month"
+and "This year" -- shortcuts that Django's developers have found hit the
+common cases for filtering by date. Figure 6-10 shows what that looks like.
+
+.. DWP Screenshot needs changing.
+
+.. figure:: graphics/chapter06/book_changelist1.png
+   :alt: Screenshot of the book change list page after list_filter.
+
+   Figure 6-10. The book change list page after list_filter
+
+``list_filter`` also works on fields of other types, not just ``DateField``.
+(Try it with ``BooleanField`` and ``ForeignKey`` fields, for example.) The
+filters show up as long as there are at least 2 values to choose from.
+
+Another way to offer date filters is to use the ``date_hierarchy`` admin
+option, like this:
+
+.. parsed-literal::
+
+    class BookAdmin(admin.ModelAdmin):
+        list_display = ('title', 'publisher', 'publication_date')
+        list_filter = ('publication_date',)
+        **date_hierarchy = 'publication_date'**
+
+.. SL Tested ok
+
+With this in place, the change list page gets a date drill-down navigation bar
+at the top of the list, as shown in Figure 6-11. It starts with a list of
+available years, then drills down into months and individual days.
+
+.. DWP Screenshot again.
+
+.. figure:: graphics/chapter06/book_changelist2.png
+   :alt: Screenshot of the book change list page after date_hierarchy.
+
+   Figure 6-11. The book change list page after date_hierarchy
+
+Note that ``date_hierarchy`` takes a *string*, not a tuple, because only one
+date field can be used to make the hierarchy.
+
+Finally, let's change the default ordering so that books on the change list
+page are always ordered descending by their publication date. By default,
+the change list orders objects according to their model's ``ordering`` within
+``class Meta`` (which we covered in Chapter 5) -- but you haven't specified
+this ``ordering`` value, then the ordering is undefined.
+
+.. parsed-literal::
+
+    class BookAdmin(admin.ModelAdmin):
+        list_display = ('title', 'publisher', 'publication_date')
+        list_filter = ('publication_date',)
+        date_hierarchy = 'publication_date'
+        **ordering = ('-publication_date',)**
+
+.. SL Tested ok
+
+This admin ``ordering`` option works exactly as the ``ordering`` in models'
+``class Meta``, except that it only uses the first field name in the list. Just
+pass a list or tuple of field names, and add a minus sign to a field to use
+descending sort order.
+
+Reload the book change list to see this in action. Note that the
+"Publication date" header now includes a small arrow that indicates which way
+the records are sorted. (See Figure 6-12.)
+
+.. DWP Different screenshot needed.
+
+.. figure:: graphics/chapter06/book_changelist3.png
+   :alt: Screenshot of the book change list page after ordering.
+
+   Figure 6-12. The book change list page after ordering
+
+We've covered the main change list options here. Using these options, you can
+make a very powerful, production-ready data-editing interface with only a few
+lines of code.
+
+Customizing edit forms
+----------------------
+
+Just as the change list can be customized, edit forms can be customized in many
+ways.
+
+First, let's customize the way fields are ordered. By default, the order of
+fields in an edit form corresponds to the order they're defined in the model.
+We can change that using the ``fields`` option in our ``ModelAdmin`` subclass:
+
+.. parsed-literal::
+
+    class BookAdmin(admin.ModelAdmin):
+        list_display = ('title', 'publisher', 'publication_date')
+        list_filter = ('publication_date',)
+        date_hierarchy = 'publication_date'
+        ordering = ('-publication_date',)
+        **fields = ('title', 'authors', 'publisher', 'publication_date')**
+
+.. SL Tested ok
+
+After this change, the edit form for books will use the given ordering for
+fields. It's slightly more natural to have the authors after the book title.
+Of course, the field order should depend on your data-entry workflow. Every
+form is different.
+
+Another useful thing the ``fields`` option lets you do is to *exclude* certain
+fields from being edited entirely. Just leave out the field(s) you want to
+exclude. You might use this if your admin users are only trusted to edit a
+certain segment of your data, or if part of your fields are changed by some
+outside, automated process. For example, in our book database, we could
+hide the ``publication_date`` field from being editable:
+
+.. parsed-literal::
+
+    class BookAdmin(admin.ModelAdmin):
+        list_display = ('title', 'publisher', 'publication_date')
+        list_filter = ('publication_date',)
+        date_hierarchy = 'publication_date'
+        ordering = ('-publication_date',)
+        **fields = ('title', 'authors', 'publisher')**
+
+.. SL Tested ok
+
+As a result, the edit form for books doesn't offer a way to specify the
+publication date. This could be useful, say, if you're an editor who prefers
+that his authors not push back publication dates. (This is purely a
+hypothetical example, of course.)
+
+When a user uses this incomplete form to add a new book, Django will simply set
+the ``publication_date`` to ``None`` -- so make sure that field has
+``null=True``.
+
+Another commonly used edit-form customization has to do with many-to-many
+fields. As we've seen on the edit form for books, the admin site represents each
+``ManyToManyField`` as a multiple-select boxes, which is the most logical
+HTML input widget to use -- but multiple-select boxes can be difficult to use.
+If you want to select multiple items, you have to hold down the control key,
+or command on a Mac, to do so. The admin site helpfully inserts a bit of text
+that explains this, but, still, it gets unwieldy when your field contains
+hundreds of options.
+
+The admin site's solution is ``filter_horizontal``. Let's add that to
+``BookAdmin`` and see what it does.
+
+.. parsed-literal::
+
+    class BookAdmin(admin.ModelAdmin):
+        list_display = ('title', 'publisher', 'publication_date')
+        list_filter = ('publication_date',)
+        date_hierarchy = 'publication_date'
+        ordering = ('-publication_date',)
+        **filter_horizontal = ('authors',)**
+
+.. SL Tested ok
+
+(If you're following along, note that we've also removed the ``fields`` option
+to restore all the fields in the edit form.)
+
+Reload the edit form for books, and you'll see that the "Authors" section now
+uses a fancy JavaScript filter interface that lets you search through the
+options dynamically and move specific authors from "Available authors" to
+the "Chosen authors" box, and vice versa.
+
+.. DWP screenshot!
+
+.. figure:: graphics/chapter06/book_editform1.png
+   :alt: Screenshot of the book edit form after adding filter_horizontal.
+
+   Figure 6-13. The book edit form after adding filter_horizontal
+
+We'd highly recommend using ``filter_horizontal`` for any ``ManyToManyField``
+that has more than 10 items. It's far easier to use than a simple
+multiple-select widget. Also, note you can use ``filter_horizontal``
+for multiple fields -- just specify each name in the tuple.
+
+``ModelAdmin`` classes also support a ``filter_vertical`` option. This works
+exactly as ``filter_horizontal``, but the resulting JavaScript interface stacks
+the two boxes vertically instead of horizontally. It's a matter of personal
+taste.
+
+``filter_horizontal`` and ``filter_vertical`` only work on ``ManyToManyField``
+fields, not ``ForeignKey`` fields. By default, the admin site uses simple
+``<select>`` boxes for ``ForeignKey`` fields, but, as for ``ManyToManyField``,
+sometimes you don't want to incur the overhead of having to select all the
+related objects to display in the drop-down. For example, if our book database
+grows to include thousands of publishers, the "Add book" form could take a
+while to load, because it would have to load every publisher for display in the
+``<select>`` box.
+
+The way to fix this is to use an option called ``raw_id_fields``. Set this to
+a tuple of ``ForeignKey`` field names, and those fields will be displayed in
+the admin with a simple text input box (``<input type="text">``) instead of a
+``<select>``. See Figure 6-14.
+
+.. parsed-literal::
+
+    class BookAdmin(admin.ModelAdmin):
+        list_display = ('title', 'publisher', 'publication_date')
+        list_filter = ('publication_date',)
+        date_hierarchy = 'publication_date'
+        ordering = ('-publication_date',)
+        filter_horizontal = ('authors',)
+        **raw_id_fields = ('publisher',)**
+
+.. SL Tested ok
+
+.. DWP Screenshot!
+
+.. figure:: graphics/chapter06/book_editform2.png
+   :alt: Screenshot of edit form after raw_id_fields.
+
+   Figure 6-14. The book edit form after adding raw_id_fields
+
+What do you enter in this input box? The database ID of the publisher. Given
+that humans don't normally memorize database IDs, there's also a
+magnifying-glass icon that you can click to pull up a pop-up window, from which
+you can select the publisher to add.
 
 Users, Groups, and Permissions
-------------------------------
+==============================
 
-Since you're logged in as a superuser, you have access to create, edit, and
-delete any object. However, the admin interface has a user permissions system
-that you can use to give other users access only to the portions of the
-interface that they need.
+Because you're logged in as a superuser, you have access to create, edit, and
+delete any object. Naturally, different environments require different
+permission systems -- not everybody can or should be a superuser. Django's
+admin site uses a permissions system that you can use to give specific users
+access only to the portions of the interface that they need.
 
-You edit these users and permissions through the admin interface just like any
-other object. The link to the ``User`` and ``Group`` models is there on the
-admin index along with all the objects you've defined yourself.
+These user accounts are meant to be generic enough to be used outside of the
+admin interface, but we'll just treat them as admin user accounts for now. In
+Chapter 14, we'll cover how to integrate user accounts with the rest of your
+site (i.e., not just the admin site).
 
-User objects have the standard username, password, e-mail, and real name fields
-you might expect, along with a set of fields that define what the user is
-allowed to do in the admin interface. First, there's a set of three flags:
+You can edit users and permissions through the admin interface just like any
+other object. We saw this earlier in this chapter, when we played around with
+the User and Group sections of the admin. User objects have the standard
+username, password, e-mail and real name fields you might expect, along with a
+set of fields that define what the user is allowed to do in the admin
+interface. First, there's a set of three boolean flags:
 
-    * The "is active" flag controls whether the user is active at all.
-      If this flag is off, the user has no access to any URLs that
-      require login.
+    * The "active" flag controls whether the user is active at all.
+      If this flag is off and the user tries to log in, he won't be allowed in,
+      even with a valid password.
 
-    * The "is staff" flag controls whether the user is allowed to log in to the
+    * The "staff" flag controls whether the user is allowed to log in to the
       admin interface (i.e., whether that user is considered a "staff member" in
       your organization). Since this same user system can be used to control
-      access to public (i.e., non-admin) sites (see Chapter 12), this flag
+      access to public (i.e., non-admin) sites (see Chapter 14), this flag
       differentiates between public users and administrators.
 
-    * The "is superuser" flag gives the user full, unfettered access to
-      every item in the admin interface; regular permissions are ignored.
+    * The "superuser" flag gives the user full access to add, create and
+      delete any item in the admin interface. If a user has this flag set, then
+      all regular permissions (or lack thereof) are ignored for that user.
 
-"Normal" admin users--that is, active, non-superuser staff members--are granted
-access that depends on a set of assigned permissions. Each object editable
-through the admin interface has three permissions: a *create* permission, an
-*edit* permission, and a *delete* permission. Assigning permissions to a user
-grants the user access to do what is described by those permissions.
+"Normal" admin users -- that is, active, non-superuser staff members -- are
+granted admin access through assigned permissions. Each object editable through
+the admin interface (e.g., books, authors, publishers) has three permissions: a
+*create* permission, an *edit* permission and a *delete* permission. Assigning
+permissions to a user grants the user access to do what is described by those
+permissions.
+
+When you create a user, that user has no permissions, and it's up to you to
+give the user specific permissions. For example, you can give a user permission
+to add and change publishers, but not permission to delete them. Note that
+these permissions are defined per-model, not per-object -- so they let you say
+"John can make changes to any book," but they don't let you say "John can make
+changes to any book published by Apress." The latter functionality, per-object
+permissions, is a bit more complicated and is outside the scope of this book
+but is covered in the Django documentation.
 
 .. note::
 
     Access to edit users and permissions is also controlled by this permission
     system. If you give someone permission to edit users, she will be able to
-    edit her own permissions, which might not be what you want!
+    edit her own permissions, which might not be what you want! Giving a user
+    permission to edit users is essentially turning a user into a superuser.
 
 You can also assign users to groups. A *group* is simply a set of permissions to
 apply to all members of that group. Groups are useful for granting identical
-permissions to large number of users.
+permissions to a subset of users.
 
-Customizing the Admin Interface
-===============================
+When and Why to Use the Admin Interface -- And When Not to
+==========================================================
 
-You can customize the way the admin interface looks and behaves in a number of
-ways. We cover just a few of them in this section as they relate to our ``Book``
-model; Chapter 17 covers customizing the admin interface in detail.
+After having worked through this chapter, you should have a good idea of how to
+use Django's admin site. But we want to make a point of covering *when* and
+*why* you might want to use it -- and when *not* to use it.
 
-As it stands now, the change list for our books shows only the string
-representation of the model we added to its ``__str__``. This works fine for
-just a few books, but if we had hundreds or thousands of books, it would be very
-hard to locate a single needle in the haystack. However, we can easily add some
-display, searching, and filtering functions to this interface. Change the
-``Admin`` declaration as follows:
-
-    .. parsed-literal::
-
-        class Book(models.Model):
-            title = models.CharField(maxlength=100)
-            authors = models.ManyToManyField(Author)
-            publisher = models.ForeignKey(Publisher)
-            publication_date = models.DateField()
-
-            class Admin:
-                **list_display = ('title', 'publisher', 'publication_date')**
-                **list_filter = ('publisher', 'publication_date')**
-                **ordering = ('-publication_date',)**
-                **search_fields = ('title',)**
-
-These four lines of code dramatically change our list interface, as shown in
-Figure 6-8.
-
-.. figure:: graphics/chapter06/changelist2.png
-   :alt: Screenshot of the modified change list page.
-
-   Figure 6-8. Modified change list page
-
-Each of those lines instructed the admin interface to construct a different
-piece of this interface:
-
-    * The ``list_display`` option controls which columns appear in the change
-      list table. By default, the change list displays only a single column
-      that contains the object's string representation. Here, we've changed
-      that to show the title, publisher, and publication date.
-
-    * The ``list_filter`` option creates the filtering bar on the right side
-      of the list. We've allowed filtering by date (which allows you to
-      see only books published in the last week, month, etc.) and by
-      publisher.
-
-      You can instruct the admin interface to filter by any field, but foreign
-      keys, dates, Booleans, and fields with a ``choices`` attribute work best.
-      The filters show up as long as there are at least 2 values to choose from.
-
-    * The ``ordering`` option controls the order in which the objects are
-      presented in the admin interface. It's simply a list of fields by which
-      to order the results; prefixing a field with a minus sign reverses the given
-      order. In this example, we're ordering by publication date, with the most
-      recent first.
-
-    * Finally, the ``search_fields`` option creates a field that allows text
-      searches. It allows searches by the ``title`` field (so you could
-      type **Django** to show all books with "Django" in the title).
-
-Using these options (and the others described in Chapter 12) you can,
-with only a few lines of code, make a very powerful, production-ready interface
-for data editing.
-
-Customizing the Admin Interface's Look and Feel
-===============================================
-
-Clearly, having the phrase "Django administration" at the top of each admin page
-is ridiculous. It's just placeholder text.
-
-It's easy to change, though, using Django's template system. The Django
-admin site is powered by Django itself, and its interfaces use Django's own
-template system. (Django's template system was covered in Chapter 4.)
-
-As we explained in Chapter 4, the ``TEMPLATE_DIRS`` setting specifies a list
-of directories to check when loading Django templates. To customize Django's
-admin templates, simply copy the relevant stock admin template from the Django
-distribution into your one of the directories pointed-to by ``TEMPLATE_DIRS``.
-
-The admin site finds the "Django administration" header by looking for the
-template ``admin/base_site.html``. By default, this template lives in the
-Django admin template directory, ``django/contrib/admin/templates``, which you
-can find by looking in your Python ``site-packages`` directory, or wherever
-Django was installed. To customize this ``base_site.html`` template, copy that
-template into an ``admin`` subdirectory of whichever directory you're using in
-``TEMPLATE_DIRS``. For example, if your ``TEMPLATE_DIRS`` includes
-``"/home/mytemplates"``, then copy
-``django/contrib/admin/templates/admin/base_site.html`` to
-``/home/mytemplates/admin/base_site.html``. Don't forget that ``admin``
-subdirectory.
-
-Then, just edit the new ``admin/base_site.html`` file to replace the
-generic Django text with your own site's name as you see fit.
-
-Note that any of Django's default admin templates can be overridden. To
-override a template, just do the same thing you did with ``base_site.html``:
-copy it from the default directory into your custom directory and make changes
-to the copy.
-
-You might wonder how, if ``TEMPLATE_DIRS`` was empty by default, Django found
-the default admin templates. The answer is that, by default, Django
-automatically looks for templates within a ``templates/`` subdirectory in each
-application package as a fallback. See the "Writing Custom Template Loaders" in
-Chapter 10 for more information about how this works.
-
-Customizing the Admin Index Page
-================================
-
-On a similar note, you might want to customize the look and feel of the Django
-admin index page. By default, it displays all available applications, according
-to your ``INSTALLED_APPS`` setting, sorted by the name of the application. You
-might, however, want to change this order to make it easier to find the
-applications you're looking for. After all, the index is probably the most
-important page of the admin interface, so it should be easy to use.
-
-The template to customize is ``admin/index.html``. (Remember to copy
-``admin/index.html`` to your custom template directory as in the previous
-example.) Edit the file, and you'll see it uses a template tag called ``{%
-get_admin_app_list as app_list %}``. This tag retrieves every installed Django
-application. Instead of using the tag, you can hard-code links to
-object-specific admin pages in whatever way you think is best. If hard-coding
-links doesn't appeal to you, see Chapter 10 for details on implementing your own
-template tags.
-
-Django offers another shortcut in this department. Run the command ``python
-manage.py adminindex <app>`` to get a chunk of template code for inclusion in
-the admin index template. It's a useful starting point.
-
-For full details on customizing the look and feel of the Django admin site in
-general, see Chapter 17.
-
-When and Why to Use the Admin Interface
-=======================================
-
-We think Django's admin interface is pretty spectacular. In fact, we'd call it
-one of Django's "killer features." However, we often get asked about "use cases"
-for the admin interface--when do *we* use it, and why? Over the years, we've
-discovered a number of patterns for using the admin interface that we think
-might be helpful.
-
-Obviously, the admin interface is extremely useful for editing data (fancy
-that). If you have any sort of data entry tasks, the admin interface simply
-can't be beat. We suspect that the vast majority of readers of this book will
-have a whole host of data entry tasks.
-
-Django's admin interface especially shines when nontechnical users need to be
-able to enter data; that's the purpose behind the feature, after all. At the
+Django's admin site especially shines when nontechnical users need to be able
+to enter data; that's the purpose behind the feature, after all. At the
 newspaper where Django was first developed, development of a typical online
-feature--a special report on water quality in the municipal supply, say--goes
-something like this:
+feature -- say, a special report on water quality in the municipal supply --
+would go something like this:
 
-    * The reporter responsible for the story meets with one of the developers
-      and goes over the available data.
+    * The reporter responsible for the project meets with one of the developers
+      and describes the available data.
 
-    * The developer designs a model around this data and then opens up the
-      admin interface to the reporter.
+    * The developer designs Django models to fit this data and then opens up
+      the admin site to the reporter.
 
-    * While the reporter enters data into Django, the programmer can focus on
-      developing the publicly accessible interface (the fun part!).
+    * The reporter inspects the admin site to point out any missing or
+      extraneous fields -- better now than later. The developer changes the
+      models iteratively.
+
+    * When the models are agreed upon, the reporter begins entering data using
+      the admin site. At the same time, the programmer can focus on developing
+      the publicly accessible views/templates (the fun part!).
 
 In other words, the raison d'être of Django's admin interface is facilitating
 the simultaneous work of content producers and programmers.
 
-However, beyond the obvious data entry tasks, we find the admin interface useful
-in a few other cases:
+However, beyond these obvious data entry tasks, the admin site is useful in a
+few other cases:
 
-    * *Inspecting data models*: The first thing we do when we've defined a new
-      model is to call it up in the admin interface and enter some dummy data.
-      This is usually when we find any data modeling mistakes; having a
-      graphical interface to a model quickly reveals problems.
+    * *Inspecting data models*: Once you've defined a few models, it can be
+      quite useful to call them up in the admin interface and enter some dummy
+      data. In some cases, this might reveal data-modeling mistakes or other
+      problems with your models.
 
-    * *Managing acquired data*: There's little actual data entry associated with
-      a site like ``http://chicagocrime.org``, since most of the data comes from
-      an automated source. However, when problems with the automatically
-      acquired data crop up, it's useful to be able to go in and edit that data
-      easily.
+    * *Managing acquired data*: For applications that rely on data coming from
+      external sources (e.g., users or Web crawlers), the admin site gives you
+      an easy way to inspect or edit this data. You can think of it as a less
+      powerful, but more convenient, version of your database's command-line
+      utility.
+
+    * *Quick and dirty data-management apps*: You can use the admin site to
+      build yourself a very lightweight data management app -- say, to keep
+      track of expenses. If you're just building something for your own needs,
+      not for public consumption, the admin site can take you a long way. In
+      this sense, you can think of it as a beefed up, relational version of a
+      spreadsheet.
+
+One final point we want to make clear is: the admin site is not an
+end-all-be-all. Over the years, we've seen it hacked and chopped up to serve a
+variety of functions it wasn't intended to serve. It's not intended to be a
+*public* interface to data, nor is it intended to allow for sophisticated
+sorting and searching of your data. As we said early in this chapter, it's for
+trusted site administrators. Keeping this sweet spot in mind is the key to
+effective admin-site usage.
 
 What's Next?
 ============

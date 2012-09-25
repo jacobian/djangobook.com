@@ -1,396 +1,761 @@
-======================
-Chapter 15: Middleware
-======================
+===================
+Chapter 15: Caching
+===================
 
-On occasion, you'll need to run a piece of code on each and every request that
-Django handles. This code might need to modify the request before the view
-handles it, it might need to log information about the request for debugging purposes,
-and so forth.
+A fundamental trade-off in dynamic Web sites is, well, they're dynamic. Each
+time a user requests a page, the Web server makes all sorts of calculations --
+from database queries to template rendering to business logic -- to create the
+page that your site's visitor sees. This is a lot more expensive, from a
+processing-overhead perspective, than your standard
+read-a-file-off-the-filesystem server arrangement.
 
-You can do this with Django's *middleware* framework, which is a set of hooks
-into Django's request/response processing. It's a light, low-level "plug-in"
-system capable of globally altering both Django's input and output.
+For most Web applications, this overhead isn't a big deal. Most Web
+applications aren't washingtonpost.com or slashdot.org; they're simply small-
+to medium-sized sites with so-so traffic. But for medium- to high-traffic
+sites, it's essential to cut as much overhead as possible.
 
-Each middleware component is responsible for doing some specific function. If
-you're reading this book linearly (sorry, postmodernists), you've seen
-middleware a number of times already:
+That's where caching comes in.
 
-    * All of the session and user tools that we looked at in Chapter 12
-      are made possible by a few small pieces of middleware (more
-      specifically, the middleware makes ``request.session`` and
-      ``request.user`` available to you in views).
+To cache something is to save the result of an expensive calculation so that
+you don't have to perform the calculation next time. Here's some pseudocode
+explaining how this would work for a dynamically generated Web page::
 
-    * The sitewide cache discussed in Chapter 13 is actually just a piece
-      of middleware that bypasses the call to your view function if the
-      response for that view has already been cached.
+    given a URL, try finding that page in the cache
+    if the page is in the cache:
+        return the cached page
+    else:
+        generate the page
+        save the generated page in the cache (for next time)
+        return the generated page
 
-    * The ``flatpages``, ``redirects``, and ``csrf`` contributed applications from
-      Chapter 14 all do their magic through middleware components.
+Django comes with a robust cache system that lets you save dynamic pages so
+they don't have to be calculated for each request. For convenience, Django
+offers different levels of cache granularity: You can cache the output of
+specific views, you can cache only the pieces that are difficult to produce, or
+you can cache your entire site.
 
-This chapter dives deeper into exactly what middleware is and how it works,
-and explains how you can write your own middleware.
+Django also works well with "upstream" caches, such as Squid
+(http://www.squid-cache.org/) and browser-based caches. These are the types of
+caches that you don't directly control but to which you can provide hints (via
+HTTP headers) about which parts of your site should be cached, and how.
 
-What's Middleware?
+Setting Up the Cache
+====================
+
+The cache system requires a small amount of setup. Namely, you have to tell it
+where your cached data should live -- whether in a database, on the filesystem
+or directly in memory. This is an important decision that affects your cache's
+performance; yes, some cache types are faster than others.
+
+Your cache preference goes in the ``CACHE_BACKEND`` setting in your settings
+file. Here's an explanation of all available values for ``CACHE_BACKEND``.
+
+Memcached
+---------
+
+By far the fastest, most efficient type of cache available to Django, Memcached
+is an entirely memory-based cache framework originally developed to handle high
+loads at LiveJournal.com and subsequently open-sourced by Danga Interactive.
+It's used by sites such as Facebook and Wikipedia to reduce database access and
+dramatically increase site performance.
+
+Memcached is available for free at http://danga.com/memcached/ . It runs as a
+daemon and is allotted a specified amount of RAM. All it does is provide an
+fast interface for adding, retrieving and deleting arbitrary data in the cache.
+All data is stored directly in memory, so there's no overhead of database or
+filesystem usage.
+
+After installing Memcached itself, you'll need to install the Memcached Python
+bindings, which are not bundled with Django directly. Two versions of this are
+available. Choose and install *one* of the following modules:
+
+    * The fastest available option is a module called ``cmemcache``, available
+      at http://gijsbert.org/cmemcache/ .
+
+    * If you can't install ``cmemcache``, you can install ``python-memcached``,
+      available at ftp://ftp.tummy.com/pub/python-memcached/ . If that URL is
+      no longer valid, just go to the Memcached Web site
+      (http://www.danga.com/memcached/) and get the Python bindings from the
+      "Client APIs" section.
+
+To use Memcached with Django, set ``CACHE_BACKEND`` to
+``memcached://ip:port/``, where ``ip`` is the IP address of the Memcached
+daemon and ``port`` is the port on which Memcached is running.
+
+In this example, Memcached is running on localhost (127.0.0.1) port 11211::
+
+    CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
+
+One excellent feature of Memcached is its ability to share cache over multiple
+servers. This means you can run Memcached daemons on multiple machines, and the
+program will treat the group of machines as a *single* cache, without the need
+to duplicate cache values on each machine. To take advantage of this feature,
+include all server addresses in ``CACHE_BACKEND``, separated by semicolons.
+
+In this example, the cache is shared over Memcached instances running on IP
+address 172.19.26.240 and 172.19.26.242, both on port 11211::
+
+    CACHE_BACKEND = 'memcached://172.19.26.240:11211;172.19.26.242:11211/'
+
+In the following example, the cache is shared over Memcached instances running
+on the IP addresses 172.19.26.240 (port 11211), 172.19.26.242 (port 11212), and
+172.19.26.244 (port 11213)::
+
+    CACHE_BACKEND = 'memcached://172.19.26.240:11211;172.19.26.242:11212;172.19.26.244:11213/'
+
+A final point about Memcached is that memory-based caching has one
+disadvantage: Because the cached data is stored in memory, the data will be
+lost if your server crashes. Clearly, memory isn't intended for permanent data
+storage, so don't rely on memory-based caching as your only data storage.
+Without a doubt, *none* of the Django caching backends should be used for
+permanent storage -- they're all intended to be solutions for caching, not
+storage -- but we point this out here because memory-based caching is
+particularly temporary.
+
+Database Caching
+----------------
+
+To use a database table as your cache backend, first create a cache table in
+your database by running this command::
+
+    python manage.py createcachetable [cache_table_name]
+
+...where ``[cache_table_name]`` is the name of the database table to create.
+(This name can be whatever you want, as long as it's a valid table name that's
+not already being used in your database.) This command creates a single table
+in your database that is in the proper format that Django's database-cache
+system expects.
+
+Once you've created that database table, set your ``CACHE_BACKEND`` setting to
+``"db://tablename"``, where ``tablename`` is the name of the database table.
+In this example, the cache table's name is ``my_cache_table``::
+
+    CACHE_BACKEND = 'db://my_cache_table'
+
+The database caching backend uses the same database as specified in your
+settings file. You can't use a different database backend for your cache table.
+
+Database caching works best if you've got a fast, well-indexed database server.
+
+Filesystem Caching
+------------------
+
+To store cached items on a filesystem, use the ``"file://"`` cache type for
+``CACHE_BACKEND``. For example, to store cached data in ``/var/tmp/django_cache``,
+use this setting::
+
+    CACHE_BACKEND = 'file:///var/tmp/django_cache'
+
+Note that there are three forward slashes toward the beginning of that example.
+The first two are for ``file://``, and the third is the first character of the
+directory path, ``/var/tmp/django_cache``. If you're on Windows, put the
+drive letter after the ``file://``, like this::
+
+    file://c:/foo/bar
+
+The directory path should be absolute -- that is, it should start at the root
+of your filesystem. It doesn't matter whether you put a slash at the end of the
+setting.
+
+Make sure the directory pointed-to by this setting exists and is readable and
+writable by the system user under which your Web server runs. Continuing the
+above example, if your server runs as the user ``apache``, make sure the
+directory ``/var/tmp/django_cache`` exists and is readable and writable by the
+user ``apache``.
+
+Each cache value will be stored as a separate file whose contents are the
+cache data saved in a serialized ("pickled") format, using Python's ``pickle``
+module. Each file's name is the cache key, escaped for safe filesystem use.
+
+Local-Memory Caching
+--------------------
+
+If you want the speed advantages of in-memory caching but don't have the
+capability of running Memcached, consider the local-memory cache backend. This
+cache is multi-process and thread-safe. To use it, set ``CACHE_BACKEND`` to
+``"locmem:///"``. For example::
+
+    CACHE_BACKEND = 'locmem:///'
+
+Note that each process will have its own private cache instance, which means no
+cross-process caching is possible. This obviously also means the local memory
+cache isn't particularly memory-efficient, so it's probably not a good choice
+for production environments. It's nice for development.
+
+Dummy Caching (For Development)
+-------------------------------
+
+Finally, Django comes with a "dummy" cache that doesn't actually cache -- it
+just implements the cache interface without doing anything.
+
+This is useful if you have a production site that uses heavy-duty caching in
+various places but a development/test environment where you don't want to cache
+and don't want to have to change your code to special-case the latter. To
+activate dummy caching, set ``CACHE_BACKEND`` like so::
+
+    CACHE_BACKEND = 'dummy:///'
+
+Using a Custom Cache Backend
+----------------------------
+
+While Django includes support for a number of cache backends out-of-the-box,
+sometimes you might want to use a customized cache backend. To use an external
+cache backend with Django, use a Python import path as the scheme portion (the
+part before the initial colon) of the ``CACHE_BACKEND`` URI, like so::
+
+    CACHE_BACKEND = 'path.to.backend://'
+
+If you're building your own backend, you can use the standard cache backends
+as reference implementations. You'll find the code in the
+``django/core/cache/backends/`` directory of the Django source.
+
+Note: Without a really compelling reason, such as a host that doesn't support
+them, you should stick to the cache backends included with Django. They've
+been well-tested and are easy to use.
+
+CACHE_BACKEND Arguments
+-----------------------
+
+Each cache backend may take arguments. They're given in query-string style on
+the ``CACHE_BACKEND`` setting. Valid arguments are as follows:
+
+    * ``timeout``: The default timeout, in seconds, to use for the cache.
+      This argument defaults to 300 seconds (5 minutes).
+
+    * ``max_entries``: For the ``locmem``, ``filesystem`` and ``database``
+      backends, the maximum number of entries allowed in the cache before old
+      values are deleted. This argument defaults to 300.
+
+    * ``cull_percentage``: The percentage of entries that are culled when
+      ``max_entries`` is reached. The actual ratio is ``1/cull_percentage``, so
+      set ``cull_percentage=2`` to cull half of the entries when ``max_entries``
+      is reached.
+
+      A value of ``0`` for ``cull_percentage`` means that the entire cache will
+      be dumped when ``max_entries`` is reached. This makes culling *much*
+      faster at the expense of more cache misses.
+
+In this example, ``timeout`` is set to ``60``::
+
+    CACHE_BACKEND = "memcached://127.0.0.1:11211/?timeout=60"
+
+In this example, ``timeout`` is ``30`` and ``max_entries`` is ``400``::
+
+    CACHE_BACKEND = "locmem:///?timeout=30&max_entries=400"
+
+Invalid arguments are silently ignored, as are invalid values of known
+arguments.
+
+The Per-Site Cache
 ==================
 
-A middleware component is simply a Python class that conforms to a certain API.
-Before diving into the formal aspects of what that API is, let's look at a very
-simple example.
-
-High-traffic sites often need to deploy Django behind a load-balancing proxy
-(see Chapter 20). This can cause a few small complications, one of which is
-that every request's remote IP (``request.META["REMOTE_IP"]``) will be that of
-the load balancer, not the actual IP making the request. Load balancers deal
-with this by setting a special header, ``X-Forwarded-For``, to the actual
-requesting IP address.
-
-So here's a small bit of middleware that lets sites running behind a proxy
-still see the correct IP address in ``request.META["REMOTE_ADDR"]``::
-
-    class SetRemoteAddrFromForwardedFor(object):
-        def process_request(self, request):
-            try:
-                real_ip = request.META['HTTP_X_FORWARDED_FOR']
-            except KeyError:
-                pass
-            else:
-                # HTTP_X_FORWARDED_FOR can be a comma-separated list of IPs.
-                # Take just the first one.
-                real_ip = real_ip.split(",")[0]
-                request.META['REMOTE_ADDR'] = real_ip
- 
-If this is installed (see the next section), every request's ``X-Forwarded-For`` value
-will be automatically inserted into ``request.META['REMOTE_ADDR']``. This means
-your Django applications don't need to be concerned with whether they're behind
-a load-balancing proxy or not; they can simply access ``request.META['REMOTE_ADDR']``,
-and that will work whether or not a proxy is being used.
-
-In fact, this is a common enough need that this piece of middleware is a
-built-in part of Django. It lives in ``django.middleware.http``, and you can
-read a bit more about it in the next section.
-
-Middleware Installation
-=======================
-
-If you've read this book straight through, you've already seen a number of
-examples of middleware installation; many of the examples in previous chapters
-have required certain middleware. For completeness, here's how to install
-middleware.
-
-To activate a middleware component, add it to the ``MIDDLEWARE_CLASSES`` tuple
-in your settings module. In ``MIDDLEWARE_CLASSES``, each middleware component
-is represented by a string: the full Python path to the middleware's class
-name. For example, here's the default ``MIDDLEWARE_CLASSES`` created by
-``django-admin.py startproject``::
+Once the cache is set up, the simplest way to use caching is to cache your
+entire site. You'll need to add
+``'django.middleware.cache.UpdateCacheMiddleware'`` and
+``'django.middleware.cache.FetchFromCacheMiddleware'`` to your
+``MIDDLEWARE_CLASSES`` setting, as in this example::
 
     MIDDLEWARE_CLASSES = (
+        'django.middleware.cache.UpdateCacheMiddleware',
         'django.middleware.common.CommonMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.middleware.doc.XViewMiddleware'
+        'django.middleware.cache.FetchFromCacheMiddleware',
     )
-
-A Django installation doesn't require any middleware -- ``MIDDLEWARE_CLASSES``
-can be empty, if you'd like -- but we recommend that you activate
-``CommonMiddleware``, which we explain shortly.
-
-The order is significant. On the request and view phases, Django applies
-middleware in the order given in ``MIDDLEWARE_CLASSES``, and on the response
-and exception phases, Django applies middleware in reverse order. That is,
-Django treats ``MIDDLEWARE_CLASSES`` as a sort of "wrapper" around the view
-function: on the request it walks down the list to the view, and on the
-response it walks back up.  See the section "How Django Processes a Request: 
-Complete Details" in Chapter 3 for a review of the phases.
-
-Middleware Methods
-==================
-
-Now that you know what middleware is and how to install it, let's take a look at
-all the available methods that middleware classes can define.
-
-Initializer: __init__(self)
----------------------------
-
-Use ``__init__()`` to perform systemwide setup for a given middleware class.
-
-For performance reasons, each activated middleware class is instantiated only
-*once* per server process. This means that ``__init__()`` is called only once
--- at server startup -- not for individual requests.
-
-A common reason to implement an ``__init__()`` method is to check whether the
-middleware is indeed needed. If ``__init__()`` raises
-``django.core.exceptions.MiddlewareNotUsed``, then Django will remove the
-middleware from the middleware stack. You might use this feature to check for
-some piece of software that the middleware class requires, or check whether
-the server is running debug mode, or any other such environment situation.
-
-If a middleware class defines an ``__init__()`` method, the method should take no
-arguments beyond the standard ``self``.
-
-Request Preprocessor: process_request(self, request)
------------------------------------------------------
-
-This method gets called as soon as the request has been received -- before
-Django has parsed the URL to determine which view to run. It gets passed the
-``HttpRequest`` object, which you may modify at will.
-
-``process_request()`` should return either ``None`` or an ``HttpResponse``
-object.
-
-    * If it returns ``None``, Django will continue processing this request,
-      executing any other middleware and then the appropriate view.
-
-    * If it returns an ``HttpResponse`` object, Django won't bother calling
-      *any* other middleware (of any type) or the appropriate view. Django
-      will immediately return that ``HttpResponse``.
-
-View Preprocessor: process_view(self, request, view, args, kwargs)
--------------------------------------------------------------------
-
-This method gets called after the request preprocessor is called and Django
-has determined which view to execute, but before that view has actually been
-executed.
-
-The arguments passed to this view are shown in Table 15-1.
-
-.. table:: Table 15-1. Arguments Passed to process_view()
-
-    ==============  ==========================================================
-    Argument        Explanation
-    ==============  ==========================================================
-    ``request``     The ``HttpRequest`` object.
-
-    ``view``        The Python function that Django will call to handle this
-                    request. This is the actual function object itself,
-                    not the name of the function as a string.
-
-    ``args``        The list of positional arguments that will be passed to
-                    the view, not including the ``request`` argument (which
-                    is always the first argument to a view).
-
-    ``kwargs``      The dictionary of keyword arguments that will be passed
-                    to the view.
-    ==============  ==========================================================
-
-Just like ``process_request()``, ``process_view()`` should return either
-``None`` or an ``HttpResponse`` object.
-
-    * If it returns ``None``, Django will continue processing this request,
-      executing any other middleware and then the appropriate view.
-
-    * If it returns an ``HttpResponse`` object, Django won't bother calling
-      *any* other middleware (of any type) or the appropriate view. Django
-      will immediately return that ``HttpResponse``.
-
-Response Postprocessor: process_response(self, request, response)
-------------------------------------------------------------------
-
-This method gets called after the view function is called and the response is
-generated. Here, the processor can modify the content of a response; one
-obvious use case is content compression, such as gzipping of the request's
-HTML.
-
-The parameters should be pretty self-explanatory: ``request`` is the request
-object, and ``response`` is the response object returned from the view.
-
-Unlike the request and view preprocessors, which may return ``None``,
-``process_response()`` *must* return an ``HttpResponse`` object. That response
-could be the original one passed into the function (possibly modified) or a
-brand-new one.
-
-Exception Postprocessor: process_exception(self, request, exception)
----------------------------------------------------------------------
-
-This method gets called only if something goes wrong and a view raises an
-uncaught exception. You can use this hook to send error notifications, dump 
-postmortem information to a log, or even try to recover from the error 
-automatically.
-
-The parameters to this function are the same ``request`` object we've been
-dealing with all along, and ``exception``, which is the actual ``Exception``
-object raised by the view function.
-
-``process_exception()`` should return a either ``None`` or an ``HttpResponse``
-object.
-
-    * If it returns ``None``, Django will continue processing this request
-      with the framework's built-in exception handling.
-
-    * If it returns an ``HttpResponse`` object, Django will use that response
-      instead of the framework's built-in exception handling.
 
 .. note::
 
-    Django ships with a number of middleware classes (discussed in the following
-    section) that make good examples. Reading the code for them should give you
-    a good feel for the power of middleware.
-    
-    You can also find a number of community-contributed examples on Django's
-    wiki: http://code.djangoproject.com/wiki/ContributedMiddleware
+    No, that's not a typo: the "update" middleware must be first in the list,
+    and the "fetch" middleware must be last. The details are a bit obscure, but
+    see `Order of MIDDLEWARE_CLASSES`_ below if you'd like the full story.
 
-Built-in Middleware
+Then, add the following required settings to your Django settings file:
+
+* ``CACHE_MIDDLEWARE_SECONDS`` -- The number of seconds each page should be
+  cached.
+* ``CACHE_MIDDLEWARE_KEY_PREFIX`` -- If the cache is shared across multiple
+  sites using the same Django installation, set this to the name of the site,
+  or some other string that is unique to this Django instance, to prevent key
+  collisions. Use an empty string if you don't care.
+
+The cache middleware caches every page that doesn't have GET or POST
+parameters. Optionally, if the ``CACHE_MIDDLEWARE_ANONYMOUS_ONLY`` setting is
+``True``, only anonymous requests (i.e., not those made by a logged-in user)
+will be cached. This is a simple and effective way of disabling caching for any
+user-specific pages (include Django's admin interface). Note that if you use
+``CACHE_MIDDLEWARE_ANONYMOUS_ONLY``, you should make sure you've activated
+``AuthenticationMiddleware``.
+
+Additionally, the cache middleware automatically sets a few headers in each
+``HttpResponse``:
+
+    * Sets the ``Last-Modified`` header to the current date/time when a fresh
+      (uncached) version of the page is requested.
+
+    * Sets the ``Expires`` header to the current date/time plus the defined
+      ``CACHE_MIDDLEWARE_SECONDS``.
+
+    * Sets the ``Cache-Control`` header to give a max age for the page --
+      again, from the ``CACHE_MIDDLEWARE_SECONDS`` setting.
+
+See Chapter 17 for more on middleware.
+
+If a view sets its own cache expiry time (i.e. it has a ``max-age`` section in
+its ``Cache-Control`` header) then the page will be cached until the expiry
+time, rather than ``CACHE_MIDDLEWARE_SECONDS``. Using the decorators in
+``django.views.decorators.cache`` you can easily set a view's expiry time
+(using the ``cache_control`` decorator) or disable caching for a view (using
+the ``never_cache`` decorator). See the "Using other headers" section below for
+more on these decorators.
+
+The Per-View Cache
+==================
+
+A more granular way to use the caching framework is by caching the output of
+individual views. ``django.views.decorators.cache`` defines a ``cache_page``
+decorator that will automatically cache the view's response for you. It's easy
+to use::
+
+    from django.views.decorators.cache import cache_page
+
+    def my_view(request):
+        # ...
+
+    my_view = cache_page(my_view, 60 * 15)
+
+Or, using Python 2.4's decorator syntax::
+
+    @cache_page(60 * 15)
+    def my_view(request):
+        # ...
+
+``cache_page`` takes a single argument: the cache timeout, in seconds. In the
+above example, the result of the ``my_view()`` view will be cached for 15
+minutes. (Note that we've written it as ``60 * 15`` for the purpose of
+readability. ``60 * 15`` will be evaluated to ``900`` -- that is, 15 minutes
+multiplied by 60 seconds per minute.)
+
+The per-view cache, like the per-site cache, is keyed off of the URL. If
+multiple URLs point at the same view, each URL will be cached separately.
+Continuing the ``my_view`` example, if your URLconf looks like this::
+
+    urlpatterns = ('',
+        (r'^foo/(\d{1,2})/$', my_view),
+    )
+
+then requests to ``/foo/1/`` and ``/foo/23/`` will be cached separately, as
+you may expect. But once a particular URL (e.g., ``/foo/23/``) has been
+requested, subsequent requests to that URL will use the cache.
+
+Specifying Per-View Cache in the URLconf
+----------------------------------------
+
+The examples in the previous section have hard-coded the fact that the view is
+cached, because ``cache_page`` alters the ``my_view`` function in place. This
+approach couples your view to the cache system, which is not ideal for several
+reasons. For instance, you might want to reuse the view functions on another,
+cache-less site, or you might want to distribute the views to people who might
+want to use them without being cached. The solution to these problems is to
+specify the per-view cache in the URLconf rather than next to the view functions
+themselves.
+
+Doing so is easy: simply wrap the view function with ``cache_page`` when you
+refer to it in the URLconf. Here's the old URLconf from earlier::
+
+    urlpatterns = ('',
+        (r'^foo/(\d{1,2})/$', my_view),
+    )
+
+Here's the same thing, with ``my_view`` wrapped in ``cache_page``::
+
+    from django.views.decorators.cache import cache_page
+
+    urlpatterns = ('',
+        (r'^foo/(\d{1,2})/$', cache_page(my_view, 60 * 15)),
+    )
+
+If you take this approach, don't forget to import ``cache_page`` within your
+URLconf.
+
+Template Fragment Caching
+=========================
+
+If you're after even more control, you can also cache template fragments using
+the ``cache`` template tag. To give your template access to this tag, put
+``{% load cache %}`` near the top of your template.
+
+The ``{% cache %}`` template tag caches the contents of the block for a given
+amount of time. It takes at least two arguments: the cache timeout, in seconds,
+and the name to give the cache fragment. For example::
+
+    {% load cache %}
+    {% cache 500 sidebar %}
+        .. sidebar ..
+    {% endcache %}
+
+Sometimes you might want to cache multiple copies of a fragment depending on
+some dynamic data that appears inside the fragment. For example, you might want a
+separate cached copy of the sidebar used in the previous example for every user
+of your site. Do this by passing additional arguments to the ``{% cache %}``
+template tag to uniquely identify the cache fragment::
+
+    {% load cache %}
+    {% cache 500 sidebar request.user.username %}
+        .. sidebar for logged in user ..
+    {% endcache %}
+
+It's perfectly fine to specify more than one argument to identify the fragment.
+Simply pass as many arguments to ``{% cache %}`` as you need.
+
+The cache timeout can be a template variable, as long as the template variable
+resolves to an integer value. For example, if the template variable
+``my_timeout`` is set to the value ``600``, then the following two examples are
+equivalent::
+
+    {% cache 600 sidebar %} ... {% endcache %}
+    {% cache my_timeout sidebar %} ... {% endcache %}
+
+This feature is useful in avoiding repetition in templates. You can set the
+timeout in a variable, in one place, and just reuse that value.
+
+The Low-Level Cache API
+=======================
+
+Sometimes, caching an entire rendered page doesn't gain you very much and is,
+in fact, inconvenient overkill.
+
+Perhaps, for instance, your site includes a view whose results depend on 
+several expensive queries, the results of which change at different intervals.
+In this case, it would not be ideal to use the full-page caching that the 
+per-site or per-view cache strategies offer, because you wouldn't want to 
+cache the entire result (since some of the data changes often), but you'd still 
+want to cache the results that rarely change.
+
+For cases like this, Django exposes a simple, low-level cache API. You can use
+this API to store objects in the cache with any level of granularity you like.
+You can cache any Python object that can be pickled safely: strings,
+dictionaries, lists of model objects, and so forth. (Most common Python objects
+can be pickled; refer to the Python documentation for more information about
+pickling.)
+
+The cache module, ``django.core.cache``, has a ``cache`` object that's
+automatically created from the ``CACHE_BACKEND`` setting::
+
+    >>> from django.core.cache import cache
+
+The basic interface is ``set(key, value, timeout_seconds)`` and ``get(key)``::
+
+    >>> cache.set('my_key', 'hello, world!', 30)
+    >>> cache.get('my_key')
+    'hello, world!'
+
+The ``timeout_seconds`` argument is optional and defaults to the ``timeout``
+argument in the ``CACHE_BACKEND`` setting (explained above).
+
+If the object doesn't exist in the cache, ``cache.get()`` returns ``None``::
+
+    # Wait 30 seconds for 'my_key' to expire...
+
+    >>> cache.get('my_key')
+    None
+
+We advise against storing the literal value ``None`` in the cache, because you
+won't be able to distinguish between your stored ``None`` value and a cache
+miss signified by a return value of ``None``.
+
+``cache.get()`` can take a ``default`` argument. This specifies which value to
+return if the object doesn't exist in the cache::
+
+    >>> cache.get('my_key', 'has expired')
+    'has expired'
+
+To add a key only if it doesn't already exist, use the ``add()`` method.
+It takes the same parameters as ``set()``, but it will not attempt to
+update the cache if the key specified is already present::
+
+    >>> cache.set('add_key', 'Initial value')
+    >>> cache.add('add_key', 'New value')
+    >>> cache.get('add_key')
+    'Initial value'
+
+If you need to know whether ``add()`` stored a value in the cache, you can
+check the return value. It will return ``True`` if the value was stored,
+``False`` otherwise.
+
+There's also a ``get_many()`` interface that only hits the cache once.
+``get_many()`` returns a dictionary with all the keys you asked for that
+actually exist in the cache (and haven't expired)::
+
+    >>> cache.set('a', 1)
+    >>> cache.set('b', 2)
+    >>> cache.set('c', 3)
+    >>> cache.get_many(['a', 'b', 'c'])
+    {'a': 1, 'b': 2, 'c': 3}
+
+Finally, you can delete keys explicitly with ``delete()``. This is an easy way
+of clearing the cache for a particular object::
+
+    >>> cache.delete('a')
+
+You can also increment or decrement a key that already exists using the
+``incr()`` or ``decr()`` methods, respectively. By default, the existing cache
+value will incremented or decremented by 1. Other increment/decrement values
+can be specified by providing an argument to the increment/decrement call. A
+ValueError will be raised if you attempt to increment or decrement a
+nonexistent cache key.::
+
+    >>> cache.set('num', 1)
+    >>> cache.incr('num')
+    2
+    >>> cache.incr('num', 10)
+    12
+    >>> cache.decr('num')
+    11
+    >>> cache.decr('num', 5)
+    6
+
+.. note::
+
+    ``incr()``/``decr()`` methods are not guaranteed to be atomic. On those
+    backends that support atomic increment/decrement (most notably, the
+    memcached backend), increment and decrement operations will be atomic.
+    However, if the backend doesn't natively provide an increment/decrement
+    operation, it will be implemented using a two-step retrieve/update.
+
+Upstream Caches
+===============
+
+So far, this chapter has focused on caching your *own* data. But another type
+of caching is relevant to Web development, too: caching performed by "upstream"
+caches. These are systems that cache pages for users even before the request
+reaches your Web site.
+
+Here are a few examples of upstream caches:
+
+    * Your ISP may cache certain pages, so if you requested a page from
+      http://example.com/, your ISP would send you the page without having to
+      access example.com directly. The maintainers of example.com have no
+      knowledge of this caching; the ISP sits between example.com and your Web
+      browser, handling all of the caching transparently.
+
+    * Your Django Web site may sit behind a *proxy cache*, such as Squid Web
+      Proxy Cache (http://www.squid-cache.org/), that caches pages for
+      performance. In this case, each request first would be handled by the
+      proxy, and it would be passed to your application only if needed.
+
+    * Your Web browser caches pages, too. If a Web page sends out the
+      appropriate headers, your browser will use the local cached copy for
+      subsequent requests to that page, without even contacting the Web page
+      again to see whether it has changed.
+
+Upstream caching is a nice efficiency boost, but there's a danger to it:
+Many Web pages' contents differ based on authentication and a host of other
+variables, and cache systems that blindly save pages based purely on URLs could
+expose incorrect or sensitive data to subsequent visitors to those pages.
+
+For example, say you operate a Web e-mail system, and the contents of the
+"inbox" page obviously depend on which user is logged in. If an ISP blindly
+cached your site, then the first user who logged in through that ISP would have
+his user-specific inbox page cached for subsequent visitors to the site. That's
+not cool.
+
+Fortunately, HTTP provides a solution to this problem. A number of HTTP headers
+exist to instruct upstream caches to differ their cache contents depending on
+designated variables, and to tell caching mechanisms not to cache particular
+pages. We'll look at some of these headers in the sections that follow.
+
+Using Vary Headers
+==================
+
+The ``Vary`` header defines which request headers a cache
+mechanism should take into account when building its cache key. For example, if
+the contents of a Web page depend on a user's language preference, the page is
+said to "vary on language."
+
+By default, Django's cache system creates its cache keys using the requested
+path (e.g., ``"/stories/2005/jun/23/bank_robbed/"``). This means every request
+to that URL will use the same cached version, regardless of user-agent
+differences such as cookies or language preferences. However, if this page
+produces different content based on some difference in request headers -- such
+as a cookie, or a language, or a user-agent -- you'll need to use the ``Vary``
+header to tell caching mechanisms that the page output depends on those things.
+
+To do this in Django, use the convenient ``vary_on_headers`` view decorator,
+like so::
+
+    from django.views.decorators.vary import vary_on_headers
+
+    # Python 2.3 syntax.
+    def my_view(request):
+        # ...
+    my_view = vary_on_headers(my_view, 'User-Agent')
+
+    # Python 2.4+ decorator syntax.
+    @vary_on_headers('User-Agent')
+    def my_view(request):
+        # ...
+
+In this case, a caching mechanism (such as Django's own cache middleware) will
+cache a separate version of the page for each unique user-agent.
+
+The advantage to using the ``vary_on_headers`` decorator rather than manually
+setting the ``Vary`` header (using something like
+``response['Vary'] = 'user-agent'``) is that the decorator *adds* to the
+``Vary`` header (which may already exist), rather than setting it from scratch
+and potentially overriding anything that was already in there.
+
+You can pass multiple headers to ``vary_on_headers()``::
+
+    @vary_on_headers('User-Agent', 'Cookie')
+    def my_view(request):
+        # ...
+
+This tells upstream caches to vary on *both*, which means each combination of
+user-agent and cookie will get its own cache value. For example, a request with
+the user-agent ``Mozilla`` and the cookie value ``foo=bar`` will be considered
+different from a request with the user-agent ``Mozilla`` and the cookie value
+``foo=ham``.
+
+Because varying on cookie is so common, there's a ``vary_on_cookie``
+decorator. These two views are equivalent::
+
+    @vary_on_cookie
+    def my_view(request):
+        # ...
+
+    @vary_on_headers('Cookie')
+    def my_view(request):
+        # ...
+
+The headers you pass to ``vary_on_headers`` are not case sensitive;
+``"User-Agent"`` is the same thing as ``"user-agent"``.
+
+You can also use a helper function, ``django.utils.cache.patch_vary_headers``,
+directly. This function sets, or adds to, the ``Vary header``. For example::
+
+    from django.utils.cache import patch_vary_headers
+
+    def my_view(request):
+        # ...
+        response = render_to_response('template_name', context)
+        patch_vary_headers(response, ['Cookie'])
+        return response
+
+``patch_vary_headers`` takes an ``HttpResponse`` instance as its first argument
+and a list/tuple of case-insensitive header names as its second argument.
+
+Controlling Cache: Using Other Headers
+======================================
+
+Other problems with caching are the privacy of data and the question of where
+data should be stored in a cascade of caches.
+
+A user usually faces two kinds of caches: his or her own browser cache (a
+private cache) and his or her provider's cache (a public cache). A public cache
+is used by multiple users and controlled by someone else. This poses problems
+with sensitive data--you don't want, say, your bank account number stored in a
+public cache. So Web applications need a way to tell caches which data is
+private and which is public.
+
+The solution is to indicate a page's cache should be "private." To do this in
+Django, use the ``cache_control`` view decorator. Example::
+
+    from django.views.decorators.cache import cache_control
+
+    @cache_control(private=True)
+    def my_view(request):
+        # ...
+
+This decorator takes care of sending out the appropriate HTTP header behind the
+scenes.
+
+There are a few other ways to control cache parameters. For example, HTTP
+allows applications to do the following:
+
+    * Define the maximum time a page should be cached.
+
+    * Specify whether a cache should always check for newer versions, only
+      delivering the cached content when there are no changes. (Some caches
+      might deliver cached content even if the server page changed, simply
+      because the cache copy isn't yet expired.)
+
+In Django, use the ``cache_control`` view decorator to specify these cache
+parameters. In this example, ``cache_control`` tells caches to revalidate the
+cache on every access and to store cached versions for, at most, 3,600 seconds::
+
+    from django.views.decorators.cache import cache_control
+
+    @cache_control(must_revalidate=True, max_age=3600)
+    def my_view(request):
+        # ...
+
+Any valid ``Cache-Control`` HTTP directive is valid in ``cache_control()``.
+Here's a full list:
+
+    * ``public=True``
+    * ``private=True``
+    * ``no_cache=True``
+    * ``no_transform=True``
+    * ``must_revalidate=True``
+    * ``proxy_revalidate=True``
+    * ``max_age=num_seconds``
+    * ``s_maxage=num_seconds``
+
+(Note that the caching middleware already sets the cache header's max-age with
+the value of the ``CACHE_MIDDLEWARE_SETTINGS`` setting. If you use a custom
+``max_age`` in a ``cache_control`` decorator, the decorator will take
+precedence, and the header values will be merged correctly.)
+
+If you want to use headers to disable caching altogether,
+``django.views.decorators.cache.never_cache`` is a view decorator that adds
+headers to ensure the response won't be cached by browsers or other caches.
+Example::
+
+    from django.views.decorators.cache import never_cache
+
+    @never_cache
+    def myview(request):
+        # ...
+
+Other Optimizations
 ===================
 
-Django comes with some built-in middleware to deal with common problems, which we discuss
-in the sections that follow.
+Django comes with a few other pieces of middleware that can help optimize your
+apps' performance:
 
-Authentication Support Middleware
----------------------------------
+    * ``django.middleware.http.ConditionalGetMiddleware`` adds support for
+      modern browsers to conditionally GET responses based on the ``ETag`` 
+      and ``Last-Modified`` headers.
 
-Middleware class: ``django.contrib.auth.middleware.AuthenticationMiddleware``.
+    * ``django.middleware.gzip.GZipMiddleware`` compresses responses for all 
+      moderns browsers, saving bandwidth and transfer time.
 
-This middleware enables authentication support. It adds the ``request.user``
-attribute, representing the currently logged-in user, to every incoming
-``HttpRequest`` object.
+Order of MIDDLEWARE_CLASSES
+===========================
 
-See Chapter 12 for complete details.
+If you use caching middleware, it's important to put each half in the right
+place within the ``MIDDLEWARE_CLASSES`` setting. That's because the cache
+middleware needs to know which headers by which to vary the cache storage.
+Middleware always adds something to the ``Vary`` response header when it can.
 
-"Common" Middleware
--------------------
+``UpdateCacheMiddleware`` runs during the response phase, where middleware is
+run in reverse order, so an item at the top of the list runs *last* during the
+response phase. Thus, you need to make sure that ``UpdateCacheMiddleware``
+appears *before* any other middleware that might add something to the ``Vary``
+header. The following middleware modules do so:
 
-Middleware class: ``django.middleware.common.CommonMiddleware``.
+    * ``SessionMiddleware`` adds ``Cookie``
+    * ``GZipMiddleware`` adds ``Accept-Encoding``
+    * ``LocaleMiddleware`` adds ``Accept-Language``
 
-This middleware adds a few conveniences for perfectionists:
-
-    * *Forbids access to user agents in the ``DISALLOWED_USER_AGENTS`` setting*:
-      If provided, this setting should be a list of compiled regular expression
-      objects that are matched against the user-agent header for each incoming
-      request. Here's an example snippet from a settings file::
-
-          import re
-
-          DISALLOWED_USER_AGENTS = (
-              re.compile(r'^OmniExplorer_Bot'),
-              re.compile(r'^Googlebot')
-          )
-
-      Note the ``import re``, because ``DISALLOWED_USER_AGENTS`` requires its
-      values to be compiled regexes (i.e., the output of ``re.compile()``). 
-      The settings file is regular python, so it's perfectly OK to include 
-      Python ``import`` statements in it.
-
-    * *Performs URL rewriting based on the ``APPEND_SLASH`` and ``PREPEND_WWW``
-      settings*: If ``APPEND_SLASH`` is ``True``, URLs that lack a trailing
-      slash will be redirected to the same URL with a trailing slash, unless
-      the last component in the path contains a period. So ``foo.com/bar`` is
-      redirected to ``foo.com/bar/``, but ``foo.com/bar/file.txt`` is passed
-      through unchanged.
-
-      If ``PREPEND_WWW`` is ``True``, URLs that lack a leading "www." will be
-      redirected to the same URL with a leading "www.".
-
-      Both of these options are meant to normalize URLs. The philosophy is
-      that each URL should exist in one -- and only one -- place. Technically the
-      URL ``example.com/bar`` is distinct from ``example.com/bar/``, which in
-      turn is distinct from ``www.example.com/bar/``. A search-engine indexer
-      would treat these as separate URLs, which is detrimental to your site's
-      search-engine rankings, so it's a best practice to normalize URLs.
-
-    * *Handles ETags based on the ``USE_ETAGS`` setting*: *ETags* are an HTTP-level
-      optimization for caching pages conditionally. If ``USE_ETAGS`` is
-      set to ``True``, Django will calculate an ETag for each request by
-      MD5-hashing the page content, and it will take care of sending ``Not
-      Modified`` responses, if appropriate.
-
-      Note there is also a conditional ``GET`` middleware, covered shortly, which
-      handles ETags and does a bit more.
-
-Compression Middleware
-----------------------
-
-Middleware class: ``django.middleware.gzip.GZipMiddleware``.
-
-This middleware automatically compresses content for browsers that understand gzip 
-compression (all modern browsers). This can greatly reduce the amount of bandwidth 
-a Web server consumes. The tradeoff is that it takes a bit of processing time to 
-compress pages.
-
-We usually prefer speed over bandwidth, but if you prefer the reverse, just
-enable this middleware.
-
-Conditional GET Middleware
-------------------------------
-
-Middleware class: ``django.middleware.http.ConditionalGetMiddleware``.
-
-This middleware provides support for conditional ``GET`` operations. If the response 
-has an ``Last-Modified`` or ``ETag`` or header, and the request has ``If-None-Match`` 
-or ``If-Modified-Since``, the response is replaced by an 304 ("Not modified")
-response.  ``ETag`` support depends on on the ``USE_ETAGS`` setting and expects
-the ``ETag`` response header to already be set.   As discussed above, the ``ETag``
-header is set by the Common middleware.
-
-It also removes the content from any response to a ``HEAD`` request and sets the
-``Date`` and ``Content-Length`` response headers for all requests.
-
-Reverse Proxy Support (X-Forwarded-For Middleware)
---------------------------------------------------
-
-Middleware class: ``django.middleware.http.SetRemoteAddrFromForwardedFor``.
-
-This is the example we examined in the "What's Middleware?" section earlier. It
-sets ``request.META['REMOTE_ADDR']`` based on
-``request.META['HTTP_X_FORWARDED_FOR']``, if the latter is set. This is useful
-if you're sitting behind a reverse proxy that causes each request's
-``REMOTE_ADDR`` to be set to ``127.0.0.1``.
-
-.. admonition:: Danger!
-
-    This middleware does *not* validate ``HTTP_X_FORWARDED_FOR``.
-
-    If you're not behind a reverse proxy that sets ``HTTP_X_FORWARDED_FOR``
-    automatically, do not use this middleware. Anybody can spoof the value of
-    ``HTTP_X_FORWARDED_FOR``, and because this sets ``REMOTE_ADDR`` based on
-    ``HTTP_X_FORWARDED_FOR``, that means anybody can fake his IP address.
-
-    Only use this middleware when you can absolutely trust the value of
-    ``HTTP_X_FORWARDED_FOR``.
-
-Session Support Middleware
---------------------------
-
-Middleware class: ``django.contrib.sessions.middleware.SessionMiddleware``.
-
-This middleware enables session support. See Chapter 12 for details.
-
-Sitewide Cache Middleware
--------------------------
-
-Middleware class: ``django.middleware.cache.CacheMiddleware``.
-
-This middleware caches each Django-powered page. This was discussed in detail 
-in Chapter 13.
-
-Transaction Middleware
-----------------------
-
-Middleware class: ``django.middleware.transaction.TransactionMiddleware``.
-
-This middleware binds a database ``COMMIT`` or ``ROLLBACK`` to the request/response 
-phase. If a view function runs successfully, a ``COMMIT`` is issued. If the view 
-raises an exception, a ``ROLLBACK`` is issued.
-
-The order of this middleware in the stack is important. Middleware modules
-running outside of it run with commit-on-save -- the default Django behavior.
-Middleware modules running inside it (coming later in the stack) will be under
-the same transaction control as the view functions.
-
-See Appendix C for more about information about database transactions.
-
-"X-View" Middleware
--------------------
-
-Middleware class: ``django.middleware.doc.XViewMiddleware``.
-
-This middleware sends custom ``X-View`` HTTP headers to HEAD requests that come from IP
-addresses defined in the ``INTERNAL_IPS`` setting. This is used by Django's
-automatic documentation system.
+``FetchFromCacheMiddleware``, on the other hand, runs during the request phase,
+where middleware is applied first-to-last, so an item at the top of the list
+runs *first* during the request phase. The ``FetchFromCacheMiddleware`` also
+needs to run after other middleware updates the ``Vary`` header, so
+``FetchFromCacheMiddleware`` must be *after* any item that does so.
 
 What's Next?
 ============
 
-Web developers and database-schema designers don't always have the luxury of
-starting from scratch. In the `next chapter`_, we'll cover how to integrate with
-legacy systems, such as database schemas you've inherited from the 1980s.
-
-.. _next chapter: ../chapter16/
+Django ships with a number of "contrib" packages -- optional features that can
+make your life easier. We've already covered a few of these: the admin site
+(Chapter 6) and the session/user framework (Chapter 14). The next chapter
+covers more of the "contributed" subframeworks.

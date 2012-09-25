@@ -2,9 +2,15 @@
 Chapter 8: Advanced Views and URLconfs
 ======================================
 
-In Chapter 3, we explained the basics of Django view functions and URLconfs.
+.. SL Note: as the code examples in this chapter are expository, and
+.. SL are not complete runnable examples, I'm proof-reading by eye
+.. SL and running an automated syntax check on them to test them.
+
+In `Chapter 3`_, we explained the basics of Django view functions and URLconfs.
 This chapter goes into more detail about advanced functionality in those two
 pieces of the framework.
+
+.. _Chapter 3: ../chapter03/
 
 URLconf Tricks
 ==============
@@ -19,14 +25,12 @@ Streamlining Function Imports
 Consider this URLconf, which builds on the example in Chapter 3::
 
     from django.conf.urls.defaults import *
-    from mysite.views import current_datetime, hours_ahead, hours_behind, now_in_chicago, now_in_london
+    from mysite.views import hello, current_datetime, hours_ahead
 
     urlpatterns = patterns('',
-        (r'^now/$', current_datetime),
-        (r'^now/plus(\d{1,2})hours/$', hours_ahead),
-        (r'^now/minus(\d{1,2})hours/$', hours_behind),
-        (r'^now/in_chicago/$', now_in_chicago),
-        (r'^now/in_london/$', now_in_london),
+        (r'^hello/$', hello),
+        (r'^time/$', current_datetime),
+        (r'^time/plus/(\d{1,2})/$', hours_ahead),
     )
 
 As explained in Chapter 3, each entry in the URLconf includes its associated
@@ -38,32 +42,32 @@ keeping those imports can be tedious to manage. (For each new view function,
 you have to remember to import it, and the import statement tends to get
 overly long if you use this approach.) It's possible to avoid that tedium by
 importing the ``views`` module itself. This example URLconf is equivalent to
-the previous one::
+the previous one:
+
+.. parsed-literal::
 
     from django.conf.urls.defaults import *
-    from mysite import views
+    **from mysite import views**
 
     urlpatterns = patterns('',
-        (r'^now/$', views.current_datetime),
-        (r'^now/plus(\d{1,2})hours/$', views.hours_ahead),
-        (r'^now/minus(\d{1,2})hours/$', views.hours_behind),
-        (r'^now/in_chicago/$', views.now_in_chicago),
-        (r'^now/in_london/$', views.now_in_london),
+        (r'^hello/$', **views.hello**),
+        (r'^time/$', **views.current_datetime**),
+        (r'^time/plus/(\d{1,2})/$', **views.hours_ahead**),
     )
 
 Django offers another way of specifying the view function for a particular
 pattern in the URLconf: you can pass a string containing the module name and
 function name rather than the function object itself. Continuing the ongoing
-example::
+example:
+
+.. parsed-literal::
 
     from django.conf.urls.defaults import *
 
     urlpatterns = patterns('',
-        (r'^now/$', 'mysite.views.current_datetime'),
-        (r'^now/plus(\d{1,2})hours/$', 'mysite.views.hours_ahead'),
-        (r'^now/minus(\d{1,2})hours/$', 'mysite.views.hours_behind'),
-        (r'^now/in_chicago/$', 'mysite.views.now_in_chicago'),
-        (r'^now/in_london/$', 'mysite.views.now_in_london'),
+        (r'^hello/$', **'mysite.views.hello'**),
+        (r'^time/$', **'mysite.views.current_datetime'**),
+        (r'^time/plus/(\d{1,2})/$', **'mysite.views.hours_ahead'**),
     )
 
 (Note the quotes around the view names. We're using
@@ -79,16 +83,16 @@ A further shortcut you can take when using the string technique is to factor
 out a common "view prefix." In our URLconf example, each of the view strings
 starts with ``'mysite.views'``, which is redundant to type. We can factor out
 that common prefix and pass it as the first argument to ``patterns()``, like
-this::
+this:
+
+.. parsed-literal::
 
     from django.conf.urls.defaults import *
 
-    urlpatterns = patterns('mysite.views',
-        (r'^now/$', 'current_datetime'),
-        (r'^now/plus(\d{1,2})hours/$', 'hours_ahead'),
-        (r'^now/minus(\d{1,2})hours/$', 'hours_behind'),
-        (r'^now/in_chicago/$', 'now_in_chicago'),
-        (r'^now/in_london/$', 'now_in_london'),
+    urlpatterns = patterns(**'mysite.views'**,
+        (r'^hello/$', **'hello'**),
+        (r'^time/$', **'current_datetime'**),
+        (r'^time/plus/(\d{1,2})/$', **'hours_ahead'**),
     )
 
 Note that you don't put a trailing dot (``"."``) in the prefix, nor do you put
@@ -130,8 +134,9 @@ Old::
     from django.conf.urls.defaults import *
 
     urlpatterns = patterns('',
-        (r'^/?$', 'mysite.views.archive_index'),
-        (r'^(\d{4})/([a-z]{3})/$', 'mysite.views.archive_month'),
+        (r'^hello/$', 'mysite.views.hello'),
+        (r'^time/$', 'mysite.views.current_datetime'),
+        (r'^time/plus/(\d{1,2})/$', 'mysite.views.hours_ahead'),
         (r'^tag/(\w+)/$', 'weblog.views.tag'),
     )
 
@@ -140,8 +145,9 @@ New::
     from django.conf.urls.defaults import *
 
     urlpatterns = patterns('mysite.views',
-        (r'^/?$', 'archive_index'),
-        (r'^(\d{4})/([a-z]{3})/$', 'archive_month'),
+        (r'^hello/$', 'hello'),
+        (r'^time/$', 'current_datetime'),
+        (r'^time/plus/(\d{1,2})/$', 'hours_ahead'),
     )
 
     urlpatterns += patterns('weblog.views',
@@ -150,7 +156,9 @@ New::
 
 All the framework cares about is that there's a module-level variable called
 ``urlpatterns``. This variable can be constructed dynamically, as we do in this
-example.
+example. We should specifically point out that the objects returned by
+``patterns()`` can be added together, which is something you might not have
+expected.
 
 Special-Casing URLs in Debug Mode
 ---------------------------------
@@ -160,17 +168,18 @@ advantage of this technique to alter your URLconf's behavior while in Django's
 debug mode. To do this, just check the value of the ``DEBUG`` setting at
 runtime, like so::
 
-    from django.conf.urls.defaults import*
     from django.conf import settings
+    from django.conf.urls.defaults import *
+    from mysite import views
 
     urlpatterns = patterns('',
-        (r'^$', 'mysite.views.homepage'),
-        (r'^(\d{4})/([a-z]{3})/$', 'mysite.views.archive_month'),
+        (r'^$', views.homepage),
+        (r'^(\d{4})/([a-z]{3})/$', views.archive_month),
     )
 
     if settings.DEBUG:
         urlpatterns += patterns('',
-            (r'^debuginfo$', 'mysite.views.debug'),
+            (r'^debuginfo/$', views.debug),
         )
 
 In this example, the URL ``/debuginfo/`` will only be available if your
@@ -385,10 +394,10 @@ URLconf. The view function treats it as just another parameter.
 This extra URLconf options technique is a nice way of sending additional
 information to your view functions with minimal fuss. As such, it's used by a
 couple of Django's bundled applications, most notably its generic views system,
-which we cover in Chapter 9.
+which we cover in Chapter 11.
 
-The following sections contain a couple of ideas on how you can use the extra URLconf options
-technique in your own projects.
+The following sections contain a couple of ideas on how you can use the extra
+URLconf options technique in your own projects.
 
 Faking Captured URLconf Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -539,7 +548,7 @@ couple of notes about what we did:
 
 Because database-driven Web sites have several common patterns, Django comes
 with a set of "generic views" that use this exact technique to save you time.
-We cover Django's built-in generic views in the next chapter.
+We cover Django's built-in generic views in Chapter 11.
 
 Giving a View Configuration Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -566,6 +575,7 @@ URLconf parameter value will be used.
 For example, consider this URLconf::
 
     from django.conf.urls.defaults import *
+    from mysite import views
 
     urlpatterns = patterns('',
         (r'^mydata/(?P<id>\d+)/$', views.my_view, {'id': 3}),
@@ -588,11 +598,12 @@ Another convenient trick is to specify default parameters for a view's
 arguments. This tells the view which value to use for a parameter by default if
 none is specified.
 
-Here's an example::
+An example::
 
     # urls.py
 
     from django.conf.urls.defaults import *
+    from mysite import views
 
     urlpatterns = patterns('',
         (r'^blog/$', views.page),
@@ -601,15 +612,19 @@ Here's an example::
 
     # views.py
 
-    def page(request, num="1"):
+    def page(request, num='1'):
         # Output the appropriate page of blog entries, according to num.
         # ...
 
 Here, both URL patterns point to the same view -- ``views.page`` -- but the
 first pattern doesn't capture anything from the URL. If the first pattern
 matches, the ``page()`` function will use its default argument for ``num``,
-``"1"``. If the second pattern matches, ``page()`` will use whatever ``num``
+``'1'``. If the second pattern matches, ``page()`` will use whatever ``num``
 value was captured by the regular expression.
+
+(Note that we've been careful to set the default argument's value to the
+*string* ``'1'``, not the integer ``1``. That's for consistency, because
+any captured value for ``num`` will always be a string.)
 
 It's common to use this technique in conjunction with configuration options,
 as explained earlier. This example makes a slight improvement to the example in
@@ -620,6 +635,8 @@ value for ``template_name``::
         var = do_something()
         return render_to_response(template_name, {'var': var})
 
+.. SL Again wonder whether default should be unicode?
+
 Special-Casing Views
 --------------------
 
@@ -627,19 +644,20 @@ Sometimes you'll have a pattern in your URLconf that handles a large set of
 URLs, but you'll need to special-case one of them. In this case, take advantage
 of the linear way a URLconf is processed and put the special case first.
 
-For example, the "add an object" pages in Django's admin site are represented
-by this URLconf line::
+For example, you can think of the "add an object" pages in Django's admin site
+as represented by a URLpattern like this::
 
     urlpatterns = patterns('',
         # ...
-        ('^([^/]+)/([^/]+)/add/$', 'django.contrib.admin.views.main.add_stage'),
+        ('^([^/]+)/([^/]+)/add/$', views.add_stage),
         # ...
     )
 
 This matches URLs such as ``/myblog/entries/add/`` and ``/auth/groups/add/``.
 However, the "add" page for a user object (``/auth/user/add/``) is a special
 case -- it doesn't display all of the form fields, it displays two password
-fields, and so forth. We *could* solve this problem by special-casing in the view, like so::
+fields, and so forth. We *could* solve this problem by special-casing in the
+view, like so::
 
     def add_stage(request, app_label, model_name):
         if app_label == 'auth' and model_name == 'user':
@@ -647,14 +665,17 @@ fields, and so forth. We *could* solve this problem by special-casing in the vie
         else:
             # do normal code
 
+.. SL It's not strictly relevant to the point you're making here, but
+.. SL the view func in the admin is now called 'add_view'
+
 but that's inelegant for a reason we've touched on multiple times in this
 chapter: it puts URL logic in the view. As a more elegant solution, we can take
 advantage of the fact that URLconfs are processed in order from top to bottom::
 
     urlpatterns = patterns('',
         # ...
-        ('^auth/user/add/$', 'django.contrib.admin.views.auth.user_add_stage'),
-        ('^([^/]+)/([^/]+)/add/$', 'django.contrib.admin.views.main.add_stage'),
+        ('^auth/user/add/$', views.user_add_stage),
+        ('^([^/]+)/([^/]+)/add/$', views.add_stage),
         # ...
     )
 
@@ -663,11 +684,11 @@ With this in place, a request to ``/auth/user/add/`` will be handled by the
 matches the top one first. (This is short-circuit logic.)
 
 Capturing Text in URLs
--------------------------------
+----------------------
 
-Each captured argument is sent to the view as a plain Python string, regardless
-of what sort of match the regular expression makes. For example, in this
-URLconf line::
+Each captured argument is sent to the view as a plain Python Unicode string,
+regardless of what sort of match the regular expression makes. For example, in
+this URLconf line::
 
     (r'^articles/(?P<year>\d{4})/$', views.year_archive),
 
@@ -692,6 +713,7 @@ Translated to a URLconf and view, the error looks like this::
     # urls.py
 
     from django.conf.urls.defaults import *
+    from mysite import views
 
     urlpatterns = patterns('',
         (r'^articles/(\d{4})/(\d{2})/(\d{2})/$', views.day_archive),
@@ -701,13 +723,13 @@ Translated to a URLconf and view, the error looks like this::
 
     import datetime
 
-    def day_archive(request, year, month, day)
+    def day_archive(request, year, month, day):
         # The following statement raises a TypeError!
         date = datetime.date(year, month, day)
 
 Instead, ``day_archive()`` can be written correctly like this::
 
-    def day_archive(request, year, month, day)
+    def day_archive(request, year, month, day):
         date = datetime.date(int(year), int(month), int(day))
 
 Note that ``int()`` itself raises a ``ValueError`` when you pass it a string
@@ -719,18 +741,246 @@ Determining What the URLconf Searches Against
 ---------------------------------------------
 
 When a request comes in, Django tries to match the URLconf patterns against the
-requested URL, as a normal Python string (not as a Unicode string). This does
-not include ``GET`` or ``POST`` parameters, or the domain name. It also does not
-include the leading slash, because every URL has a leading slash.
+requested URL, as a Python string. This does not include ``GET`` or ``POST``
+parameters, or the domain name. It also does not include the leading slash,
+because every URL has a leading slash.
 
 For example, in a request to ``http://www.example.com/myapp/``, Django will try
 to match ``myapp/``. In a request to ``http://www.example.com/myapp/?page=3``, 
 Django will try to match ``myapp/``.
 
-The request method (e.g., ``POST``, ``GET``, ``HEAD``) is *not* taken into
-account when traversing the URLconf. In other words, all request methods will
-be routed to the same function for the same URL. It's the responsibility of a
-view function to perform branching based on request method.
+The request method (e.g., ``POST``, ``GET``) is *not* taken into account when
+traversing the URLconf. In other words, all request methods will be routed to
+the same function for the same URL. It's the responsibility of a view function
+to perform branching based on request method.
+
+Higher-Level Abstractions of View Functions
+-------------------------------------------
+
+And speaking of branching based on request method, let's take a look at how we
+might build a nice way of doing that. Consider this URLconf/view layout::
+
+    # urls.py
+
+    from django.conf.urls.defaults import *
+    from mysite import views
+
+    urlpatterns = patterns('',
+        # ...
+        (r'^somepage/$', views.some_page),
+        # ...
+    )
+
+    # views.py
+
+    from django.http import Http404, HttpResponseRedirect
+    from django.shortcuts import render_to_response
+
+    def some_page(request):
+        if request.method == 'POST':
+            do_something_for_post()
+            return HttpResponseRedirect('/someurl/')
+        elif request.method == 'GET':
+            do_something_for_get()
+            return render_to_response('page.html')
+        else:
+            raise Http404()
+
+In this example, the ``some_page()`` view's handling of ``POST`` vs. ``GET``
+requests is quite different. The only thing they have in common is a shared
+URL: ``/somepage/``. As such, it's kind of inelegant to deal with both ``POST``
+and ``GET`` in the same view function. It would be nice if we could have two
+separate view functions -- one handling ``GET`` requests and the other handling
+``POST`` -- and ensuring each one was only called when appropriate.
+
+We can do that by writing a view function that delegates to other views,
+either before or after executing some custom logic. Here's an example of how
+this technique could help simplify our ``some_page()`` view::
+
+    # views.py
+
+    from django.http import Http404, HttpResponseRedirect
+    from django.shortcuts import render_to_response
+
+    def method_splitter(request, GET=None, POST=None):
+        if request.method == 'GET' and GET is not None:
+            return GET(request)
+        elif request.method == 'POST' and POST is not None:
+            return POST(request)
+        raise Http404
+
+    def some_page_get(request):
+        assert request.method == 'GET'
+        do_something_for_get()
+        return render_to_response('page.html')
+
+    def some_page_post(request):
+        assert request.method == 'POST'
+        do_something_for_post()
+        return HttpResponseRedirect('/someurl/')
+
+    # urls.py
+
+    from django.conf.urls.defaults import *
+    from mysite import views
+
+    urlpatterns = patterns('',
+        # ...
+        (r'^somepage/$', views.method_splitter, {'GET': views.some_page_get, 'POST': views.some_page_post}),
+        # ...
+    )
+
+Let's go through what this does:
+
+    * We've written a new view, ``method_splitter()``, that delegates to other
+      views based on ``request.method``. It looks for two keyword arguments,
+      ``GET`` and ``POST``, which should be *view functions*. If
+      ``request.method`` is ``'GET'``, then it calls the ``GET`` view. If
+      ``request.method`` is ``'POST'``, then it calls the ``POST`` view. If
+      ``request.method`` is something else (``HEAD``, etc.), or if ``GET`` or
+      ``POST`` were not supplied to the function, then it raises an
+      ``Http404``.
+
+    * In the URLconf, we point ``/somepage/`` at ``method_splitter()`` and pass
+      it extra arguments -- the view functions to use for ``GET`` and ``POST``,
+      respectively.
+
+    * Finally, we've split the ``some_page()`` view into two view functions --
+      ``some_page_get()`` and ``some_page_post()``. This is much nicer than
+      shoving all of that logic into a single view.
+
+      Note that these view functions technically no longer have to check
+      ``request.method``, because ``method_splitter()`` does that. (By the time
+      ``some_page_post()`` is called, for example, we can be confident
+      ``request.method`` is ``'post'``.) Still, just to be safe, and also to
+      serve as documentation, we stuck in an ``assert`` that makes sure
+      ``request.method`` is what we expect it to be.
+
+Now we have ourselves a nice, generic view function that encapsulates the logic
+of delegating a view by ``request.method``. Nothing about ``method_splitter()``
+is tied to our specific application, of course, so we can reuse it in other
+projects.
+
+But, while we're at it, there's one way to improve on ``method_splitter()``.
+As it's written, it assumes that the ``GET`` and ``POST`` views take no
+arguments other than ``request``. What if we wanted to use
+``method_splitter()`` with views that, for example, capture text from URLs,
+or take optional keyword arguments themselves?
+
+To do that, we can use a nice Python feature: variable arguments with
+asterisks. We'll show the example first, then explain it::
+
+    def method_splitter(request, *args, **kwargs):
+        get_view = kwargs.pop('GET', None)
+        post_view = kwargs.pop('POST', None)
+        if request.method == 'GET' and get_view is not None:
+            return get_view(request, *args, **kwargs)
+        elif request.method == 'POST' and post_view is not None:
+            return post_view(request, *args, **kwargs)
+        raise Http404
+
+Here, we've refactored ``method_splitter()`` to remove the ``GET`` and ``POST``
+keyword arguments, in favor of ``*args`` and ``**kwargs`` (note the asterisks).
+This is a Python feature that allows a function to accept a dynamic, arbitrary
+number of arguments whose names aren't known until runtime. If you put a single
+asterisk in front of a parameter in a function definition, any *positional*
+arguments to that function will be rolled up into a single tuple. If you put
+two asterisks in front of a parameter in a function definition, any *keyword*
+arguments to that function will be rolled up into a single dictionary.
+
+For example, with this function::
+
+    def foo(*args, **kwargs):
+        print "Positional arguments are:"
+        print args
+        print "Keyword arguments are:"
+        print kwargs
+
+Here's how it would work::
+
+    >>> foo(1, 2, 3)
+    Positional arguments are:
+    (1, 2, 3)
+    Keyword arguments are:
+    {}
+    >>> foo(1, 2, name='Adrian', framework='Django')
+    Positional arguments are:
+    (1, 2)
+    Keyword arguments are:
+    {'framework': 'Django', 'name': 'Adrian'}
+
+.. SL Tested ok
+
+Bringing this back to ``method_splitter()``, you can see we're using ``*args``
+and ``**kwargs`` to accept *any* arguments to the function and pass them along
+to the appropriate view. But before we do that, we make two calls to
+``kwargs.pop()`` to get the ``GET`` and ``POST`` arguments, if they're
+available. (We're using ``pop()`` with a default value of ``None`` to avoid
+``KeyError`` if one or the other isn't defined.)
+
+Wrapping View Functions
+-----------------------
+
+Our final view trick takes advantage of an advanced Python technique. Say you
+find yourself repeating a bunch of code throughout various views, as in this
+example::
+
+    def my_view1(request):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect('/accounts/login/')
+        # ...
+        return render_to_response('template1.html')
+
+    def my_view2(request):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect('/accounts/login/')
+        # ...
+        return render_to_response('template2.html')
+
+    def my_view3(request):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect('/accounts/login/')
+        # ...
+        return render_to_response('template3.html')
+
+Here, each view starts by checking that ``request.user`` is authenticated
+-- that is, the current user has successfully logged into the site -- and
+redirects to ``/accounts/login/`` if not. (Note that we haven't yet covered
+``request.user`` -- Chapter 14 does -- but, as you might imagine,
+``request.user`` represents the current user, either logged-in or anonymous.)
+
+It would be nice if we could remove that bit of repetitive code from each of
+these views and just mark them as requiring authentication. We can do that by
+making a view wrapper. Take a moment to study this::
+
+    def requires_login(view):
+        def new_view(request, *args, **kwargs):
+            if not request.user.is_authenticated():
+                return HttpResponseRedirect('/accounts/login/')
+            return view(request, *args, **kwargs)
+        return new_view
+
+This function, ``requires_login``, takes a view function (``view``) and returns
+a new view function (``new_view``). The new function, ``new_view`` is defined
+*within* ``requires_login`` and handles the logic of checking
+``request.user.is_authenticated()`` and delegating to the original view
+(``view``).
+
+Now, we can remove the ``if not request.user.is_authenticated()`` checks from
+our views and simply wrap them with ``requires_login`` in our URLconf::
+
+    from django.conf.urls.defaults import *
+    from mysite.views import requires_login, my_view1, my_view2, my_view3
+
+    urlpatterns = patterns('',
+        (r'^view1/$', requires_login(my_view1)),
+        (r'^view2/$', requires_login(my_view2)),
+        (r'^view3/$', requires_login(my_view3)),
+    )
+
+This has the same effect as before, but with less code redundancy. Now we've
+created a nice, generic function -- ``requires_login()`` that we can wrap
+around any view in order to make it require login.
 
 Including Other URLconfs
 ========================
@@ -739,7 +989,7 @@ If you intend your code to be used on multiple Django-based sites, you should
 consider arranging your URLconfs in such a way that allows for "including."
 
 At any point, your URLconf can "include" other URLconf modules. This
-essentially "roots" a set of URLs below other ones. For example, this 
+essentially "roots" a set of URLs below other ones. For example, this
 URLconf includes other URLconfs::
 
     from django.conf.urls.defaults import *
@@ -749,6 +999,9 @@ URLconf includes other URLconfs::
         (r'^photos/', include('mysite.photos.urls')),
         (r'^about/$', 'mysite.views.about'),
     )
+
+(We saw this before in Chapter 6, when we introduced the Django admin site. The
+admin site has its own URLconf that you merely ``include()`` within yours.)
 
 There's an important gotcha here: the regular expressions in this example that
 point to an ``include()`` do *not* have a ``$`` (end-of-string match character)
@@ -773,11 +1026,11 @@ With these two URLconfs, here's how a few sample requests would be handled:
       is ``2007/``, which matches the first line in the ``mysite.blog.urls``
       URLconf.
 
-    * ``/weblog//2007/``: In the first URLconf, the pattern ``r'^weblog/'``
-      matches. Because it is an ``include()``, Django strips all the matching
-      text, which is ``'weblog/'`` in this case. The remaining part of the URL
-      is ``/2007/`` (with a leading slash), which does not match any of the
-      lines in the ``mysite.blog.urls`` URLconf.
+    * ``/weblog//2007/`` (with two slashes): In the first URLconf, the pattern
+      ``r'^weblog/'`` matches. Because it is an ``include()``, Django strips
+      all the matching text, which is ``'weblog/'`` in this case. The remaining
+      part of the URL is ``/2007/`` (with a leading slash), which does not
+      match any of the lines in the ``mysite.blog.urls`` URLconf.
 
     * ``/about/``: This matches the view ``mysite.views.about`` in the first
       URLconf, demonstrating that you can mix ``include()`` patterns with
@@ -873,11 +1126,8 @@ every view in the included URLconf accepts the extra options you're passing.
 What's Next?
 ============
 
-One of Django's main goals is to reduce the amount of code developers need
-to write, and in this chapter we suggested how to cut down the code of
-your views and URLconfs.
+This chapter has provided many advanced tips and tricks for views and URLconfs.
+Next, in `Chapter 9`_, we'll give this advanced treatment to Django's template
+system.
 
-The next logical step in code elimination is removing the need to write views
-entirely. That's the topic of the `next chapter`_.
-
-.. _next chapter: ../chapter09/
+.. _Chapter 9: ../chapter09/

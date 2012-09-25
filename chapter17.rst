@@ -1,417 +1,392 @@
-==============================================
-Chapter 17: Extending Django's Admin Interface
-==============================================
+======================
+Chapter 17: Middleware
+======================
 
-Chapter 6 introduced Django's admin interface, and now it's time to circle back
-and take a closer look.
+On occasion, you'll need to run a piece of code on each and every request that
+Django handles. This code might need to modify the request before the view
+handles it, it might need to log information about the request for debugging
+purposes, and so forth.
 
-As we've said a few times before, Django's admin interface is one of the framework's
-"killer features," and most Django developers find it time-saving and useful.
-Because the admin interface is so popular, it's common for Django developers
-to want to customize or extend it.
+You can do this with Django's *middleware* framework, which is a set of hooks
+into Django's request/response processing. It's a light, low-level "plug-in"
+system capable of globally altering both Django's input and output.
 
-The last few sections of Chapter 6 offer some simple ways to customize certain
-parts of the admin interface. Before proceeding with this chapter, consider
-reviewing that material; it covers how to customize the admin interface's
-change lists and edit forms, as well as an easy way to "rebrand" the admin interface to
-match your site.
+Each middleware component is responsible for doing some specific function. If
+you're reading this book straight through, you've seen middleware a number of
+times already:
 
-Chapter 6 also discusses when and why you'd want to use the admin interface, and
-since that material makes a good jumping-off point for the rest of this chapter,
-we'll reproduce it here:
+    * All of the session and user tools that we looked at in Chapter 14
+      are made possible by a few small pieces of middleware (more
+      specifically, the middleware makes ``request.session`` and
+      ``request.user`` available to you in views).
 
-    Obviously, the admin interface is extremely useful for editing data (fancy that).
-    If you have any sort of data entry task, the admin interface simply can't be beat.
-    We suspect that the vast majority of readers of this book will have a
-    whole host of data entry tasks.
+    * The sitewide cache discussed in Chapter 15 is actually just a piece
+      of middleware that bypasses the call to your view function if the
+      response for that view has already been cached.
 
-    Django's admin interface especially shines when nontechnical users need to be able
-    to enter data; that's the purpose behind the feature, after all. At the
-    newspaper where Django was first developed, development of a typical
-    online feature -- a special report on water quality in the municipal
-    supply, say -- goes something like this:
+    * The ``flatpages``, ``redirects``, and ``csrf`` applications from
+      Chapter 16 all do their magic through middleware components.
 
-        * The reporter responsible for the story meets with one of the
-          developers and goes over the available data.
+This chapter dives deeper into exactly what middleware is and how it works,
+and explains how you can write your own middleware.
 
-        * The developer designs a model around this data and then opens up
-          the admin interface to the reporter.
+What's Middleware?
+==================
 
-        * While the reporter enters data into Django, the programmer can focus
-          on developing the publicly accessible interface (the fun part!).
+Let's start with a very simple example.
 
-    In other words, the raison d'être of Django's admin interface is facilitating
-    the simultaneous work of content producers and programmers.
+High-traffic sites often need to deploy Django behind a load-balancing proxy
+(see Chapter 12). This can cause a few small complications, one of which is
+that every request's remote IP (``request.META["REMOTE_IP"]``) will be that of
+the load balancer, not the actual IP making the request. Load balancers deal
+with this by setting a special header, ``X-Forwarded-For``, to the actual
+requesting IP address.
 
-    However, beyond the obvious data entry tasks, we find the admin interface useful in
-    a few other cases:
+So here's a small bit of middleware that lets sites running behind a proxy
+still see the correct IP address in ``request.META["REMOTE_ADDR"]``::
 
-        * *Inspecting data models*: The first thing we do when we've defined a new
-          model is to call it up in the admin interface and enter some dummy data.
-          This is usually when we find any data modeling mistakes; having a
-          graphical interface to a model quickly reveals problems.
+    class SetRemoteAddrFromForwardedFor(object):
+        def process_request(self, request):
+            try:
+                real_ip = request.META['HTTP_X_FORWARDED_FOR']
+            except KeyError:
+                pass
+            else:
+                # HTTP_X_FORWARDED_FOR can be a comma-separated list of IPs.
+                # Take just the first one.
+                real_ip = real_ip.split(",")[0]
+                request.META['REMOTE_ADDR'] = real_ip
 
-        * *Managing acquired data*: There's little actual data entry associated with
-          a site like ``http://chicagocrime.org``, since most of the data comes from
-          an automated source. However, when problems with the automatically
-          acquired data crop up, it's useful to be able to go in and edit that data
-          easily.
+(Note: Although the HTTP header is called ``X-Forwarded-For``, Django makes
+it available as ``request.META['HTTP_X_FORWARDED_FOR']``. With the exception
+of ``content-length`` and ``content-type``, any HTTP headers in the request are
+converted to ``request.META`` keys by converting all characters to uppercase,
+replacing any hyphens with underscores and adding an ``HTTP_`` prefix to the
+name.)
 
-Django's admin interface handles these common cases with little or no customization. As
-with most design tradeoffs, though, handling these common cases so well means
-that Django's admin interface doesn't handle some other modes of editing as well.
+If this middleware is installed (see the next section), every request's
+``X-Forwarded-For`` value will be automatically inserted into
+``request.META['REMOTE_ADDR']``. This means your Django applications don't need
+to be concerned with whether they're behind a load-balancing proxy or not; they
+can simply access ``request.META['REMOTE_ADDR']``, and that will work whether
+or not a proxy is being used.
 
-We'll talk about the cases Django's admin interface *isn't* designed to cover a bit
-later on, but first, let's briefly digress to a discussion on philosophy.
+In fact, this is a common enough need that this piece of middleware is a
+built-in part of Django. It lives in ``django.middleware.http``, and you can
+read a bit more about it later in this chapter.
 
-The Zen of Admin
-================
+Middleware Installation
+=======================
 
-At its core, Django's admin interface is designed for a single activity:
+If you've read this book straight through, you've already seen a number of
+examples of middleware installation; many of the examples in previous chapters
+have required certain middleware. For completeness, here's how to install
+middleware.
 
-    Trusted users editing structured content.
+To activate a middleware component, add it to the ``MIDDLEWARE_CLASSES`` tuple
+in your settings module. In ``MIDDLEWARE_CLASSES``, each middleware component
+is represented by a string: the full Python path to the middleware's class
+name. For example, here's the default ``MIDDLEWARE_CLASSES`` created by
+``django-admin.py startproject``::
 
-Yes, it's extremely simple -- but that simplicity is based on a whole host of
-assumptions. The entire philosophy of Django's admin interface follows directly from
-these assumptions, so let's dig into the subtext of this phrase in the sections that follow.
+    MIDDLEWARE_CLASSES = (
+        'django.middleware.common.CommonMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+    )
 
-"Trusted users ..."
--------------------
+A Django installation doesn't require any middleware -- ``MIDDLEWARE_CLASSES``
+can be empty, if you'd like -- but we recommend that you activate
+``CommonMiddleware``, which we explain shortly.
 
-The admin interface is designed to be used by people whom you, the developer, *trust*.
-This doesn't just mean "people who have been authenticated"; it means that
-Django assumes that your content editors can be trusted to do the right thing.
+The order is significant. On the request and view phases, Django applies
+middleware in the order given in ``MIDDLEWARE_CLASSES``, and on the response
+and exception phases, Django applies middleware in reverse order. That is,
+Django treats ``MIDDLEWARE_CLASSES`` as a sort of "wrapper" around the view
+function: on the request it walks down the list to the view, and on the
+response it walks back up.
 
-This in turn means that there's no approval process for editing content -- if you
-trust your users, nobody needs to approve of their edits. Another implication is that
-the permission system, while powerful, has no support for limiting access on a
-per-object basis as of this writing. If you trust someone to edit his or her own
-stories, you trust that user not to edit anyone else's stories without permission.
+Middleware Methods
+==================
 
-"... editing ..."
------------------
+Now that you know what middleware is and how to install it, let's take a look at
+all the available methods that middleware classes can define.
 
-The primary purpose of Django's admin interface is to let people edit data. This seems
-obvious at first, but again it has some subtle and powerful repercussions.
+Initializer: __init__(self)
+---------------------------
 
-For instance, although the admin interface is quite useful for reviewing data (as just
-described), it's not designed with that purpose in mind. For example, note the lack of a
-"can view" permission (see Chapter 12). Django assumes that if people are allowed
-to view content in the admin interface, they're also allowed to edit it.
+Use ``__init__()`` to perform systemwide setup for a given middleware class.
 
-Another more important thing to note is the lack of anything even remotely approaching
-"workflow." If a given task requires a series of steps, there's no support
-for enforcing that those steps be done in any particular order. Django's admin interface
-focuses on *editing*, not on activities surrounding editing. This
-avoidance of workflow also stems from the principle of trust: the admin interface's
-philosophy is that workflow is a personnel issue, not something to be implemented in
-code.
+For performance reasons, each activated middleware class is instantiated only
+*once* per server process. This means that ``__init__()`` is called only once
+-- at server startup -- not for individual requests.
 
-Finally, note the lack of aggregation in the admin interface. That is, there's no
-support for displaying totals, averages, and so forth. Again, the admin interface is
-for editing -- it's expected that you'll write custom views for all the rest.
+A common reason to implement an ``__init__()`` method is to check whether the
+middleware is indeed needed. If ``__init__()`` raises
+``django.core.exceptions.MiddlewareNotUsed``, then Django will remove the
+middleware from the middleware stack. You might use this feature to check for
+some piece of software that the middleware class requires, or check whether
+the server is running debug mode, or any other such environment situation.
 
-"... structured content"
-------------------------
+If a middleware class defines an ``__init__()`` method, the method should take no
+arguments beyond the standard ``self``.
 
-As with the rest of Django, the admin interface wants you to work with structured data.
-Thus, it only supports editing data stored in Django models; for
-anything else, such as data stored on a filesystem, you'll need custom views.
+Request Preprocessor: process_request(self, request)
+----------------------------------------------------
 
-Full Stop
----------
+This method gets called as soon as the request has been received -- before
+Django has parsed the URL to determine which view to execute. It gets passed
+the ``HttpRequest`` object, which you may modify at will.
 
-It should be clear by now that Django's admin interface does *not* try to be all things
-to all people; instead, we choose to focus tightly on one thing and do that
-thing extremely well.
+``process_request()`` should return either ``None`` or an ``HttpResponse``
+object.
 
-When it comes to extending Django's admin interface, much of that same philosophy
-holds (note that "extensibility" shows up nowhere in our goals). Because custom
-Django views can do *anything*, and because they can easily be visually
-integrated into the admin interface (as described in the next section), the built-in
-opportunities for customizing the admin interface are somewhat limited by design.
+    * If it returns ``None``, Django will continue processing this request,
+      executing any other middleware and then the appropriate view.
 
-You should keep in mind that the admin interface is "just an app," albeit a very
-complicated one. It doesn't do anything that any Django developer with
-sufficient time couldn't reproduce. It's entirely possible that in the future
-someone will develop a different admin interface that is based on a different set of
-assumptions and thus will behave differently.
+    * If it returns an ``HttpResponse`` object, Django won't bother calling
+      *any* other middleware (of any type) or the appropriate view. Django
+      will immediately return that ``HttpResponse``.
 
-Finally, we should point out that, as of this writing, Django developers were
-working on a new version of the admin interface that allows for much more
-flexibility in customization. By the time you read this, those new features may
-have made their way into the bona fide Django distribution. To find out, ask
-somebody in the Django community whether the "newforms-admin" branch has been
-integrated.
+View Preprocessor: process_view(self, request, view, args, kwargs)
+------------------------------------------------------------------
 
-Customizing Admin Templates
-===========================
+This method gets called after the request preprocessor is called and Django
+has determined which view to execute, but before that view has actually been
+executed.
 
-Out of the box, Django provides a number of tools for customizing the built-in
-admin templates, which we'll go over shortly, but for tasks beyond that (e.g.,
-anything requiring custom workflow or granular permissions),
-you'll need to read the section titled "Creating Custom Admin Views" later in this
-chapter.
+The arguments passed to this view are shown in Table 17-1.
 
-For now, though, let's look at some quick ways of customizing the appearance
-(and, to some extent, behavior) of the admin interface. Chapter 6 covers a few of the
-most common tasks: "rebranding" the Django admin interface (for those pointy-haired
-bosses who hate blue) and providing a custom admin form.
+.. table:: Table 17-1. Arguments Passed to process_view()
 
-Past that point, the goal usually involves changing some of the templates for
-a particular item. Each of the admin views -- the change lists, edit forms,
-delete confirmation pages, and history views -- has an associated template
-that can be overridden in a number of ways.
+    ==============  ==========================================================
+    Argument        Explanation
+    ==============  ==========================================================
+    ``request``     The ``HttpRequest`` object.
 
-First, you can override the template globally. The admin view looks for
-templates using the standard template-loading mechanism, so if you create
-templates in one of your template directories, Django will load those instead
-of the default admin templates bundled with Django. These global templates are
-outlined in Table 17-1.
+    ``view``        The Python function that Django will call to handle this
+                    request. This is the actual function object itself,
+                    not the name of the function as a string.
 
-.. table:: Table 17-1. Global Admin Templates
+    ``args``        The list of positional arguments that will be passed to
+                    the view, not including the ``request`` argument (which
+                    is always the first argument to a view).
 
-    ======================  ==================================================
-    View                    Base Template Name
-    ======================  ==================================================
-    Change list             ``admin/change_list.html``
-    Add/edit form           ``admin/change_form.html``
-    Delete confirmation     ``admin/delete_confirmation.html``
-    Object history          ``admin/object_history.html``
-    ======================  ==================================================
+    ``kwargs``      The dictionary of keyword arguments that will be passed
+                    to the view.
+    ==============  ==========================================================
 
-Most of the time, however, you'll want to change the template for just a single
-object or application (not globally). Thus, each admin view looks for model- and
-application-specific templates first. Those views look for templates in this order:
+Just like ``process_request()``, ``process_view()`` should return either
+``None`` or an ``HttpResponse`` object.
 
-    * ``admin/<app_label>/<object_name>/<template>.html``
-    * ``admin/<app_label>/<template>.html``
-    * ``admin/<template>.html``
+    * If it returns ``None``, Django will continue processing this request,
+      executing any other middleware and then the appropriate view.
 
-For example, the add/edit form view for a ``Book`` model in the ``books``
-application looks for templates in this order:
+    * If it returns an ``HttpResponse`` object, Django won't bother calling
+      *any* other middleware (of any type) or the appropriate view. Django
+      will immediately return that ``HttpResponse``.
 
-    * ``admin/books/book/change_form.html``
-    * ``admin/books/change_form.html``
-    * ``admin/change_form.html``
+Response Postprocessor: process_response(self, request, response)
+-----------------------------------------------------------------
 
-Custom Model Templates
-----------------------
+This method gets called after the view function is called and the response is
+generated. Here, the processor can modify the content of a response. One
+obvious use case is content compression, such as gzipping of the request's
+HTML.
 
-Most of the time, you'll want to use the first template to create a
-model-specific template. This is usually best done by extending the base
-template and adding information to one of the blocks defined in that template.
+The parameters should be pretty self-explanatory: ``request`` is the request
+object, and ``response`` is the response object returned from the view.
 
-For example, say we want to add a little bit of help text to the top
-of that book page. Maybe something like the form shown in Figure 17-1.
+Unlike the request and view preprocessors, which may return ``None``,
+``process_response()`` *must* return an ``HttpResponse`` object. That response
+could be the original one passed into the function (possibly modified) or a
+brand-new one.
 
-.. figure:: graphics/chapter17/book_extra.png
-   :alt: Screenshot of a customized book edit form.
+Exception Postprocessor: process_exception(self, request, exception)
+--------------------------------------------------------------------
 
-   Figure 17-1. A customized admin edit form
+This method gets called only if something goes wrong and a view raises an
+uncaught exception. You can use this hook to send error notifications, dump 
+postmortem information to a log, or even try to recover from the error 
+automatically.
 
-This is pretty easy to do: simply create a template called
-``admin/bookstore/book/change_form.html`` and insert this code::
+The parameters to this function are the same ``request`` object we've been
+dealing with all along, and ``exception``, which is the actual ``Exception``
+object raised by the view function.
 
-    {% extends "admin/change_form.html" %}
+``process_exception()`` should return a either ``None`` or an ``HttpResponse``
+object.
 
-    {% block form_top %}
-      <p>Insert meaningful help message here...</p>
-    {% endblock %}
+    * If it returns ``None``, Django will continue processing this request
+      with the framework's built-in exception handling.
 
-All these templates define a number of blocks you can override. As with most
-programs, the best documentation is the code, so we encourage you to look
-through the admin templates (they're in ``django/contrib/admin/templates/``) for
-the most up-to-date information.
-
-Custom JavaScript
------------------
-
-A common use for these custom model templates involves adding custom
-JavaScript to admin pages -- perhaps to implement some special widget or
-client-side behavior.
-
-Luckily, that couldn't be easier. Each admin template defines a ``{% block
-extrahead %}``, which you can use to put extra content into the ``<head>``
-element. For example, if you want to include jQuery (http://jquery.com/) in
-your admin history, it's as simple as this::
-
-    {% extends "admin/object_history.html" %}
-
-    {% block extrahead %}
-        <script src="http://media.example.com/javascript/jquery.js" type="text/javascript"></script>
-        <script type="text/javascript">
-
-            // code to actually use jQuery here...
-
-        </script>
-    {% endblock %}
-
+    * If it returns an ``HttpResponse`` object, Django will use that response
+      instead of the framework's built-in exception handling.
 
 .. note::
 
-    We're not sure why you'd need jQuery on the object history page, but, of
-    course, this example applies to any of the admin templates.
+    Django ships with a number of middleware classes (discussed in the following
+    section) that make good examples. Reading the code for them should give you
+    a good feel for the power of middleware.
+    
+    You can also find a number of community-contributed examples on Django's
+    wiki: http://code.djangoproject.com/wiki/ContributedMiddleware
 
-You can use this technique to include any sort of extra JavaScript widgets you
-might need.
+Built-in Middleware
+===================
 
-Creating Custom Admin Views
-===========================
+Django comes with some built-in middleware to deal with common problems, which we discuss
+in the sections that follow.
 
-At this point, anyone looking to add custom *behavior* to Django's admin interface is
-probably starting to get a bit frustrated. "All you've talked about is how to
-change the admin interface *visually*," we hear them cry. "But how do
-I change the way the admin interface *works*?"
+Authentication Support Middleware
+---------------------------------
 
-The first thing to understand is that *it's not magic*. That is, nothing the
-admin interface does is "special" in any way -- the admin interface is just a set of
-views (they live in ``django.contrib.admin.views``) that manipulate data just like any
-other view.
+Middleware class: ``django.contrib.auth.middleware.AuthenticationMiddleware``.
 
-Sure, there's quite a bit of code in there; it has to deal with all the
-various options, field types, and settings that influence model behavior.
-Still, when you realize that the admin interface is just a set of views, adding custom
-admin views becomes easier to understand.
+This middleware enables authentication support. It adds the ``request.user``
+attribute, representing the currently logged-in user, to every incoming
+``HttpRequest`` object.
 
-By way of example, let's add a "publisher report" view to our book application from
-Chapter 6. We'll build an admin view that shows the list of books broken down
-by publisher -- a pretty typical example of a custom admin "report" view you
-might need to build.
+See Chapter 14 for complete details.
 
-First, let's wire up a view in our URLconf. We need to insert this line::
+"Common" Middleware
+-------------------
 
-    (r'^admin/books/report/$', 'mysite.books.admin_views.report'),
+Middleware class: ``django.middleware.common.CommonMiddleware``.
 
-*before* the line including the admin views. A bare-bones URLconf might look
-like this::
+This middleware adds a few conveniences for perfectionists:
 
-    from django.conf.urls.defaults import *
+    * *Forbids access to user agents in the ``DISALLOWED_USER_AGENTS`` setting*:
+      If provided, this setting should be a list of compiled regular expression
+      objects that are matched against the user-agent header for each incoming
+      request. Here's an example snippet from a settings file::
 
-    urlpatterns = patterns('',
-        (r'^admin/bookstore/report/$', 'bookstore.admin_views.report'),
-        (r'^admin/', include('django.contrib.admin.urls')),
-    )
+          import re
 
-Why put the custom view *before* the admin inclusion? Recall that Django
-processes URL patterns in order. The admin inclusion matches nearly anything
-that falls under the inclusion point, so if we reverse the order of those lines,
-Django will find a built-in admin view for that pattern, which won't work. In
-this particular case, it will try to load a change list for a ``Report``
-model in the ``books`` application, which doesn't exist.
+          DISALLOWED_USER_AGENTS = (
+              re.compile(r'^OmniExplorer_Bot'),
+              re.compile(r'^Googlebot')
+          )
 
-Now let's write our view. For the sake of simplicity, we'll just load all books
-into the context and let the template handle the grouping with the
-``{% regroup %}`` tag. Create a file, ``books/admin_views.py``, with this
-code::
+      Note the ``import re``, because ``DISALLOWED_USER_AGENTS`` requires its
+      values to be compiled regexes (i.e., the output of ``re.compile()``). 
+      The settings file is regular Python, so it's perfectly OK to include 
+      Python ``import`` statements in it.
 
-    from mysite.books.models import Book
-    from django.template import RequestContext
-    from django.shortcuts import render_to_response
-    from django.contrib.admin.views.decorators import staff_member_required
+    * *Performs URL rewriting based on the ``APPEND_SLASH`` and ``PREPEND_WWW``
+      settings*: If ``APPEND_SLASH`` is ``True``, URLs that lack a trailing
+      slash will be redirected to the same URL with a trailing slash, unless
+      the last component in the path contains a period. So ``foo.com/bar`` is
+      redirected to ``foo.com/bar/``, but ``foo.com/bar/file.txt`` is passed
+      through unchanged.
 
+      If ``PREPEND_WWW`` is ``True``, URLs that lack a leading "www." will be
+      redirected to the same URL with a leading "www.".
 
-    def report(request):
-        return render_to_response(
-            "admin/books/report.html",
-            {'book_list' : Book.objects.all()},
-            RequestContext(request, {}),
-        )
-    report = staff_member_required(report)
+      Both of these options are meant to normalize URLs. The philosophy is
+      that each URL should exist in one -- and only one -- place. Technically the
+      URL ``example.com/bar`` is distinct from ``example.com/bar/``, which in
+      turn is distinct from ``www.example.com/bar/``. A search-engine indexer
+      would treat these as separate URLs, which is detrimental to your site's
+      search-engine rankings, so it's a best practice to normalize URLs.
 
-Because we left the grouping up to the template, this view is pretty simple.
-However, there are some subtle bits here worth making explicit:
+    * *Handles ETags based on the ``USE_ETAGS`` setting*: *ETags* are an HTTP-level
+      optimization for caching pages conditionally. If ``USE_ETAGS`` is
+      set to ``True``, Django will calculate an ETag for each request by
+      MD5-hashing the page content, and it will take care of sending ``Not
+      Modified`` responses, if appropriate.
 
-    * We use the ``staff_member_required`` decorator from
-      ``django.contrib.admin.views.decorators``.  This is similar to the
-      ``login_required`` decorator discussed in Chapter 12, but this decorator
-      also checks that the given user is marked as a "staff" member, and thus
-      is allowed access to the admin interface.
+      Note there is also a conditional ``GET`` middleware, covered shortly, which
+      handles ETags and does a bit more.
 
-      This decorator protects all the built-in admin views and makes the
-      authentication logic for your view match the rest of the admin interface.
+Compression Middleware
+----------------------
 
-    * We render a template located under ``admin/``. While this isn't strictly
-      required, it's considered good practice to keep all your admin templates
-      grouped in an ``admin`` directory. We've also put the template in a
-      directory named ``books`` after our application -- also a best practice.
+Middleware class: ``django.middleware.gzip.GZipMiddleware``.
 
-    * We use ``RequestContext`` as the third parameter (``context_instance``)
-      to ``render_to_response``. This ensures that information about the
-      current user is available to the template.
+This middleware automatically compresses content for browsers that understand gzip 
+compression (all modern browsers). This can greatly reduce the amount of bandwidth 
+a Web server consumes. The tradeoff is that it takes a bit of processing time to 
+compress pages.
 
-      See Chapter 10 for more about ``RequestContext``.
+We usually prefer speed over bandwidth, but if you prefer the reverse, just
+enable this middleware.
 
-Finally, we'll make a template for this view. We'll extend the built-in admin
-templates to make this view visually appear to be part of the admin interface::
+Conditional GET Middleware
+--------------------------
 
-    {% extends "admin/base_site.html" %}
+Middleware class: ``django.middleware.http.ConditionalGetMiddleware``.
 
-    {% block title %}List of books by publisher{% endblock %}
+This middleware provides support for conditional ``GET`` operations. If the response 
+has an ``Last-Modified`` or ``ETag`` or header, and the request has ``If-None-Match`` 
+or ``If-Modified-Since``, the response is replaced by an 304 ("Not modified")
+response. ``ETag`` support depends on on the ``USE_ETAGS`` setting and expects
+the ``ETag`` response header to already be set. As discussed above, the ``ETag``
+header is set by the Common middleware.
 
-    {% block content %}
-    <div id="content-main">
-      <h1>List of books by publisher:</h1>
-      {% regroup book_list|dictsort:"publisher.name" by publisher as books_by_publisher %}
-      {% for publisher in books_by_publisher %}
-        <h3>{{ publisher.grouper }}</h3>
-        <ul>
-          {% for book in publisher.list|dictsort:"title" %}
-            <li>{{ book }}</li>
-          {% endfor %}
-        </ul>
-      {% endfor %}
-    </div>
-    {% endblock %}
+It also removes the content from any response to a ``HEAD`` request and sets the
+``Date`` and ``Content-Length`` response headers for all requests.
 
-By extending ``admin/base_site.html``, we get the look and feel of the Django
-admin "for free." Figure 17-2 shows what the end result looks like.
+Reverse Proxy Support (X-Forwarded-For Middleware)
+--------------------------------------------------
 
-.. figure:: graphics/chapter17/books_by_publisher.png
-   :alt: Screenshot of the custom "books by publisher" view.
+Middleware class: ``django.middleware.http.SetRemoteAddrFromForwardedFor``.
 
-   Figure 17-2. A custom "books by publisher" admin view
+This is the example we examined in the "What's Middleware?" section earlier. It
+sets ``request.META['REMOTE_ADDR']`` based on
+``request.META['HTTP_X_FORWARDED_FOR']``, if the latter is set. This is useful
+if you're sitting behind a reverse proxy that causes each request's
+``REMOTE_ADDR`` to be set to ``127.0.0.1``.
 
-You can use this technique to add anything you can dream of to the admin interface.
-Remember that these so-called custom admin views are really just normal
-Django views; you can use all the techniques you learn in the rest of this
-book to provide as complex an admin interface as you need.
+.. admonition:: Danger!
 
-We'll close out this chapter with some ideas for custom admin views.
+    This middleware does *not* validate ``HTTP_X_FORWARDED_FOR``.
 
-Overriding Built-in Views
-=========================
+    If you're not behind a reverse proxy that sets ``HTTP_X_FORWARDED_FOR``
+    automatically, do not use this middleware. Anybody can spoof the value of
+    ``HTTP_X_FORWARDED_FOR``, and because this sets ``REMOTE_ADDR`` based on
+    ``HTTP_X_FORWARDED_FOR``, that means anybody can fake his IP address.
 
-At times the default admin views just don't cut it. You can easily swap in
-your own custom view for any stage of the admin interface; just let your URL
-"shadow" the built-in admin one. That is, if your view comes before the default
-admin view in the URLconf, your view will be called instead of the default one.
+    Only use this middleware when you can absolutely trust the value of
+    ``HTTP_X_FORWARDED_FOR``.
 
-For example, we could replace the built-in "create" view for a book with a
-form that lets the user simply enter an ISBN. We could then look up the book's
-information from http://isbn.nu/ and create the object automatically.
+Session Support Middleware
+--------------------------
 
-The code for such a view is left as an exercise for the reader, but the
-important part is this URLconf snippet::
+Middleware class: ``django.contrib.sessions.middleware.SessionMiddleware``.
 
-    (r'^admin/bookstore/book/add/$', 'mysite.books.admin_views.add_by_isbn'),
+This middleware enables session support. See Chapter 14 for details.
 
-If this bit comes before the admin URLs in your URLconf, the ``add_by_isbn``
-view will completely replace the standard admin view.
+Sitewide Cache Middleware
+-------------------------
 
-We could follow a similar tack to replace a delete confirmation page, the edit
-page, or any other part of the admin interface.
+Middleware classes: ``django.middleware.cache.UpdateCacheMiddleware`` and
+``django.middleware.cache.FetchFromCacheMiddleware``.
+
+These middlewares work together to cache each Django-powered page. This was
+discussed in detail in Chapter 15.
+
+Transaction Middleware
+----------------------
+
+Middleware class: ``django.middleware.transaction.TransactionMiddleware``.
+
+This middleware binds a database ``COMMIT`` or ``ROLLBACK`` to the request/response 
+phase. If a view function runs successfully, a ``COMMIT`` is issued. If the view 
+raises an exception, a ``ROLLBACK`` is issued.
+
+The order of this middleware in the stack is important. Middleware modules
+running outside of it run with commit-on-save -- the default Django behavior.
+Middleware modules running inside it (coming later in the stack) will be under
+the same transaction control as the view functions.
+
+See Appendix B for more about information about database transactions.
 
 What's Next?
 ============
 
-If you're a native English speaker--and we expect that many readers of this
-English-language book are--you might not have noticed one of the coolest
-features of the admin interface: it's available in almost 40 different
-languages! This is made possible by Django's internationalization framework (and the hard
-work of Django's volunteer translators). The `next chapter`_ explains how to use
-this framework to provide localized Django sites.
-
-Avanti!
+Web developers and database-schema designers don't always have the luxury of
+starting from scratch. In the `next chapter`_, we'll cover how to integrate with
+legacy systems, such as database schemas you've inherited from the 1980s.
 
 .. _next chapter: ../chapter18/

@@ -1,1131 +1,930 @@
-==================================
-Appendix D: Generic View Reference
-==================================
+====================
+Appendix D: Settings
+====================
 
-Chapter 9 introduces generic views but leaves out some of the gory details.
-This appendix describes each generic view along with all the options each view can
-take. Be sure to read Chapter 9 before trying to understand the reference
-material that follows. You might want to refer back to the ``Book``,
-``Publisher``, and ``Author`` objects defined in that chapter; the examples that
-follow use these models.
+Your Django settings file contains all the configuration of your Django
+installation. This appendix explains how settings work and which settings are
+available.
+
+What's a Settings File?
+=======================
+
+A *settings file* is just a Python module with module-level variables.
+
+Here are a couple of example settings::
+
+    DEBUG = False
+    DEFAULT_FROM_EMAIL = 'webmaster@example.com'
+    TEMPLATE_DIRS = ('/home/templates/mike', '/home/templates/john')
+
+Because a settings file is a Python module, the following apply:
+
+    * It must be valid Python code; syntax errors aren't allowed.
     
-Common Arguments to Generic Views
-=================================
+    * It can assign settings dynamically using normal Python syntax,
+      for example::
 
-Most of these views take a large number of arguments that can change the generic
-view's behavior. Many of these arguments work the same across a large number of
-views. Table D-1 describes each of these common arguments; anytime you see one
-of these arguments in a generic view's argument list, it will work as described in
-the table.
+          MY_SETTING = [str(i) for i in range(30)]
 
-.. table:: Table D-1. Common Arguments to Generic Views
-
-    ==========================  ===============================================
-    Argument                    Description
-    ==========================  ===============================================
-    ``allow_empty``             A Boolean specifying whether to display the 
-                                page if no objects are available. If this is
-                                ``False`` and no objects are available, the view
-                                will raise a 404 error instead of displaying an
-                                empty page. By default, this is ``False``.
-
-    ``context_processors``      A list of additional template-context processors 
-                                (besides the defaults) to apply to the view's
-                                template. See Chapter 10 for information on
-                                template context processors.
-
-    ``extra_context``           A dictionary of values to add to the template
-                                context. By default, this is an empty
-                                dictionary. If a value in the dictionary is
-                                callable, the generic view will call it just
-                                before rendering the template.
-
-    ``mimetype``                The MIME type to use for the resulting 
-                                document. It defaults to the value of the
-                                ``DEFAULT_MIME_TYPE`` setting, which is
-                                ``text/html`` if you haven't changed it.
-                                
-    ``queryset``                A ``QuerySet`` (i.e., something like 
-                                ``Author.objects.all()``) to read objects from.
-                                See Appendix C for more information about
-                                ``QuerySet`` objects. Most generic views require
-                                this argument.
-
-    ``template_loader``         The template loader to use when loading the
-                                template. By default, it's
-                                ``django.template.loader``. See Chapter 10 for
-                                information on template loaders.
-
-    ``template_name``           The full name of a template to use in rendering 
-                                the page. This lets you override the default
-                                template name derived from the ``QuerySet``.
-
-    ``template_object_name``    The name of the template variable to 
-                                use in the template context. By default, this is
-                                ``'object'``. Views that list more than one
-                                object (i.e., ``object_list`` views and various
-                                objects-for-date views) will append ``'_list'``
-                                to the value of this parameter.
-    ==========================  ===============================================
+    * It can import values from other settings files.
     
-"Simple" Generic Views
-======================
-
-The module``django.views.generic.simple`` contains simple views that handle a
-couple of common cases: rendering a template when no view logic is needed and
-issuing a redirect.
-
-Rendering a Template
---------------------
-
-*View function*: ``django.views.generic.simple.direct_to_template``
-
-This view renders a given template, passing it a ``{{ params }}`` template
-variable, which is a dictionary of the parameters captured in the URL.
-
-Example
-```````
-
-Given the following URLconf::
-
-    from django.conf.urls.defaults import *
-    from django.views.generic.simple import direct_to_template
-
-    urlpatterns = patterns('',
-        (r'^foo/$',             direct_to_template, {'template': 'foo_index.html'}),
-        (r'^foo/(?P<id>\d+)/$', direct_to_template, {'template': 'foo_detail.html'}),
-    )
-
-a request to ``/foo/`` would render the template ``foo_index.html``, and a
-request to ``/foo/15/`` would render ``foo_detail.html`` with a context
-variable ``{{ params.id }}`` that is set to ``15``.
-
-Required Arguments
-``````````````````
-
-    * ``template``: The full name of a template to use.
-
-Redirecting to Another URL
---------------------------
-
-*View function*: ``django.views.generic.simple.redirect_to``
-
-This view redirects to another URL. The given URL may contain dictionary-style string
-formatting, which will be interpolated against the parameters captured in the
-URL.
-
-If the given URL is ``None``, Django will return an HTTP 410 ("Gone") message.
-
-Example
-```````
-
-This URLconf redirects from ``/foo/<id>/`` to ``/bar/<id>/``::
-
-    from django.conf.urls.defaults import *
-    from django.views.generic.simple import redirect_to
-
-    urlpatterns = patterns('django.views.generic.simple',
-        ('^foo/(?p<id>\d+)/$', redirect_to, {'url': '/bar/%(id)s/'}),
-    )
-
-This example returns a "Gone" response for requests to ``/bar/``::
-
-    from django.views.generic.simple import redirect_to
-
-    urlpatterns = patterns('django.views.generic.simple',
-        ('^bar/$', redirect_to, {'url': None}),
-    )
-
-Required Arguments
-``````````````````
-
-    * ``url``: The URL to redirect to, as a string. Or ``None`` to return a 410
-      ("Gone") HTTP response.
-
-List/Detail Generic Views
-=========================
-
-The list/detail generic views (in the module
-``django.views.generic.list_detail``) handle the common case of displaying a
-list of items at one view and individual "detail" views of those items at
-another.
-
-Lists of Objects
+Default Settings
 ----------------
 
-*View function*: ``django.views.generic.list_detail.object_list``
+A Django settings file doesn't have to define any settings if it doesn't need
+to. Each setting has a sensible default value. These defaults live in the file
+``django/conf/global_settings.py``.
 
-Use this view to display a page representing a list of objects.
+Here's the algorithm Django uses in compiling settings:
 
-Example
-```````
+    * Load settings from ``global_settings.py``.
+    * Load settings from the specified settings file, overriding the global
+      settings as necessary.
 
-Given the ``Author`` object from Chapter 5, we can use the ``object_list`` view
-to show a simple list of all authors given the following URLconf snippet::
+Note that a settings file should *not* import from ``global_settings``, because
+that's redundant.
 
-    from mysite.books.models import Author
-    from django.conf.urls.defaults import *
-    from django.views.generic import list_detail
+Seeing Which Settings You've Changed
+------------------------------------
 
-    author_list_info = {
-        'queryset' :   Author.objects.all(),
-        'allow_empty': True,
-    }
+There's an easy way to view which of your settings deviate from the default
+settings. The command ``manage.py diffsettings`` displays differences between
+the current settings file and Django's default settings.
 
-    urlpatterns = patterns('',
-        (r'authors/$', list_detail.object_list, author_list_info)    
-    )
+``manage.py`` is described in more detail in Appendix F.
 
-Required Arguments
-``````````````````
+Using Settings in Python Code
+-----------------------------
 
-    * ``queryset``: A ``QuerySet`` of objects to list (see Table D-1).
+In your Django applications, use settings by importing the object
+``django.conf.settings``, for example::
 
-Optional Arguments
-``````````````````
+    from django.conf import settings
 
-    * ``paginate_by``: An integer specifying how many objects should be
-      displayed per page. If this is given, the view will paginate objects with
-      ``paginate_by`` objects per page. The view will expect either a ``page``
-      query string parameter (via ``GET``) containing a zero-indexed page
-      number, or a ``page`` variable specified in the URLconf. See the following
-      "Notes on Pagination" section.
+    if settings.DEBUG:
+        # Do something
 
-Additionally, this view may take any of these common arguments described in
-Table D-1:
+Note that ``django.conf.settings`` isn't a module -- it's an object. So
+importing individual settings is not possible::
 
-    * ``allow_empty``
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-    * ``template_object_name``
+    from django.conf.settings import DEBUG  # This won't work.
 
-Template Name
-`````````````
+Also note that your code should *not* import from either ``global_settings`` or
+your own settings file. ``django.conf.settings`` abstracts the concepts of
+default settings and site-specific settings; it presents a single interface.
+It also decouples the code that uses settings from the location of your
+settings.
 
-If ``template_name`` isn't specified, this view will use the template
-``<app_label>/<model_name>_list.html`` by default. Both the application label and the
-model name are derived from the ``queryset`` parameter. The application label is the
-name of the application that the model is defined in, and the model name is the
-lowercased version of the name of the model class.
+Altering Settings at Runtime
+----------------------------
 
-In the previous example using ``Author.objects.all()`` as the ``queryset``, the application
-label would be ``books`` and the model name would be ``author``. This means
-the default template would be ``books/author_list.html``.
+You shouldn't alter settings in your applications at runtime. For example,
+don't do this in a view::
 
-Template Context
-````````````````
+    from django.conf import settings
 
-In addition to ``extra_context``, the template's context will contain the following:
+    settings.DEBUG = True   # Don't do this!
 
-    * ``object_list``: The list of objects. This variable's name depends on the
-      ``template_object_name`` parameter, which is ``'object'`` by default. If
-      ``template_object_name`` is ``'foo'``, this variable's name will be
-      ``foo_list``.
+The only place that settings should be defined in is a settings file.
 
-    * ``is_paginated``: A Boolean representing whether the results are
-      paginated. Specifically, this is set to ``False`` if the number of
-      available objects is less than or equal to ``paginate_by``.
+Security
+--------
 
-If the results are paginated, the context will contain these extra variables:
+Because a settings file contains sensitive information, such as the database
+password, you should make every attempt to limit access to it. For example,
+change its file permissions so that only you and your Web server's user can
+read it. This is especially important in a shared-hosting environment.
 
-    * ``results_per_page``: The number of objects per page. (This is the same as
-      the ``paginate_by`` parameter.)
+Creating Your Own Settings
+--------------------------
 
-    * ``has_next``: A Boolean representing whether there's a next page.
+There's nothing stopping you from creating your own settings, for your own
+Django applications. Just follow these conventions:
 
-    * ``has_previous``: A Boolean representing whether there's a previous page.
-
-    * ``page``: The current page number, as an integer. This is 1-based.
-
-    * ``next``: The next page number, as an integer. If there's no next page,
-      this will still be an integer representing the theoretical next-page
-      number. This is 1-based.
-
-    * ``previous``: The previous page number, as an integer. This is 1-based.
-
-    * ``pages``: The total number of pages, as an integer.
-
-    * ``hits``: The total number of objects across *all* pages, not just this
-      page.
-
-.. admonition:: A Note on Pagination
-
-    If ``paginate_by`` is specified, Django will paginate the results. You can
-    specify the page number in the URL in one of two ways:
-
-        * Use the ``page`` parameter in the URLconf. For example, this is what
-          your URLconf might look like::
-
-            (r'^objects/page(?P<page>[0-9]+)/$', 'object_list', dict(info_dict))
-
-        * Pass the page number via the ``page`` query-string parameter. For
-          example, a URL would look like this::
-
-            /objects/?page=3
-
-    In both cases, ``page`` is 1-based, not 0-based, so the first page would be
-    represented as page ``1``.
-
-Detail Views
-------------
-
-*View function*: ``django.views.generic.list_detail.object_detail``
-
-This view provides a "detail" view of a single object.
-
-Example
-```````
-
-Continuing the previous ``object_list`` example, we could add a detail view for a
-given author by modifying the URLconf:
-
-.. parsed-literal::
-
-    from mysite.books.models import Author
-    from django.conf.urls.defaults import *
-    from django.views.generic import list_detail
-
-    author_list_info = {
-        'queryset' :   Author.objects.all(),
-        'allow_empty': True,
-    }
-    **author_detail_info = {**
-        **"queryset" : Author.objects.all(),**
-        **"template_object_name" : "author",**
-    **}**
-
-    urlpatterns = patterns('',
-        (r'authors/$', list_detail.object_list, author_list_info),
-        **(r'^authors/(?P<object_id>\d+)/$', list_detail.object_detail, author_detail_info),**
-    )
-
-Required Arguments
-``````````````````
-
-    * ``queryset``: A ``QuerySet`` that will be searched for the object (see Table D-1).
-
-and either
-
-    * ``object_id``: The value of the primary-key field for the object.
-
-or
-
-    * ``slug``: The slug of the given object. If you pass this field, then the
-      ``slug_field`` argument (see the following section) is also required.
-
-Optional Arguments
-``````````````````
-
-    * ``slug_field``: The name of the field on the object containing the slug.
-      This is required if you are using the ``slug`` argument, but it must be
-      absent if you're using the ``object_id`` argument.
-
-    * ``template_name_field``: The name of a field on the object whose value is
-      the template name to use. This lets you store template names in your data.
-
-      In other words, if your object has a field ``'the_template'`` that
-      contains a string ``'foo.html'``, and you set ``template_name_field`` to
-      ``'the_template'``, then the generic view for this object will use the
-      template ``'foo.html'``.
+    * Use all uppercase for setting names.
+    
+    * For settings that are sequences, use tuples instead of lists. Settings
+      should be considered immutable and shouldn't be changed once they're
+      defined. Using tuples mirrors these semantics.
       
-      If the template named by ``template_name_field`` doesn't exist, the one 
-      named by ``template_name`` is used instead.  It's a bit of a 
-      brain-bender, but it's useful in some cases.
+    * Don't reinvent an already existing setting.
 
-This view may also take these common arguments (see Table D-1):
+Designating the Settings: DJANGO_SETTINGS_MODULE
+================================================
 
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-    * ``template_object_name``
+When you use Django, you have to tell it which settings you're using. Do this
+by using the environment variable ``DJANGO_SETTINGS_MODULE``.
 
-Template Name
-`````````````
-
-If ``template_name`` and ``template_name_field`` aren't specified, this view
-will use the template ``<app_label>/<model_name>_detail.html`` by default.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``object``: The object. This variable's name depends on the
-      ``template_object_name`` parameter, which is ``'object'`` by default. If
-      ``template_object_name`` is ``'foo'``, this variable's name will be
-      ``foo``.
-        
-Date-Based Generic Views
-========================
-
-Date-based generic views are generally used to provide a set of "archive"
-pages for dated material. Think year/month/day archives for a newspaper, or a
-typical blog archive.
+The value of ``DJANGO_SETTINGS_MODULE`` should be in Python path syntax (e.g.,
+``mysite.settings``). Note that the settings module should be on the
+Python import search path (``PYTHONPATH``).
 
 .. admonition:: Tip:
 
-    By default, these views ignore objects with dates in the future.
-    
-    This means that if you try to visit an archive page in the future, Django
-    will automatically show a 404 ("Page not found") error, even if there are objects
-    published that day.
-    
-    Thus, you can publish postdated objects that don't appear publicly until
-    their desired publication date.
-    
-    However, for different types of date-based objects, this isn't appropriate
-    (e.g., a calendar of upcoming events). For these views, setting the
-    ``allow_future`` option to ``True`` will make the future objects appear (and
-    allow users to visit "future" archive pages).
+    A good guide to ``PYTHONPATH`` can be found at
+    http://diveintopython.org/getting_to_know_python/everything_is_an_object.html.
 
-Archive Index
--------------
+The django-admin.py Utility
+---------------------------
 
-*View function*: ``django.views.generic.date_based.archive_index``
+When using ``django-admin.py`` (see Appendix F), you can either set the
+environment variable once or explicitly pass in the settings module each time
+you run the utility.
 
-This view provides a top-level index page showing the "latest" (i.e., most
-recent) objects by date.
+Here's an example using the Unix Bash shell::
 
-Example
-```````
+    export DJANGO_SETTINGS_MODULE=mysite.settings
+    django-admin.py runserver
 
-Say a typical book publisher wants a page of recently published books. Given some
-``Book`` object with a ``publication_date`` field, we can use the
-``archive_index`` view for this common task:
+Here's an example using the Windows shell::
 
-.. parsed-literal::
+    set DJANGO_SETTINGS_MODULE=mysite.settings
+    django-admin.py runserver
 
-    from mysite.books.models import Book    
-    from django.conf.urls.defaults import *
-    from django.views.generic import date_based
+Use the ``--settings`` command-line argument to specify the settings manually::
 
-    book_info = {
-        "queryset"   : Book.objects.all(),
-        "date_field" : "publication_date"
-    }
-    
-    urlpatterns = patterns('',
-        (r'^books/$', date_based.archive_index, book_info),    
+    django-admin.py runserver --settings=mysite.settings
+
+The ``manage.py`` utility created by ``startproject`` as part of the project
+skeleton sets ``DJANGO_SETTINGS_MODULE`` automatically; see Appendix F for more
+about ``manage.py``.
+
+On the Server (mod_python)
+--------------------------
+
+In your live server environment, you'll need to tell Apache/mod_python which
+settings file to use. Do that with ``SetEnv``::
+
+    <Location "/mysite/">
+        SetHandler python-program
+        PythonHandler django.core.handlers.modpython
+        SetEnv DJANGO_SETTINGS_MODULE mysite.settings
+    </Location>
+
+For more information, read the Django mod_python documentation online at
+http://docs.djangoproject.com/en/dev/howto/deployment/modpython/.
+
+Using Settings Without Setting DJANGO_SETTINGS_MODULE
+=====================================================
+
+In some cases, you might want to bypass the ``DJANGO_SETTINGS_MODULE``
+environment variable. For example, if you're using the template system by
+itself, you likely don't want to have to set up an environment variable
+pointing to a settings module.
+
+In these cases, you can configure Django's settings manually. Do this by
+calling ``django.conf.settings.configure()``. Here's an example::
+
+    from django.conf import settings
+
+    settings.configure(
+        DEBUG = True, 
+        TEMPLATE_DEBUG = True,
+        TEMPLATE_DIRS = [
+            '/home/web-apps/myapp',
+            '/home/web-apps/base',
+        ]
     )
 
-Required Arguments
-``````````````````
-
-    * ``date_field``: The name of the ``DateField`` or ``DateTimeField`` in the
-      ``QuerySet``'s model that the date-based archive should use to determine
-      the objects on the page.
-
-    * ``queryset``: A ``QuerySet`` of objects for which the archive serves.
-
-Optional Arguments
-``````````````````
-    
-    * ``allow_future``: A Boolean specifying whether to include "future" objects
-      on this page, as described in the previous note.
-
-    * ``num_latest``: The number of latest objects to send to the template
-      context. By default, it's 15.
-
-This view may also take these common arguments (see Table D-1):
-
-    * ``allow_empty``
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-        
-Template Name
-`````````````
-
-If ``template_name`` isn't specified, this view will use the template
-``<app_label>/<model_name>_archive.html`` by default.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``date_list``: A list of ``datetime.date`` objects representing all years
-      that have objects available according to ``queryset``. These are ordered
-      in reverse.
-        
-      For example, if you have blog entries from 2003 through 2006, this list
-      will contain four ``datetime.date`` objects: one for each of those years.
-      
-    * ``latest``: The ``num_latest`` objects in the system, in descending order
-      by ``date_field``. For example, if ``num_latest`` is ``10``, then
-      ``latest`` will be a list of the latest ten objects in ``queryset``.
-
-Year Archives
--------------
-
-*View function*: ``django.views.generic.date_based.archive_year``
-
-Use this view for yearly archive pages. These pages have a list of months in
-which objects exists, and they can optionally display all the objects published in
-a given year.
-
-Example
-```````
-
-Extending the ``archive_index`` example from earlier, we'll add a way to view all
-the books published in a given year:
-
-.. parsed-literal::
-
-    from mysite.books.models import Book    
-    from django.conf.urls.defaults import *
-    from django.views.generic import date_based
-
-    book_info = {
-        "queryset"   : Book.objects.all(),
-        "date_field" : "publication_date"
-    }
-
-    urlpatterns = patterns('',
-        (r'^books/$', date_based.archive_index, book_info),    
-        **(r'^books/(?P<year>\d{4})/?$', date_based.archive_year, book_info),**
-    )
-
-Required Arguments
-``````````````````
-
-    * ``date_field``: As for ``archive_index`` (see the previous section).
-
-    * ``queryset``: A ``QuerySet`` of objects for which the archive serves.
-
-    * ``year``: The four-digit year for which the archive serves (as in our
-      example, this is usually taken from a URL parameter).
-   
-Optional Arguments
-``````````````````
-
-    * ``make_object_list``: A Boolean specifying whether to retrieve the full
-      list of objects for this year and pass those to the template. If ``True``,
-      this list of objects will be made available to the template as
-      ``object_list``. (The name ``object_list`` may be different; see the
-      information about ``object_list`` in the following "Template Context"
-      section.) By default, this is ``False``.
-    
-    * ``allow_future``: A Boolean specifying whether to include "future" objects
-      on this page.
-        
-This view may also take these common arguments (see Table D-1):
-
-    * ``allow_empty``
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-    * ``template_object_name``
-
-Template Name
-`````````````
-
-If ``template_name`` isn't specified, this view will use the template
-``<app_label>/<model_name>_archive_year.html`` by default.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``date_list``: A list of ``datetime.date`` objects representing all months
-      that have objects available in the given year, according to ``queryset``,
-      in ascending order.
-    
-    * ``year``: The given year, as a four-character string.
-    
-    * ``object_list``: If the ``make_object_list`` parameter is ``True``, this
-      will be set to a list of objects available for the given year, ordered by
-      the date field. This variable's name depends on the
-      ``template_object_name`` parameter, which is ``'object'`` by default. If
-      ``template_object_name`` is ``'foo'``, this variable's name will be
-      ``foo_list``.
-     
-      If ``make_object_list`` is ``False``, ``object_list`` will be passed to
-      the template as an empty list.
-
-Month Archives
---------------
-
-*View function*: ``django.views.generic.date_based.archive_month``
-
-This view provides monthly archive pages showing all objects for a given month.
-
-Example
-```````
-
-Continuing with our example, adding month views should look familiar:
-
-.. parsed-literal::
-
-    urlpatterns = patterns('',
-        (r'^books/$', date_based.archive_index, book_info),    
-        (r'^books/(?P<year>\d{4})/?$', date_based.archive_year, book_info),
-        **(**
-            **r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/$',**
-            **date_based.archive_month,**
-            **book_info**
-        **),**
-    )
-
-Required Arguments
-``````````````````
-
-    * ``year``: The four-digit year for which the archive serves (a string).
-    
-    * ``month``: The month for which the archive serves, formatted according to
-      the ``month_format`` argument.
-    
-    * ``queryset``: A ``QuerySet`` of objects for which the archive serves.
-    
-    * ``date_field``: The name of the ``DateField`` or ``DateTimeField`` in the
-      ``QuerySet``'s model that the date-based archive should use to determine
-      the objects on the page.
-
-Optional Arguments
-``````````````````
-
-    * ``month_format``: A format string that regulates what format the ``month``
-      parameter uses. This should be in the syntax accepted by Python's
-      ``time.strftime``. (See Python's strftime documentation at
-      http://www.djangoproject.com/r/python/strftime/.) It's set
-      to ``"%b"`` by default, which is a three-letter month abbreviation (i.e.,
-      "jan", "feb", etc.). To change it to use numbers, use ``"%m"``.
-    
-    * ``allow_future``: A Boolean specifying whether to include "future" objects
-      on this page, as described in the previous note.
-        
-This view may also take these common arguments (see Table D-1):
-
-    * ``allow_empty``
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-    * ``template_object_name``
-    
-Template Name
-`````````````
-
-If ``template_name`` isn't specified, this view will use the template
-``<app_label>/<model_name>_archive_month.html`` by default.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``month``: A ``datetime.date`` object representing the given month.
-    
-    * ``next_month``: A ``datetime.date`` object representing the first day of
-      the next month. If the next month is in the future, this will be ``None``.
-    
-    * ``previous_month``: A ``datetime.date`` object representing the first day
-      of the previous month. Unlike ``next_month``, this will never be ``None``.
-    
-    * ``object_list``: A list of objects available for the given month. This
-      variable's name depends on the ``template_object_name`` parameter, which
-      is ``'object'`` by default. If ``template_object_name`` is ``'foo'``, this
-      variable's name will be ``foo_list``.
-
-Week Archives
--------------
-
-*View function*: ``django.views.generic.date_based.archive_week``
-
-This view shows all objects in a given week.
-
-.. note::
-
-    For the sake of consistency with Python's built-in date/time handling,
-    Django assumes that the first day of the week is Sunday.
-
-Example
-```````
-
-.. parsed-literal::
-
-    urlpatterns = patterns('',
-        # ...
-        **(**
-            **r'^(?P<year>\d{4})/(?P<week>\d{2})/$',**
-            **date_based.archive_week,**
-            **book_info**
-        **),**
-    )
-
-
-Required Arguments
-``````````````````
-
-    * ``year``: The four-digit year for which the archive serves (a string).
-    
-    * ``week``: The week of the year for which the archive serves (a string).
-    
-    * ``queryset``: A ``QuerySet`` of objects for which the archive serves.
-    
-    * ``date_field``: The name of the ``DateField`` or ``DateTimeField`` in the
-      ``QuerySet``'s model that the date-based archive should use to determine
-      the objects on the page.
-
-Optional Arguments
-``````````````````
-
-    * ``allow_future``: A Boolean specifying whether to include "future" objects
-      on this page, as described in the previous note.
-        
-This view may also take these common arguments (see Table D-1):
-
-    * ``allow_empty``
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-    * ``template_object_name``
-
-Template Name
-`````````````
-
-If ``template_name`` isn't specified, this view will use the template
-``<app_label>/<model_name>_archive_week.html`` by default.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``week``: A ``datetime.date`` object representing the first day of the
-      given week.
-    
-    * ``object_list``: A list of objects available for the given week. This
-      variable's name depends on the ``template_object_name`` parameter, which
-      is ``'object'`` by default. If ``template_object_name`` is ``'foo'``, this
-      variable's name will be ``foo_list``.
-
-Day Archives
-------------
-
-*View function*: ``django.views.generic.date_based.archive_day``
-
-This view generates all objects in a given day.
-
-Example
-```````
-
-.. parsed-literal::
-
-    urlpatterns = patterns('',
-        # ...
-        **(**
-            **r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/$',**
-            **date_based.archive_day,**
-            **book_info**
-        **),**
-    )
-
-
-Required Arguments
-``````````````````
-
-    * ``year``: The four-digit year for which the archive serves (a string).
-    
-    * ``month``: The month for which the archive serves, formatted according to the
-      ``month_format`` argument.
-    
-    * ``day``: The day for which the archive serves, formatted according to the
-      ``day_format`` argument.
-    
-    * ``queryset``: A ``QuerySet`` of objects for which the archive serves.
-    
-    * ``date_field``: The name of the ``DateField`` or ``DateTimeField`` in the
-      ``QuerySet``'s model that the date-based archive should use to determine
-      the objects on the page.
-
-Optional Arguments
-``````````````````
-    
-    * ``month_format``: A format string that regulates what format the ``month``
-      parameter uses. See the detailed explanation in the "Month Archives"
-      section, above.
-
-    * ``day_format``: Like ``month_format``, but for the ``day`` parameter. It
-      defaults to ``"%d"`` (the day of the month as a decimal number, 01-31).
-
-    * ``allow_future``: A Boolean specifying whether to include "future" objects
-      on this page, as described in the previous note.
-
-This view may also take these common arguments (see Table D-1):
-
-    * ``allow_empty``
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-    * ``template_object_name``
-
-Template Name
-`````````````
-
-If ``template_name`` isn't specified, this view will use the template
-``<app_label>/<model_name>_archive_day.html`` by default.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``day``: A ``datetime.date`` object representing the given day.
-    
-    * ``next_day``: A ``datetime.date`` object representing the next day. If the
-      next day is in the future, this will be ``None``.
-    
-    * ``previous_day``: A ``datetime.date`` object representing the given day.
-      Unlike ``next_day``, this will never be ``None``.
-    
-    * ``object_list``: A list of objects available for the given day. This
-      variable's name depends on the ``template_object_name`` parameter, which
-      is ``'object'`` by default. If ``template_object_name`` is ``'foo'``, this
-      variable's name will be ``foo_list``.
-
-Archive for Today
------------------
-
-The ``django.views.generic.date_based.archive_today`` view shows all objects for
-*today*. This is exactly the same as ``archive_day``, except the
-``year``/``month``/``day`` arguments are not used, and today's date is used
-instead.
-
-Example
-```````
-
-.. parsed-literal::
-
-    urlpatterns = patterns('',
-        # ...
-        **(r'^books/today/$', date_based.archive_today, book_info),**  
-    )
-
-
-Date-Based Detail Pages
+Pass ``configure()`` as many keyword arguments as you'd like, with each keyword
+argument representing a setting and its value. Each argument name should be all
+uppercase, with the same name as the settings described earlier. If a particular
+setting is not passed to ``configure()`` and is needed at some later point,
+Django will use the default setting value.
+
+Configuring Django in this fashion is mostly necessary -- and, indeed,
+recommended -- when you're using a piece of the framework inside a larger
+application.
+
+Consequently, when configured via ``settings.configure()``, Django will not
+make any modifications to the process environment variables. (See the
+explanation of ``TIME_ZONE`` later in this appendix for why this would normally occur.)
+It's assumed that you're already in full control of your environment in these cases.
+
+Custom Default Settings
 -----------------------
 
-*View function*: ``django.views.generic.date_based.object_detail``
+If you'd like default values to come from somewhere other than
+``django.conf.global_settings``, you can pass in a module or class that
+provides the default settings as the ``default_settings`` argument (or as the
+first positional argument) in the call to ``configure()``.
 
-Use this view for a page representing an individual object. 
+In this example, default settings are taken from ``myapp_defaults``, and the
+``DEBUG`` setting is set to ``True``, regardless of its value in
+``myapp_defaults``::
 
-This has a different URL from the ``object_detail`` view; the ``object_detail``
-view uses URLs like ``/entries/<slug>/``, while this one uses URLs like
-``/entries/2006/aug/27/<slug>/``.
+    from django.conf import settings
+    from myapp import myapp_defaults
 
-.. note::
+    settings.configure(default_settings=myapp_defaults, DEBUG=True)
 
-    If you're using date-based detail pages with slugs in the URLs, you probably
-    also want to use the ``unique_for_date`` option on the slug field to
-    validate that slugs aren't duplicated in a single day. See Appendix B for
-    details on ``unique_for_date``.
-    
-Example
-```````
+The following example, which uses ``myapp_defaults`` as a positional argument,
+is equivalent::
 
-This one differs (slightly) from all the other date-based examples in that we 
-need to provide either an object ID or a slug so that Django can look up the 
-object in question.
+    settings.configure(myapp_defaults, DEBUG = True)
 
-Since the object we're using doesn't have a slug field, we'll use ID-based URLs.
-It's considered a best practice to use a slug field, but in the interest of
-simplicity we'll let it go.
+Normally, you will not need to override the defaults in this fashion. The
+Django defaults are sufficiently tame that you can safely use them. Be aware
+that if you do pass in a new default module, it entirely *replaces* the Django
+defaults, so you must specify a value for every possible setting that might be
+used in that code you are importing. Check in
+``django.conf.settings.global_settings`` for the full list.
 
-.. parsed-literal::
+Either configure() or DJANGO_SETTINGS_MODULE Is Required
+--------------------------------------------------------
 
-    urlpatterns = patterns('',
-        # ...
-        **(**
-            **r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/(?P<object_id>[\w-]+)/$',**
-            **date_based.object_detail,**
-            **book_info**
-        **),**
-    )
+If you're not setting the ``DJANGO_SETTINGS_MODULE`` environment variable, you
+*must* call ``configure()`` at some point before using any code that reads
+settings.
 
-Required Arguments
-``````````````````
+If you don't set ``DJANGO_SETTINGS_MODULE`` and don't call ``configure()``,
+Django will raise an ``EnvironmentError`` exception the first time a setting
+is accessed.
 
-    * ``year``: The object's four-digit year (a string).
-    
-    * ``month``: The object's month, formatted according to the ``month_format``
-      argument.
-    
-    * ``day``: The object's day, formatted according to the ``day_format`` argument.
-    
-    * ``queryset``: A ``QuerySet`` that contains the object.
-    
-    * ``date_field``: The name of the ``DateField`` or ``DateTimeField`` in the
-      ``QuerySet``'s model that the generic view should use to look up the
-      object according to ``year``, ``month``, and ``day``.
+If you set ``DJANGO_SETTINGS_MODULE``, access settings values somehow, and *then*
+call ``configure()``, Django will raise an ``EnvironmentError`` stating that settings
+have already been configured.
 
-You'll also need either:
+Also, it's an error to call ``configure()`` more than once, or to call
+``configure()`` after any setting has been accessed.
 
-    * ``object_id``: The value of the primary-key field for the object.
+It boils down to this: use exactly one of either ``configure()`` or
+``DJANGO_SETTINGS_MODULE``, and only once.
 
-or:
+Available Settings
+==================
 
-    * ``slug``: The slug of the given object. If you pass this field, then the
-      ``slug_field`` argument (described in the following section) is also
-      required.
+The following sections consist of a list of the main available settings,
+in alphabetical order, and their default values.
 
-Optional Arguments
-``````````````````
+ABSOLUTE_URL_OVERRIDES
+----------------------
 
-    * ``allow_future``: A Boolean specifying whether to include "future" objects
-      on this page, as described in the previous note.
+*Default*: ``{}`` (empty dictionary)
 
-    * ``day_format``: Like ``month_format``, but for the ``day`` parameter. It
-      defaults to ``"%d"`` (the day of the month as a decimal number, 01-31).
+This is a dictionary mapping ``"app_label.model_name"`` strings to functions that take
+a model object and return its URL. This is a way of overriding
+``get_absolute_url()`` methods on a per-installation basis. Here's an example::
 
-    * ``month_format``: A format string that regulates what format the ``month``
-      parameter uses. See the detailed explanation in the "Month Archives"
-      section, above.
+    ABSOLUTE_URL_OVERRIDES = {
+        'blogs.weblog': lambda o: "/blogs/%s/" % o.slug,
+        'news.story': lambda o: "/stories/%s/%s/" % (o.pub_year, o.slug),
+    }
 
-    * ``slug_field``: The name of the field on the object containing the slug.
-      This is required if you are using the ``slug`` argument, but it must be
-      absent if you're using the ``object_id`` argument.
-          
-    * ``template_name_field``: The name of a field on the object whose value is
-      the template name to use. This lets you store template names in the data.
-      In other words, if your object has a field ``'the_template'`` that
-      contains a string ``'foo.html'``, and you set ``template_name_field`` to
-      ``'the_template'``, then the generic view for this object will use the
-      template ``'foo.html'``.
-        
-This view may also take these common arguments (see Table D-1):
+Note that the model name used in this setting should be all lowercase, regardless
+of the case of the actual model class name.
 
-    * ``context_processors``
-    * ``extra_context``
-    * ``mimetype``
-    * ``template_loader``
-    * ``template_name``
-    * ``template_object_name``
-
-Template Name
-`````````````
-
-If ``template_name`` and ``template_name_field`` aren't specified, this view
-will use the template ``<app_label>/<model_name>_detail.html`` by default.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``object``: The object. This variable's name depends on the
-      ``template_object_name`` parameter, which is ``'object'`` by default. If
-      ``template_object_name`` is ``'foo'``, this variable's name will be
-      ``foo``.
-        
-Create/Update/Delete Generic Views
-==================================
-
-The ``django.views.generic.create_update`` module contains a set of functions
-for creating, editing, and deleting objects.
-
-.. note::
-
-    These views may change slightly when Django's revised form architecture
-    (currently under development as ``django.newforms``) is finalized.
-
-These views all present forms if accessed with ``GET`` and perform the
-requested action (create/update/delete) if accessed via ``POST``.
-
-These views all have a very coarse idea of security. Although they take a
-``login_required`` attribute, which if given will restrict access to logged-in
-users, that's as far as it goes. They won't, for example, check that the user
-editing an object is the same user who created it, nor will they validate any
-sort of permissions.
-
-Much of the time, however, those features can be accomplished by writing a small
-wrapper around the generic view; see "Extending Generic Views" in Chapter 9.
-
-Create Object View
+ADMIN_MEDIA_PREFIX
 ------------------
 
-*View function*: ``django.views.generic.create_update.create_object``
+*Default*: ``'/media/'``
 
-This view displays a form for creating an object. When the form is submitted, this view
-redisplays the form with validation errors (if there are any) or saves the
-object.
+This setting is the URL prefix for admin media: CSS, JavaScript, and images. 
+Make sure to use a trailing slash.
 
-Example
-```````
+ADMINS
+------
 
-If we wanted to allow users to create new books in the database, we could do
-something like this::
+*Default*: ``()`` (empty tuple)
 
-    from mysite.books.models import Book    
-    from django.conf.urls.defaults import *
-    from django.views.generic import date_based
-    
-    book_info = {'model' : Book}
-    
-    urlpatterns = patterns('',
-        (r'^books/create/$', create_update.create_object, book_info),
+This is a tuple that lists people who get code error notifications. When
+``DEBUG=False`` and a view raises an exception, Django will email these people
+with the full exception information. Each member of the tuple should be a tuple
+of (Full name, e-mail address), for example::
+
+    (('John', 'john@example.com'), ('Mary', 'mary@example.com'))
+
+Note that Django will email *all* of these people whenever an error happens.
+
+ALLOWED_INCLUDE_ROOTS
+---------------------
+
+*Default*: ``()`` (empty tuple)
+
+This is a tuple of strings representing allowed prefixes for the ``{% ssi %}`` template
+tag. This is a security measure, so that template authors can't access files
+that they shouldn't be accessing.
+
+For example, if ``ALLOWED_INCLUDE_ROOTS`` is ``('/home/html', '/var/www')``,
+then ``{% ssi /home/html/foo.txt %}`` would work, but ``{% ssi /etc/passwd %}``
+wouldn't.
+
+APPEND_SLASH
+------------
+
+*Default*: ``True``
+
+This setting indicates whether to append trailing slashes to URLs. This is used only if
+``CommonMiddleware`` is installed (see Chapter 17). See also ``PREPEND_WWW``.
+
+CACHE_BACKEND
+-------------
+
+*Default*: ``'locmem://'``
+
+This is the cache back-end to use (see Chapter 15).
+
+CACHE_MIDDLEWARE_KEY_PREFIX
+---------------------------
+
+*Default*: ``''`` (empty string)
+
+This is the cache key prefix that the cache middleware should use (see Chapter 15).
+
+DATABASE_ENGINE
+---------------
+
+*Default*: ``''`` (empty string)
+
+This setting indicates which database back-end to use, e.g.
+``'postgresql_psycopg2'``, or ``'mysql'``.
+
+DATABASE_HOST
+-------------
+
+*Default*: ``''`` (empty string)
+
+This setting indicates which host to use when connecting to the database. 
+An empty string means ``localhost``. This is not used with SQLite.
+
+If this value starts with a forward slash (``'/'``) and you're using MySQL,
+MySQL will connect via a Unix socket to the specified socket::
+
+    DATABASE_HOST = '/var/run/mysql'
+
+If you're using MySQL and this value *doesn't* start with a forward slash, then
+this value is assumed to be the host.
+
+DATABASE_NAME
+-------------
+
+*Default*: ``''`` (empty string)
+
+This is the name of the database to use. For SQLite, it's the full path to the database
+file.
+
+DATABASE_OPTIONS
+----------------
+
+*Default*: ``{}`` (empty dictionary)
+
+This is extra parameters to use when connecting to the database. Consult the back-end
+module's document for available keywords.
+
+DATABASE_PASSWORD
+-----------------
+
+*Default*: ``''`` (empty string)
+
+This setting is the password to use when connecting to the database. It is not used with SQLite.
+
+DATABASE_PORT
+-------------
+
+*Default*: ``''`` (empty string)
+
+This is the port to use when connecting to the database. An empty string means the
+default port. It is not used with SQLite.
+
+DATABASE_USER
+-------------
+
+*Default*: ``''`` (empty string)
+
+This setting is the username to use when connecting to the database. It is not used with SQLite.
+
+DATE_FORMAT
+-----------
+
+*Default*: ``'N j, Y'`` (e.g., ``Feb. 4, 2003``)
+
+This is the default formatting to use for date fields on Django admin change-list pages
+-- and, possibly, by other parts of the system. It accepts the same format as the
+``now`` tag (see Appendix E, Table E-2).
+
+See also ``DATETIME_FORMAT``, ``TIME_FORMAT``, ``YEAR_MONTH_FORMAT``, and
+``MONTH_DAY_FORMAT``.
+
+DATETIME_FORMAT
+---------------
+
+*Default*: ``'N j, Y, P'`` (e.g., ``Feb. 4, 2003, 4 p.m.``)
+
+This is the default formatting to use for datetime fields on Django admin change-list
+pages -- and, possibly, by other parts of the system. It accepts the same format as the
+``now`` tag (see Appendix E, Table E-2).
+
+See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``,
+``YEAR_MONTH_FORMAT``, and ``MONTH_DAY_FORMAT``.
+
+DEBUG
+-----
+
+*Default*: ``False``
+
+This setting is a Boolean that turns debug mode on and off.
+
+If you define custom settings, ``django/views/debug.py`` has a ``HIDDEN_SETTINGS``
+regular expression that will hide from the ``DEBUG`` view anything that contains
+``'SECRET``, ``PASSWORD``, or ``PROFANITIES'``. This allows untrusted users to
+be able to give backtraces without seeing sensitive (or offensive) settings.
+
+Still, note that there are always going to be sections of your debug output that
+are inappropriate for public consumption. File paths, configuration options, and
+the like all give attackers extra information about your server. Never deploy a
+site with ``DEBUG`` turned on.
+
+DEFAULT_CHARSET
+---------------
+
+*Default*: ``'utf-8'``
+
+This is the default charset to use for all ``HttpResponse`` objects, if a MIME type isn't
+manually specified. It is used with ``DEFAULT_CONTENT_TYPE`` to construct the
+``Content-Type`` header. See Appendix G for more about ``HttpResponse`` objects.
+
+DEFAULT_CONTENT_TYPE
+--------------------
+
+*Default*: ``'text/html'``
+
+This is the default content type to use for all ``HttpResponse`` objects, if a MIME type
+isn't manually specified. It is used with ``DEFAULT_CHARSET`` to construct the
+``Content-Type`` header. See Appendix G for more about ``HttpResponse`` objects.
+
+DEFAULT_FROM_EMAIL
+------------------
+
+*Default*: ``'webmaster@localhost'``
+
+This is the default email address to use for various automated correspondence from the
+site manager(s).
+
+DISALLOWED_USER_AGENTS
+----------------------
+
+*Default*: ``()`` (empty tuple)
+
+This is a list of compiled regular expression objects representing User-Agent strings
+that are not allowed to visit any page, systemwide. Use this for bad
+robots/crawlers. This is used only if ``CommonMiddleware`` is installed (see
+Chapter 17).
+
+EMAIL_HOST
+----------
+
+*Default*: ``'localhost'``
+
+This is the host to use for sending email. See also ``EMAIL_PORT``.
+
+EMAIL_HOST_PASSWORD
+-------------------
+
+*Default*: ``''`` (empty string)
+
+This is the password to use for the SMTP server defined in ``EMAIL_HOST``. This setting is
+used in conjunction with ``EMAIL_HOST_USER`` when authenticating to the SMTP
+server. If either of these settings is empty, Django won't attempt
+authentication.
+
+See also ``EMAIL_HOST_USER``.
+
+EMAIL_HOST_USER
+---------------
+
+*Default*: ``''`` (empty string)
+
+This is the username to use for the SMTP server defined in ``EMAIL_HOST``. If it's empty,
+Django won't attempt authentication. See also ``EMAIL_HOST_PASSWORD``.
+
+EMAIL_PORT
+----------
+
+*Default*: ``25``
+
+This is the port to use for the SMTP server defined in ``EMAIL_HOST``.
+
+EMAIL_SUBJECT_PREFIX
+--------------------
+
+*Default*: ``'[Django] '``
+
+This is the subject-line prefix for email messages sent with ``django.core.mail.mail_admins``
+or ``django.core.mail.mail_managers``. You'll probably want to include the
+trailing space.
+
+FIXTURE_DIRS
+-------------
+
+*Default*: ``()`` (empty tuple)
+
+This is a list of locations of the fixture data files, in search order. Note that these
+paths should use Unix-style forward slashes, even on Windows. It is used by Django's
+testing framework, which is covered online at
+http://docs.djangoproject.com/en/dev/topics/testing/.
+
+IGNORABLE_404_ENDS
+------------------
+
+*Default*: ``('mail.pl', 'mailform.pl', 'mail.cgi', 'mailform.cgi', 'favicon.ico',
+'.php')``
+
+This is a tuple of strings that specify beginnings of URLs that should be
+ignored by the 404 e-mailer. (See Chapter 12 for more on the 404 e-mailer.)
+
+No errors will be sent for URLs end with strings from this sequence.
+
+See also ``IGNORABLE_404_STARTS`` and ``SEND_BROKEN_LINK_EMAILS``.
+
+IGNORABLE_404_STARTS
+--------------------
+
+*Default*: ``('/cgi-bin/', '/_vti_bin', '/_vti_inf')``
+
+See also ``SEND_BROKEN_LINK_EMAILS`` and ``IGNORABLE_404_ENDS``.
+
+INSTALLED_APPS
+--------------
+
+*Default*: ``()`` (empty tuple)
+
+A tuple of strings designating all applications that are enabled in this Django
+installation. Each string should be a full Python path to a Python package that
+contains a Django application. See Chapter 5 for more about applications.
+
+LANGUAGE_CODE
+-------------
+
+*Default*: ``'en-us'``
+
+This is a string representing the language code for this installation. This should be
+in standard language format -- for example, U.S. English is ``"en-us"``. See 
+Chapter 19.
+
+LANGUAGES
+---------
+
+*Default*: A tuple of all available languages. This list is continually growing
+and any copy included here would inevitably become rapidly out of date. You can
+see the current list of translated languages by looking in
+``django/conf/global_settings.py``.
+
+The list is a tuple of two-tuples in the format (language code, language name)
+-- for example, ``('ja', 'Japanese')``. This specifies which languages are
+available for language selection. See Chapter 19 for more on language selection.
+
+Generally, the default value should suffice. Only set this setting if you want
+to restrict language selection to a subset of the Django-provided languages.
+
+If you define a custom ``LANGUAGES`` setting, it's OK to mark the languages as
+translation strings, but you should *never* import ``django.utils.translation``
+from within your settings file, because that module in itself depends on the
+settings, and that would cause a circular import.
+
+The solution is to use a "dummy" ``gettext()`` function. Here's a sample
+settings file::
+
+    gettext = lambda s: s
+
+    LANGUAGES = (
+        ('de', gettext('German')),
+        ('en', gettext('English')),
     )
 
-Required Arguments
-``````````````````
+With this arrangement, ``make-messages.py`` will still find and mark these
+strings for translation, but the translation won't happen at runtime -- so
+you'll have to remember to wrap the languages in the *real* ``gettext()`` in
+any code that uses ``LANGUAGES`` at runtime.
 
-    * ``model``: The Django model of the object that the form will create.
+MANAGERS
+--------
+
+*Default*: ``()`` (empty tuple)
+
+This tuple is in the same format as ``ADMINS`` that specifies who should get
+broken-link notifications when ``SEND_BROKEN_LINK_EMAILS=True``.
+
+MEDIA_ROOT
+----------
+
+*Default*: ``''`` (empty string)
+
+This is an absolute path to the directory that holds media for this installation (e.g.,
+``"/home/media/media.lawrence.com/"``). See also ``MEDIA_URL``.
+
+MEDIA_URL
+---------
+
+*Default*: ``''`` (empty string)
+
+This URL handles the media served from ``MEDIA_ROOT`` (e.g.,
+``"http://media.lawrence.com"``).
+
+Note that this should have a trailing slash if it has a path component:
+
+    * *Correct*: ``"http://www.example.com/static/"``
+    * *Incorrect*: ``"http://www.example.com/static"``
+
+See Chapter 12 for more on deployment and serving media.
+
+MIDDLEWARE_CLASSES
+------------------
+
+*Default*::
+
+    ("django.contrib.sessions.middleware.SessionMiddleware",
+     "django.contrib.auth.middleware.AuthenticationMiddleware",
+     "django.middleware.common.CommonMiddleware",
+     "django.middleware.doc.XViewMiddleware")
+
+This is a tuple of middleware classes to use. See Chapter 17.
+
+MONTH_DAY_FORMAT
+----------------
+
+*Default*: ``'F j'``
+
+This is the default formatting to use for date fields on Django admin change-list
+pages -- and, possibly, by other parts of the system -- in cases when only the
+month and day are displayed. It accepts the same format as the
+``now`` tag (see Appendix E, Table E-2).
+
+For example, when a Django admin change-list page is being filtered by a date,
+the header for a given day displays the day and month. Different locales have
+different formats. For example, U.S. English would have "January 1," whereas
+Spanish might have "1 Enero."
+
+See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``, and
+``YEAR_MONTH_FORMAT``.
+
+PREPEND_WWW
+-----------
+
+*Default*: ``False``
+
+This setting indicates whether to prepend the "www." subdomain to URLs that don't have it. 
+This is used only if ``CommonMiddleware`` is installed (see the Chapter 17). See also
+``APPEND_SLASH``.
+
+ROOT_URLCONF
+------------
+
+*Default*: Not defined
+
+This is a string representing the full Python import path to your root URLconf (e.g.,
+``"mydjangoapps.urls"``). See Chapter 3.
+
+SECRET_KEY
+----------
+
+*Default*: (Generated automatically when you start a project)
+
+This is a secret key for this particular Django installation. It is used to provide a seed in
+secret-key hashing algorithms. Set this to a random string -- the longer, the
+better. ``django-admin.py startproject`` creates one automatically and most
+of the time you won't need to change it
+
+SEND_BROKEN_LINK_EMAILS
+-----------------------
+
+*Default*: ``False``
+
+This setting indicates whether to send an email to the ``MANAGERS`` each time somebody visits a
+Django-powered page that is 404-ed with a nonempty referer (i.e., a broken
+link). This is only used if ``CommonMiddleware`` is installed (see Chapter 17).
+See also ``IGNORABLE_404_STARTS`` and ``IGNORABLE_404_ENDS``.
+
+SERIALIZATION_MODULES
+---------------------
+
+*Default*: Not defined.
+
+Serialization is a feature still under heavy development. Refer to the online
+documentation at http://docs.djangoproject.com/en/dev/topics/serialization/
+for more information.
+
+SERVER_EMAIL
+------------
+
+*Default*: ``'root@localhost'``
+
+This is the email address that error messages come from, such as those sent to
+``ADMINS`` and ``MANAGERS``.
+
+SESSION_COOKIE_AGE
+------------------
+
+*Default*: ``1209600`` (two weeks, in seconds)
+
+This is the age of session cookies, in seconds. See Chapter 14.
+
+SESSION_COOKIE_DOMAIN
+---------------------
+
+*Default*: ``None``
+
+This is the domain to use for session cookies. Set this to a string such as
+``".lawrence.com"`` for cross-domain cookies, or use ``None`` for a standard
+domain cookie. See Chapter 14.
+
+SESSION_COOKIE_NAME
+-------------------
+
+*Default*: ``'sessionid'``
+
+This is the name of the cookie to use for sessions; it can be whatever you want.
+See Chapter 14.
+
+SESSION_COOKIE_SECURE
+---------------------
+
+*Default*: ``False``
+
+This setting indicates whether to use a secure cookie for the session cookie. 
+If this is set to ``True``, the cookie will be marked as "secure," 
+which means browsers may ensure that the cookie is only sent under an HTTPS connection.
+See Chapter 14.
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE
+-------------------------------
+
+*Default*: ``False``
+
+This setting indicates whether to expire the session when the user closes 
+his browser. See Chapter 14.
+
+SESSION_SAVE_EVERY_REQUEST
+--------------------------
+
+*Default*: ``False``
+
+This setting indicates whether to save the session data on every request. See Chapter 14.
+
+SITE_ID
+-------
+
+*Default*: Not defined
+
+This is the ID, as an integer, of the current site in the ``django_site`` database
+table. It is used so that application data can hook into specific site(s)
+and a single database can manage content for multiple sites. See Chapter 16.
+
+TEMPLATE_CONTEXT_PROCESSORS
+---------------------------
+
+*Default*::
+
+    ("django.core.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media")
+
+This is a tuple of callables that are used to populate the context in ``RequestContext``.
+These callables take a request object as their argument and return a dictionary
+of items to be merged into the context. See Chapter 9.
+
+TEMPLATE_DEBUG
+--------------
+
+*Default*: ``False``
+
+This Boolean turns template debug mode on and off. If it is ``True``, the fancy
+error page will display a detailed report for any ``TemplateSyntaxError``. This
+report contains the relevant snippet of the template, with the appropriate line
+highlighted.
+
+Note that Django only displays fancy error pages if ``DEBUG`` is ``True``, so
+you'll want to set that to take advantage of this setting.
+
+See also ``DEBUG``.
+
+TEMPLATE_DIRS
+-------------
+
+*Default*: ``()`` (empty tuple)
+
+This is a list of locations of the template source files, in search order. Note that these
+paths should use Unix-style forward slashes, even on Windows. See Chapters 4 and
+9.
+
+TEMPLATE_LOADERS
+----------------
+
+*Default*: 
+
+    ('django.template.loaders.filesystem.load_template_source',
+    'django.template.loaders.app_directories.load_template_source')
+
+This is a tuple of callables (as strings) that know how to import templates from
+various sources. See Chapter 9.
+
+TEMPLATE_STRING_IF_INVALID
+--------------------------
+
+*Default*: ``''`` (Empty string)
+
+This is output, as a string, that the template system should use for invalid (e.g.,
+misspelled) variables. See Chapter 9.
+
+TEST_RUNNER
+-----------
+
+*Default*: ``'django.test.simple.run_tests'``
+
+This is the name of the method to use for starting the test suite. It is used by Django's
+testing framework, which is covered online at
+http://docs.djangoproject.com/en/dev/topics/testing/.
+
+TEST_DATABASE_NAME
+------------------
+
+*Default*: ``None``
+
+This is the name of database to use when running the test suite. If a value of ``None``
+is specified, the test database will use the name ``'test_' +
+settings.DATABASE_NAME``. See the documentation for Django's testing framework,
+which is covered online at http://docs.djangoproject.com/en/dev/topics/testing/.
+
+TIME_FORMAT
+-----------
+
+*Default*: ``'P'`` (e.g., ``4 p.m.``)
+
+This is the default formatting to use for time fields on Django admin change-list pages
+-- and, possibly, by other parts of the system. It accepts the same format as the
+``now`` tag (see Appendix E, Table E-2).
+
+See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``,
+``YEAR_MONTH_FORMAT``, and ``MONTH_DAY_FORMAT``.
+
+TIME_ZONE
+---------
+
+*Default*: ``'America/Chicago'``
+
+This is a string representing the time zone for this installation. Time zones are in the
+Unix-standard ``zic`` format. One relatively complete list of time zone strings
+can be found at
+http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE.
+
+This is the time zone to which Django will convert all dates/times --
+not necessarily the time zone of the server. For example, one server may serve
+multiple Django-powered sites, each with a separate time-zone setting.
+
+Normally, Django sets the ``os.environ['TZ']`` variable to the time zone you
+specify in the ``TIME_ZONE`` setting. Thus, all your views and models will
+automatically operate in the correct time zone. However, if you're using the
+manually configuring settings (described above in the section titled "Using
+Settings Without Setting DJANGO_SETTINGS_MODULE"), Django will *not* touch the
+``TZ`` environment variable, and it will be up to you to ensure your processes
+are running in the correct environment.
 
 .. note::
+    Django cannot reliably use alternate time zones in a Windows environment. If
+    you're running Django on Windows, this variable must be set to match the
+    system time zone.
 
-    Notice that this view takes the *model* to be created, not a ``QuerySet``
-    (as all the list/detail/date-based views presented previously do).
+URL_VALIDATOR_USER_AGENT
+------------------------
 
-Optional Arguments
-``````````````````
+*Default*: ``Django/<version> (http://www.djangoproject.com/)``
 
-    * ``post_save_redirect``: A URL to which the view will redirect after saving
-      the object. By default, it's ``object.get_absolute_url()``.
+This is the string to use as the ``User-Agent`` header when checking to see if URLs
+exist (see the ``verify_exists`` option on ``URLField``; see Appendix A).
 
-      ``post_save_redirect``: May contain dictionary string formatting, which will be interpolated
-      against the object's field attributes. For example, you could use
-      ``post_save_redirect="/polls/%(slug)s/"``.
+USE_ETAGS
+---------
 
-    * ``login_required``: A Boolean that designates whether a user must be
-      logged in, in order to see the page and save changes. This hooks into the
-      Django authentication system. By default, this is ``False``.
+*Default*: ``False``
 
-      If this is ``True``, and a non-logged-in user attempts to visit this page
-      or save the form, Django will redirect the request to
-      ``/accounts/login/``.
+This Boolean specifies whether to output the ETag header. It saves
+bandwidth but slows down performance. This is only used if ``CommonMiddleware``
+is installed (see Chapter 17).
 
-This view may also take these common arguments (see Table D-1):
+USE_I18N
+--------
 
-    * ``context_processors``
-    * ``extra_context``
-    * ``template_loader``
-    * ``template_name``
+*Default*: ``True``
 
-Template Name
-`````````````
+This Boolean specifies whether Django's internationalization system (see
+Chapter 19) should be enabled. It provides an easy way to turn off internationalization, for
+performance. If this is set to ``False``, Django will make some optimizations so
+as not to load the internationalization machinery.
 
-If ``template_name`` isn't specified, this view will use the template
-``<app_label>/<model_name>_form.html`` by default.
+YEAR_MONTH_FORMAT
+-----------------
 
-Template Context
-````````````````
+*Default*: ``'F Y'``
 
-In addition to ``extra_context``, the template's context will be as follows:
+This is the default formatting to use for date fields on Django admin change-list pages
+-- and, possibly, by other parts of the system -- in cases when only the year
+and month are displayed. It accepts the same format as the ``now`` tag (see
+Appendix E).
 
-    * ``form``: A ``FormWrapper`` instance representing the form for editing the
-      object. This lets you refer to form fields easily in the template system
-      -- for example, if the model has two fields, ``name`` and ``address``::
+For example, when a Django admin change-list page is being filtered by a date
+drill-down, the header for a given month displays the month and the year.
+Different locales have different formats. For example, U.S. English would use
+"January 2006," whereas another locale might use "2006/January."
 
-          <form action="" method="post">
-            <p><label for="id_name">Name:</label> {{ form.name }}</p>
-            <p><label for="id_address">Address:</label> {{ form.address }}</p>
-          </form>
-
-      Note that ``form`` is an *oldforms* FormWrapper, which is not covered in 
-      this book.  See http://www.djangoproject.com/documentation/0.96/forms/ for 
-      details.
-
-Update Object View
-------------------
-
-*View function*: ``django.views.generic.create_update.update_object``
-
-This view is almost identical to the create object view. However, this one
-allows the editing of an existing object instead of the creation of a new one.
-
-Example
-```````
-
-Following the previous example, we could provide an edit interface for a single
-book with this URLconf snippet:
-
-.. parsed-literal::
-
-    from mysite.books.models import Book    
-    from django.conf.urls.defaults import *
-    from django.views.generic. import date_based
-
-    book_info = {'model' : Book}
-
-    urlpatterns = patterns('',
-        (r'^books/create/$', create_update.create_object, book_info),
-        **(**
-            **r'^books/edit/(?P<object_id>\d+)/$',**
-            **create_update.update_object,**
-            **book_info**
-        **),**
-    )
-
-Required Arguments
-``````````````````
-
-    * ``model``: The Django model to edit. Again, this is the actual *model*
-      itself, not a ``QuerySet``.
-
-And either:
-
-    * ``object_id``: The value of the primary-key field for the object.
-
-or:
-
-    * ``slug``: The slug of the given object. If you pass this field, then the
-      ``slug_field`` argument (below) is also required.
-
-Optional Arguments
-``````````````````
-
-    * ``slug_field``: The name of the field on the object containing the slug.
-      This is required if you are using the ``slug`` argument, but it must be
-      absent if you're using the ``object_id`` argument.
-    
-Additionally, this view takes all same optional arguments as the creation view, 
-plus the ``template_object_name`` common argument from Table D-1.
-
-Template Name
-`````````````
-
-This view uses the same default template name
-(``<app_label>/<model_name>_form.html``) as the creation view.
-
-Template Context
-````````````````
-
-In addition to ``extra_context``, the template's context will be as follows:
-
-    * ``form``: A ``FormWrapper`` instance representing the form for editing the
-      object. See the "Create Object View" section for more information about
-      this value.
-
-    * ``object``: The original object being edited (this variable may be named
-      differently if you've provided the ``template_object_name`` argument).
-
-Delete Object View
-------------------
-
-*View function*: ``django.views.generic.create_update.delete_object`` 
-
-This view is very similar to the other two create/edit views. This view,
-however, allows deletion of objects.
-
-If this view is fetched with ``GET``, it will display a confirmation page
-(i.e., "Do you really want to delete this object?"). If the view is submitted
-with ``POST``, the object will be deleted without confirmation.
-
-All the arguments are the same as for the update object view, as is the
-context; the template name for this view is
-``<app_label>/<model_name>_confirm_delete.html``.
+See also ``DATE_FORMAT``, ``DATETIME_FORMAT``, ``TIME_FORMAT``, and
+``MONTH_DAY_FORMAT``.

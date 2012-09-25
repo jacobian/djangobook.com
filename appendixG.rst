@@ -1,522 +1,538 @@
-====================================
-Appendix G: The django-admin Utility
-====================================
+========================================
+Appendix G: Request and Response Objects
+========================================
 
-``django-admin.py`` is Django's command-line utility for administrative tasks.
-This appendix explains its many powers.
+Django uses request and response objects to pass state through the system.
 
-You'll usually access ``django-admin.py`` through a project's ``manage.py``
-wrapper. ``manage.py`` is automatically created in each Django project and is a
-thin wrapper around ``django-admin.py``. It takes care of two things for you
-before delegating to ``django-admin.py``:
+When a page is requested, Django creates an ``HttpRequest`` object that
+contains metadata about the request. Then Django loads the appropriate view,
+passing the ``HttpRequest`` as the first argument to the view function. Each
+view is responsible for returning an ``HttpResponse`` object.
 
-    * It puts your project's package on ``sys.path``.
+We've used these objects often throughout the book; this appendix explains the
+complete APIs for ``HttpRequest`` and ``HttpResponse`` objects.
 
-    * It sets the ``DJANGO_SETTINGS_MODULE`` environment variable so that it
-      points to your project's ``settings.py`` file.
+HttpRequest
+===========
 
-The ``django-admin.py`` script should be on your system path if you installed
-Django via its ``setup.py`` utility. If it's not on your path, you can find it in
-``site-packages/django/bin`` within your Python installation. Consider
-symlinking it from some place on your path, such as ``/usr/local/bin``.
+``HttpRequest`` represents a single HTTP request from some user-agent.
 
-Windows users, who do not have symlinking functionality available,
-can copy ``django-admin.py`` to a location on their existing path or edit the
-``PATH`` settings (under Settings ~TRA Control Panel ~TRA System ~TRA Advanced ~TRA 
-Environment) to point to its installed location.
+Much of the important information about the request is available as attributes
+on the ``HttpRequest`` instance (see Table G-1). All attributes except
+``session`` should be considered read-only.
 
-Generally, when working on a single Django project, it's easier to use
-``manage.py``. Use ``django-admin.py`` with ``DJANGO_SETTINGS_MODULE`` or the
-``--settings`` command-line option, if you need to switch between multiple
-Django settings files.
+.. table:: Table G-1. Attributes of HttpRequest Objects
 
-The command-line examples throughout this appendix use ``django-admin.py`` to
-be consistent, but any example can use ``manage.py`` just as well.
+    ==================  =======================================================
+    Attribute           Description
+    ==================  =======================================================
+    ``path``            A string representing the full path to the requested 
+                        page, not including the domain -- for example,            
+                        ``"/music/bands/the_beatles/"``.
+                    
+    ``method``          A string representing the HTTP method used in the 
+                        request. This is guaranteed to be uppercase. For 
+                        example::
+                    
+                            if request.method == 'GET':
+                                do_something()
+                            elif request.method == 'POST':
+                                do_something_else()
+                                 
+    ``encoding``        A string representing the current encoding used to
+                        decode form submission data (or ``None``, which means
+                        the ``DEFAULT_CHARSET`` setting is used).
+                        
+                        You can write to this attribute to change the encoding
+                        used when accessing the form data. Any subsequent
+                        attribute accesses (such as reading from ``GET`` or
+                        ``POST``) will use the new ``encoding`` value.  Useful
+                        if you know the form data is not in the
+                        ``DEFAULT_CHARSET`` encoding.
+                    
+    ``GET``             A dictionary-like object containing all given HTTP GET
+                        parameters. See the upcoming ``QueryDict`` documentation.
+                    
+    ``POST``            A dictionary-like object containing all given HTTP POST
+                        parameters. See the upcoming ``QueryDict`` documentation.
+                    
+                        It's possible that a request can come in via POST with
+                        an empty ``POST`` dictionary -- if, say, a form is
+                        requested via the POST HTTP method but does not
+                        include form data. Therefore, you shouldn't use ``if
+                        request.POST`` to check for use of the POST method;
+                        instead, use ``if request.method == "POST"`` (see
+                        the ``method`` entry in this table).
+                    
+                        Note: ``POST`` does *not* include file-upload
+                        information. See ``FILES``.
+                    
+    ``REQUEST``         For convenience, a dictionary-like object that searches
+                        ``POST`` first, and then ``GET``. Inspired by PHP's
+                        ``$_REQUEST``.
+                    
+                        For example, if ``GET = {"name": "john"}`` and ``POST
+                        = {"age": '34'}``, ``REQUEST["name"]`` would be
+                        ``"john"``, and ``REQUEST["age"]`` would be ``"34"``.
+                    
+                        It's strongly suggested that you use ``GET`` and
+                        ``POST`` instead of ``REQUEST``, because the former
+                        are more explicit.
+                    
+    ``COOKIES``         A standard Python dictionary containing all cookies.
+                        Keys and values are strings. See Chapter 14 for more
+                        on using cookies.
+                    
+    ``FILES``           A dictionary-like object that maps filenames to
+                        ``UploadedFile`` objects. See the Django
+                        documentation for more.
+                    
+    ``META``            A standard Python dictionary containing all available
+                        HTTP headers. Available headers depend on the client
+                        and server, but here are some examples:
+                    
+                            * ``CONTENT_LENGTH``
+                            * ``CONTENT_TYPE``
+                            * ``QUERY_STRING``: The raw unparsed query string
+                            * ``REMOTE_ADDR``: The IP address of the client
+                            * ``REMOTE_HOST``: The hostname of the client
+                            * ``SERVER_NAME``: The hostname of the server.
+                            * ``SERVER_PORT``: The port of the server
+                            
+                        Any HTTP headers are available in ``META`` as keys
+                        prefixed with ``HTTP_``, converted to uppercase and
+                        substituting underscores for hyphens. For example:
 
-Usage
-=====
+                            * ``HTTP_ACCEPT_ENCODING``
+                            * ``HTTP_ACCEPT_LANGUAGE``
+                            * ``HTTP_HOST``: The HTTP ``Host`` header sent by
+                              the client
+                            * ``HTTP_REFERER``: The referring page, if any
+                            * ``HTTP_USER_AGENT``: The client's user-agent string
+                            * ``HTTP_X_BENDER``: The value of the ``X-Bender``
+                              header, if set
+                    
+    ``user``            A ``django.contrib.auth.models.User`` object 
+                        representing the currently logged-in user. If the user
+                        isn't currently logged in, ``user`` will be set to an
+                        instance of
+                        ``django.contrib.auth.models.AnonymousUser``. You can
+                        tell them apart with ``is_authenticated()``, like so::
+                    
+                            if request.user.is_authenticated():
+                                # Do something for logged-in users.
+                            else:
+                                # Do something for anonymous users.
+                    
+                        ``user`` is available only if your Django installation
+                        has the ``AuthenticationMiddleware`` activated.
+                        
+                        For the complete details of authentication and users,
+                        see Chapter 14.
+                                        
+    ``session``         A readable and writable, dictionary-like object that 
+                        represents the current session. This is available only
+                        if your Django installation has session support
+                        activated. See Chapter 14.
 
-The basic usage is::
+    ``raw_post_data``   The raw HTTP POST data. This is useful for advanced 
+                        processing. 
+    ==================  =======================================================
 
-    django-admin.py action [options]
+Request objects also have a few useful methods, as shown in Table G-2.
 
-or::
+.. table:: Table G-2. HttpRequest Methods
 
-    manage.py action [options]
+    ======================  ===================================================
+    Method                  Description
+    ======================  ===================================================
+    ``__getitem__(key)``    Returns the GET/POST value for the given key, 
+                            checking POST first, and then GET. Raises
+                            ``KeyError`` if the key doesn't exist.
 
-``action`` should be one of the actions listed in this document. ``options``,
-which is optional, should be zero or more of the options listed in this
-document.
+                            This lets you use dictionary-accessing syntax on
+                            an ``HttpRequest`` instance.
+                            
+                            For example, ``request["foo"]`` is the same as
+                            checking ``request.POST["foo"]`` and then
+                            ``request.GET["foo"]``.
 
-Run ``django-admin.py --help`` to display a help message that includes a terse
-list of all available actions and options.
-
-Most actions take a list of app names. An *app name* is the base name of the
-package containing your models. For example, if your ``INSTALLED_APPS`` contains
-the string ``'mysite.blog'``, the app name is ``blog``.
-
-Available Actions
-=================
-The following sections cover the actions available to you.
-
-adminindex [appname appname ...]
---------------------------------
-
-Prints the admin-index template snippet for the given application names. Use
-admin-index template snippets if you want to customize the look and feel of your
-admin's index page.
-
-createcachetable [tablename]
-----------------------------
-
-Creates a cache table named ``tablename`` for use with the database cache
-back-end. See Chapter 13 for more about caching.
-
-dbshell
--------
-
-Runs the command-line client for the database engine specified in your
-``DATABASE_ENGINE`` setting, with the connection parameters specified in the settings
-``DATABASE_USER``, ``DATABASE_PASSWORD``, and so forth.
-
-    * For PostgreSQL, this runs the ``psql`` command-line client.
+    ``has_key()``           Returns ``True`` or ``False``, designating whether
+                            ``request.GET`` or ``request.POST`` has the given
+                            key.
     
-    * For MySQL, this runs the ``mysql`` command-line client.
+    ``get_host()``          Returns the originating host of the request using
+                            information from the ``HTTP_X_FORWARDED_HOST`` and
+                            ``HTTP_HOST`` headers (in that order). If they
+                            don't provide a value, the method uses a
+                            combination of ``SERVER_NAME`` and
+                            ``SERVER_PORT``.
+
+    ``get_full_path()``     Returns the ``path``, plus an appended query 
+                            string, if applicable. For example,
+                            ``"/music/bands/the_beatles/?print=true"``
     
-    * For SQLite, this runs the ``sqlite3`` command-line client.
+    ``is_secure()``         Returns ``True`` if the request is secure; that 
+                            is, if it was made with HTTPS.
+    ======================  ===================================================
 
-This command assumes the programs are on your ``PATH`` so that a simple call to
-the program name (``psql``, ``mysql``, or ``sqlite3``) will find the program in the
-right place. There's no way to specify the location of the program manually.
-
-diffsettings
-------------
-
-Displays differences between the current settings file and Django's default
-settings.
-
-Settings that don't appear in the defaults are followed by ``"###"``. For
-example, the default settings don't define ``ROOT_URLCONF``, so
-``ROOT_URLCONF`` is followed by ``"###"`` in the output of ``diffsettings``.
-
-Note that Django's default settings live in ``django.conf.global_settings``,
-if you're ever curious to see the full list of defaults.
-
-dumpdata [appname appname ...]
-------------------------------
-
-Outputs to standard output all data in the database associated with the named
-application(s).
-
-By default, the database will be dumped in JSON format. If you want the output
-to be in another format, use the ``--format`` option (e.g., ``format=xml``).
-You may specify any Django serialization back-end (including any user-specified
-serialization back-ends named in the ``SERIALIZATION_MODULES`` setting). The
-``--indent`` option can be used to pretty-print the output.
-
-If no application name is provided, all installed applications will be dumped.
-
-The output of ``dumpdata`` can be used as input for ``loaddata``.
-
-flush
------
-
-Returns the database to the state it was in immediately after syncdb was
-executed. This means that all data will be removed from the database, any
-postsynchronization handlers will be re-executed, and the ``initial_data``
-fixture will be reinstalled.
-
-inspectdb
----------
-
-Introspects the database tables in the database pointed to by the
-``DATABASE_NAME`` setting and outputs a Django model module (a ``models.py``
-file) to standard output.
-
-Use this if you have a legacy database with which you'd like to use Django.
-The script will inspect the database and create a model for each table within
-it.
-
-As you might expect, the created models will have an attribute for every field
-in the table. Note that ``inspectdb`` has a few special cases in its field name
-output:
-
-    * If ``inspectdb`` cannot map a column's type to a model field type, it will
-      use ``TextField`` and will insert the Python comment
-      ``'This field type is a guess.'`` next to the field in the generated
-      model.
-
-    * If the database column name is a Python reserved word (such as
-      ``'pass'``, ``'class'``, or ``'for'``), ``inspectdb`` will append
-      ``'_field'`` to the attribute name. For example, if a table has a column
-      ``'for'``, the generated model will have a field ``'for_field'``, with
-      the ``db_column`` attribute set to ``'for'``. ``inspectdb`` will insert
-      the Python comment
-      ``'Field renamed because it was a Python reserved word.'`` next to the
-      field.
-
-This feature is meant as a shortcut, not as definitive model generation. After
-you run it, you'll want to look over the generated models yourself to make
-customizations. In particular, you'll need to rearrange the models so that
-models with relationships are ordered properly.
-
-Primary keys are automatically introspected for PostgreSQL, MySQL, and
-SQLite, in which case Django puts in the ``primary_key=True`` where
-needed.
-
-``inspectdb`` works with PostgreSQL, MySQL, and SQLite. Foreign key detection
-only works in PostgreSQL and with certain types of MySQL tables.
-
-loaddata [fixture fixture ...]
-------------------------------
-
-Searches for and loads the contents of the named fixture into the database.
-
-A *fixture* is a collection of files that contain the serialized contents of
-the database. Each fixture has a unique name; however, the files that
-comprise the fixture can be distributed over multiple directories, in
-multiple applications.
-
-Django will search in three locations for fixtures:
-
-   * In the ``fixtures`` directory of every installed application
-   * In any directory named in the ``FIXTURE_DIRS`` setting
-   * In the literal path named by the fixture
-
-Django will load any and all fixtures it finds in these locations that match
-the provided fixture names.
-
-If the named fixture has a file extension, only fixtures of that type
-will be loaded. For example, the following::
-
-    django-admin.py loaddata mydata.json
-
-will only load JSON fixtures called ``mydata``. The fixture extension
-must correspond to the registered name of a serializer (e.g., ``json`` or
-``xml``).
-
-If you omit the extension, Django will search all available fixture types
-for a matching fixture. For example, the following::
-
-    django-admin.py loaddata mydata
-
-will look for any fixture of any fixture type called ``mydata``. If a fixture
-directory contained ``mydata.json``, that fixture would be loaded
-as a JSON fixture. However, if two fixtures with the same name but different
-fixture types are discovered (e.g., if ``mydata.json`` and
-``mydata.xml`` were found in the same fixture directory), fixture
-installation will be aborted, and any data installed in the call to
-``loaddata`` will be removed from the database.
-
-The fixtures that are named can include directory components. These
-directories will be included in the search path. The following, for example::
-
-    django-admin.py loaddata foo/bar/mydata.json
-
-will search ``<appname>/fixtures/foo/bar/mydata.json`` for each installed
-application,  ``<dirname>/foo/bar/mydata.json`` for each directory in
-``FIXTURE_DIRS``, and the literal path ``foo/bar/mydata.json``.
-
-Note that the order in which fixture files are processed is undefined. However,
-all fixture data is installed as a single transaction, so data in
-one fixture can reference data in another fixture. If the database back-end
-supports row-level constraints, these constraints will be checked at the
-end of the transaction.
-
-The ``dumpdata`` command can be used to generate input for ``loaddata``.
-
-.. admonition:: MySQL and Fixtures
-
-    Unfortunately, MySQL isn't capable of completely supporting all the
-    features of Django fixtures. If you use MyISAM tables, MySQL doesn't
-    support transactions or constraints, so you won't get a rollback if
-    multiple transaction files are found, or validation of fixture data.
-    If you use InnoDB tables, you won't be able to have any forward
-    references in your data files -- MySQL doesn't provide a mechanism to
-    defer checking of row constraints until a transaction is committed.
-
-reset [appname appname ...]
----------------------------
-Executes the equivalent of ``sqlreset`` for the given app names.
-
-runfcgi [options]
+QueryDict Objects
 -----------------
-Starts a set of FastCGI processes suitable for use with any Web server
-that supports the FastCGI protocol. See Chapter 20 for more about deploying under FastCGI.
 
-This command requires the Python FastCGI module from ``flup``
-(http://www.djangoproject.com/r/flup/).
+In an ``HttpRequest`` object, the ``GET`` and ``POST`` attributes are
+instances of ``django.http.QueryDict``. ``QueryDict`` is a dictionary-like
+class customized to deal with multiple values for the same key. This is
+necessary because some HTML form elements, notably ``<select
+multiple="multiple">``, pass multiple values for the same key.
 
-runserver [optional port number, or ipaddr:port]
-------------------------------------------------
+``QueryDict`` instances are immutable, unless you create a ``copy()`` of them.
+That means you can't change attributes of ``request.POST`` and ``request.GET``
+directly.
 
-Starts a lightweight development Web server on the local machine. By default,
-the server runs on port 8000 on the IP address 127.0.0.1. You can pass in an
-IP address and port number explicitly.
+``QueryDict`` implements the all standard dictionary methods, because it's a
+subclass of dictionary. Exceptions are outlined in Table G-3.
 
-If you run this script as a user with normal privileges (recommended), you
-might not have access to start a port on a low port number. Low port numbers
-are reserved for the superuser (root).
+.. table:: Table G-3. How QueryDicts Differ from Standard Dictionaries.
 
-.. warning::
+    ==================  =======================================================
+    Method              Differences from Standard dict Implementation
+    ==================  =======================================================
+    ``__getitem__``     Works just like a dictionary. However, if the key
+                        has more than one value, ``__getitem__()`` returns the
+                        last value.
+    
+    ``__setitem__``     Sets the given key to ``[value]`` (a Python list whose
+                        single element is ``value``). Note that this, as other
+                        dictionary functions that have side effects, can
+                        be called only on a mutable ``QueryDict`` (one that was
+                        created via ``copy()``).
+        
+    ``get()``           If the key has more than one value, ``get()`` returns 
+                        the last value just like ``__getitem__``.
+            
+    ``update()``        Takes either a ``QueryDict`` or standard dictionary.
+                        Unlike the standard dictionary's ``update`` method,
+                        this method *appends* to the current dictionary items
+                        rather than replacing them::
+    
+                            >>> q = QueryDict('a=1')
+                            >>> q = q.copy() # to make it mutable
+                            >>> q.update({'a': '2'})
+                            >>> q.getlist('a')
+                            ['1', '2']
+                            >>> q['a'] # returns the last
+                            ['2']
+    
+    ``items()``         Just like the standard dictionary ``items()`` method,
+                        except this uses the same last-value logic as
+                        ``__getitem()__``::
+    
+                             >>> q = QueryDict('a=1&a=2&a=3')
+                             >>> q.items()
+                             [('a', '3')]
+    
+    ``values()``        Just like the standard dictionary ``values()`` method,
+                        except this uses the same last-value logic as
+                        ``__getitem()__``.
+    ==================  =======================================================
 
-    **Do not use this server in a production setting**. It has not gone through
-    security audits or performance tests, and there are no plans to change that
-    fact. Django's developers are in the business of making Web frameworks, not
-    Web servers, so improving this server to be able to handle a production
-    environment is outside the scope of Django.
+In addition, ``QueryDict`` has the methods shown in Table G-4.
 
-The development server automatically reloads Python code for each request, as
-needed. You don't need to restart the server for code changes to take effect.
+.. table:: G-4. Extra (Nondictionary) QueryDict Methods
 
-When you start the server, and each time you change Python code while the
-server is running, the server will validate all of your installed models. (See
-the upcoming section on the ``validate`` command.) If the validator finds errors, 
-it will print them to standard output, but it won't stop the server.
-
-You can run as many servers as you want, as long as they're on separate ports.
-Just execute ``django-admin.py runserver`` more than once.
-
-Note that the default IP address, 127.0.0.1, is not accessible from other
-machines on your network. To make your development server viewable to other
-machines on the network, use its own IP address (e.g., 192.168.2.1) or
-0.0.0.0.
-
-For example, to run the server on port 7000 on IP address 127.0.0.1, use this::
-
-    django-admin.py runserver 7000
-
-Or to run the server on port 7000 on IP address 1.2.3.4, use this::
-
-    django-admin.py runserver 1.2.3.4:7000
-
-Serving Static Files with the Development Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, the development server doesn't serve any static files for your site
-(such as CSS files, images, things under ``MEDIA_ROOT_URL``, etc.). If
-you want to configure Django to serve static media, read about serving static
-media at http://www.djangoproject.com/documentation/0.96/static_files/.
-
-Turning Off Autoreload
-~~~~~~~~~~~~~~~~~~~~~~~
-
-To disable autoreloading of code while the development server is running, use the
-``--noreload`` option, like so::
-
-    django-admin.py runserver --noreload
-
-shell
------
-
-Starts the Python interactive interpreter.
-
-Django will use IPython (http://ipython.scipy.org/) if it's installed. If you
-have IPython installed and want to force use of the "plain" Python interpreter,
-use the ``--plain`` option, like so::
-
-    django-admin.py shell --plain
-
-sql [appname appname ...]
--------------------------
-
-Prints the ``CREATE TABLE`` SQL statements for the given app names.
-
-sqlall [appname appname ...]
-----------------------------
-
-Prints the ``CREATE TABLE`` and initial-data SQL statements for the given app names.
-
-Refer to the description of ``sqlcustom`` for an explanation of how to
-specify initial data.
-
-sqlclear [appname appname ...]
-------------------------------
-
-Prints the ``DROP TABLE`` SQL statements for the given app names.
-
-sqlcustom [appname appname ...]
--------------------------------
-
-Prints the custom SQL statements for the given app names.
-
-For each model in each specified app, this command looks for the file
-``<appname>/sql/<modelname>.sql``, where ``<appname>`` is the given app name and
-``<modelname>`` is the model's name in lowercase. For example, if you have an
-app ``news`` that includes a ``Story`` model, ``sqlcustom`` will attempt
-to read a file ``news/sql/story.sql`` and append it to the output of this
-command.
-
-Each of the SQL files, if given, is expected to contain valid SQL. The SQL
-files are piped directly into the database after all of the models'
-table-creation statements have been executed. Use this SQL hook to make any
-table modifications, or insert any SQL functions into the database.
-
-Note that the order in which the SQL files are processed is undefined.
-
-sqlindexes [appname appname ...]
---------------------------------
-
-Prints the ``CREATE INDEX`` SQL statements for the given app names.
-
-sqlreset [appname appname ...]
-------------------------------
-
-Prints the ``DROP TABLE`` SQL, and then the ``CREATE TABLE`` SQL, for the given app
-names.
-
-sqlsequencereset [appname appname ...]
---------------------------------------
-
-Prints the SQL statements for resetting sequences for the given app names. 
-
-You'll need this SQL only if you're using PostgreSQL and have inserted data by
-hand. When you do that, PostgreSQL's primary key sequences can get out of sync
-from what's in the database, and the SQL emitted by this command will clear it
-up.
-
-startapp [appname]
+    ==========================  ===============================================
+    Method                      Description
+    ==========================  ===============================================
+    ``copy()``                  Returns a copy of the object, using 
+                                ``copy.deepcopy()`` from the Python standard
+                                library. The copy will be mutable -- that is,
+                                you can change its values.
+   
+    ``getlist(key)``            Returns the data with the requested key, as a
+                                Python list. Returns an empty list if the key
+                                doesn't exist. It's guaranteed to return a
+                                list of some sort.
+   
+    ``setlist(key, list_)``     Sets the given key to ``list_`` (unlike 
+                                ``__setitem__()``).
+   
+    ``appendlist(key, item)``   Appends an item to the internal list associated
+                                with ``key``.
+   
+    ``setlistdefault(key, a)``  Just like ``setdefault``, except it takes a
+                                list of values instead of a single value.
+   
+    ``lists()``                 Like ``items()``, except it includes all 
+                                values, as a list, for each member of the
+                                dictionary. For example::
+   
+                                    >>> q = QueryDict('a=1&a=2&a=3')
+                                    >>> q.lists()
+                                    [('a', ['1', '2', '3'])]
+                                    
+   
+    ``urlencode()``             Returns a string of the data in query-string 
+                                format (e.g., ``"a=2&b=3&b=5"``).
+    ==========================  ===============================================
+    
+A Complete Example
 ------------------
 
-Creates a Django application directory structure for the given app name in the current
-directory.
+For example, given this HTML form::
 
-startproject [projectname]
+    <form action="/foo/bar/" method="post">
+    <input type="text" name="your_name" />
+    <select multiple="multiple" name="bands">
+        <option value="beatles">The Beatles</option>
+        <option value="who">The Who</option>
+        <option value="zombies">The Zombies</option>
+    </select>
+    <input type="submit" />
+    </form>
+
+if the user enters ``"John Smith"`` in the ``your_name`` field and selects
+both "The Beatles" and "The Zombies" in the multiple select box, here's what
+Django's request object would have::
+
+    >>> request.GET
+    {}
+    >>> request.POST
+    {'your_name': ['John Smith'], 'bands': ['beatles', 'zombies']}
+    >>> request.POST['your_name']
+    'John Smith'
+    >>> request.POST['bands']
+    'zombies'
+    >>> request.POST.getlist('bands')
+    ['beatles', 'zombies']
+    >>> request.POST.get('your_name', 'Adrian')
+    'John Smith'
+    >>> request.POST.get('nonexistent_field', 'Nowhere Man')
+    'Nowhere Man'
+
+.. admonition:: Implementation Note:
+
+    The ``GET``, ``POST``, ``COOKIES``, ``FILES``, ``META``, ``REQUEST``,
+    ``raw_post_data``, and ``user`` attributes are all lazily loaded. That means
+    Django doesn't spend resources calculating the values of those attributes until
+    your code requests them.
+
+HttpResponse
+============
+
+In contrast to ``HttpRequest`` objects, which are created automatically by
+Django, ``HttpResponse`` objects are your responsibility. Each view you write
+is responsible for instantiating, populating, and returning an
+``HttpResponse``.
+
+The ``HttpResponse`` class lives at ``django.http.HttpResponse``.
+
+Construction HttpResponses
 --------------------------
 
-Creates a Django project directory structure for the given project name in the
-current directory.
+Typically, you'll construct an ``HttpResponse`` to pass the contents of the
+page, as a string, to the ``HttpResponse`` constructor::
 
-syncdb
-------
+    >>> response = HttpResponse("Here's the text of the Web page.")
+    >>> response = HttpResponse("Text only, please.", mimetype="text/plain")
 
-Creates the database tables for all applications in ``INSTALLED_APPS`` whose tables have
-not already been created.
+But if you want to add content incrementally, you can use ``response`` as a
+filelike object::
 
-Use this command when you've added new applications to your project and want to
-install them in the database. This includes any applications shipped with Django that
-might be in ``INSTALLED_APPS`` by default. When you start a new project, run
-this command to install the default applications.
+    >>> response = HttpResponse()
+    >>> response.write("<p>Here's the text of the Web page.</p>")
+    >>> response.write("<p>Here's another paragraph.</p>")
 
-If you're installing the ``django.contrib.auth`` application, ``syncdb`` will
-give you the option of creating a superuser immediately. ``syncdb`` will also
-search for and install any fixture named ``initial_data``. See the documentation
-for ``loaddata`` for details on the specification of fixture data files.
+You can pass ``HttpResponse`` an iterator rather than passing it
+hard-coded strings. If you use this technique, follow these guidelines:
 
-test
-----
+    * The iterator should return strings.
 
-Discovers and runs tests for all installed models. Testing was still under
-development when this book was being written, so to learn more you'll need to
-read the documentation online at
-http://www.djangoproject.com/documentation/0.96/testing/.
+    * If an ``HttpResponse`` has been initialized with an iterator as its
+      content, you can't use the ``HttpResponse`` instance as a filelike
+      object. Doing so will raise ``Exception``.
 
-validate
---------
+Finally, note that ``HttpResponse`` implements a ``write()`` method, which
+makes is suitable for use anywhere that Python expects a filelike object. See
+Chapter 8 for some examples of using this technique.
+     
+Setting Headers
+---------------
 
-Validates all installed models (according to the ``INSTALLED_APPS`` setting) and
-prints validation errors to standard output.
+You can add and delete headers using dictionary syntax::
 
-Available Options
-=================
+    >>> response = HttpResponse()
+    >>> response['X-DJANGO'] = "It's the best."
+    >>> del response['X-PHP']
+    >>> response['X-DJANGO']
+    "It's the best."
 
-The sections that follow outline the options that ``django-admin.py`` can take.
+You can also use ``has_header(header)`` to check for the existence of a header.
 
---settings
-----------
+Avoid setting ``Cookie`` headers by hand; instead, see Chapter 14 for
+instructions on how cookies work in Django.
 
-Example usage::
+HttpResponse Subclasses
+-----------------------
 
-    django-admin.py syncdb --settings=mysite.settings
+Django includes a number of ``HttpResponse`` subclasses that handle different
+types of HTTP responses (see Table G-5). Like ``HttpResponse``, these subclasses live in
+``django.http``.
 
-Explicitly specifies the settings module to use. The settings module should be
-in Python package syntax (e.g., ``mysite.settings``). If this isn't provided,
-``django-admin.py`` will use the ``DJANGO_SETTINGS_MODULE`` environment
-variable.
+.. table:: Table G-5. HttpResponse Subclasses
 
-Note that this option is unnecessary in ``manage.py``, because it takes care of
-setting ``DJANGO_SETTINGS_MODULE`` for you.
+    ==================================  =======================================
+    Class                               Description
+    ==================================  =======================================
+    ``HttpResponseRedirect``            The constructor takes a single argument: 
+                                        the path to redirect to. This can
+                                        be a fully qualified URL (e.g.,
+                                        ``'http://search.yahoo.com/'``) or
+                                        an absolute URL with no domain (e.g.,
+                                        ``'/search/'``). Note that this
+                                        returns an HTTP status code 302.
+    
+    ``HttpResponsePermanentRedirect``   Like ``HttpResponseRedirect``, but it
+                                        returns a permanent redirect (HTTP
+                                        status code 301) instead of a "found"
+                                        redirect (status code 302).
+    
+    ``HttpResponseNotModified``         The constructor doesn't take any 
+                                        arguments. Use this to designate that
+                                        a page hasn't been modified since the
+                                        user's last request.
+    
+    ``HttpResponseBadRequest``          Acts just like ``HttpResponse`` but 
+                                        uses a 400 status code.
+    
+    ``HttpResponseNotFound``            Acts just like ``HttpResponse`` but 
+                                        uses a 404 status code.
+    
+    ``HttpResponseForbidden``           Acts just like ``HttpResponse`` but 
+                                        uses a 403 status code.
+    
+    ``HttpResponseNotAllowed``          Like ``HttpResponse``, but uses a 405
+                                        status code. It takes a single, required
+                                        argument: a list of permitted methods
+                                        (e.g., ``['GET', 'POST']``).
+    
+    ``HttpResponseGone``                Acts just like ``HttpResponse`` but
+                                        uses a 410 status code.
+    
+    ``HttpResponseServerError``         Acts just like ``HttpResponse`` but
+                                        uses a 500 status code.
+    ==================================  =======================================
 
---pythonpath
-------------
+You can, of course, define your own ``HttpResponse`` subclass to support
+different types of responses not supported out of the box.
 
-Example usage::
+Returning Errors
+----------------
 
-    django-admin.py syncdb --pythonpath='/home/djangoprojects/myproject'
+Returning HTTP error codes in Django is easy. We've already mentioned the
+``HttpResponseNotFound``, ``HttpResponseForbidden``,
+``HttpResponseServerError``, and other subclasses. Just return an instance of one
+of those subclasses instead of a normal ``HttpResponse`` in order to signify
+an error, for example::
 
-Adds the given filesystem path to the Python import search path. If this isn't
-provided, ``django-admin.py`` will use the ``PYTHONPATH`` environment variable.
+    def my_view(request):
+        # ...
+        if foo:
+            return HttpResponseNotFound('<h1>Page not found</h1>')
+        else:
+            return HttpResponse('<h1>Page was found</h1>')
 
-Note that this option is unnecessary in ``manage.py``, because it takes care of
-setting the Python path for you.
+Because a 404 error is by far the most common HTTP error, there's an easier
+way to handle it.
 
---format
---------
+When you return an error such as ``HttpResponseNotFound``, you're responsible
+for defining the HTML of the resulting error page::
 
-Example usage::
+    return HttpResponseNotFound('<h1>Page not found</h1>')
 
-    django-admin.py dumpdata --format=xml
+For convenience, and because it's a good idea to have a consistent 404 error page
+across your site, Django provides an ``Http404`` exception. If you raise
+``Http404`` at any point in a view function, Django will catch it and return the
+standard error page for your application, along with an HTTP error code 404.
 
-Specifies the output format that will be used. The name provided must be the name
-of a registered serializer.
+Here's an example::
 
---help
-------
+    from django.http import Http404
 
-Displays a help message that includes a terse list of all available actions and
-options.
+    def detail(request, poll_id):
+        try:
+            p = Poll.objects.get(pk=poll_id)
+        except Poll.DoesNotExist:
+            raise Http404
+        return render_to_response('polls/detail.html', {'poll': p})
 
---indent
---------
+In order to use the ``Http404`` exception to its fullest, you should create a
+template that is displayed when a 404 error is raised. This template should be
+called ``404.html``, and it should be located in the top level of your template tree.
 
-Example usage::
+Customizing the 404 (Not Found) View
+------------------------------------
 
-    django-admin.py dumpdata --indent=4
+When you raise an ``Http404`` exception, Django loads a special view devoted
+to handling 404 errors. By default, it's the view
+``django.views.defaults.page_not_found``, which loads and renders the template
+``404.html``.
 
-Specifies the number of spaces that will be used for indentation when
-pretty-printing output. By default, output will *not* be pretty-printed.
-Pretty-printing will only be enabled if the indent option is provided.
+This means you need to define a ``404.html`` template in your root template
+directory. This template will be used for all 404 errors.
 
---noinput
----------
+This ``page_not_found`` view should suffice for 99% of Web applications, but
+if you want to override the 404 view, you can specify ``handler404`` in your
+URLconf, like so::
 
-Indicates you will not be prompted for any input. This is useful if the 
-``django-admin`` script will be executed as an unattended, automated script.
+    from django.conf.urls.defaults import *
+    
+    urlpatterns = patterns('',
+        ...
+    )
 
---noreload
-----------
+    handler404 = 'mysite.views.my_custom_404_view'
 
-Disables the use of the autoreloader when running the development server.
+Behind the scenes, Django determines the 404 view by looking for
+``handler404``. By default, URLconfs contain the following line::
 
---version
----------
+    from django.conf.urls.defaults import *
 
-Displays the current Django version.
+That takes care of setting ``handler404`` in the current module. As you can
+see in ``django/conf/urls/defaults.py``, ``handler404`` is set to
+``'django.views.defaults.page_not_found'`` by default.
 
-Example output::
+There are three things to note about 404 views:
 
-    0.9.1
-    0.9.1 (SVN)
+    * The 404 view is also called if Django doesn't find a match after checking
+      every regular expression in the URLconf.
 
---verbosity
------------
+    * If you don't define your own 404 view -- and simply use the default,
+      which is recommended -- you still have one obligation: to create a
+      ``404.html`` template in the root of your template directory. The default
+      404 view will use that template for all 404 errors.
 
-Example usage::
+    * If ``DEBUG`` is set to ``True`` (in your settings module), then your 404
+      view will never be used, and the traceback will be displayed instead.
 
-    django-admin.py syncdb --verbosity=2
+Customizing the 500 (Server Error) View
+---------------------------------------
 
-Determines the amount of notification and debug information that
-will be printed to the console. ``0`` is no output, ``1`` is normal output,
-and ``2`` is verbose output.
+Similarly, Django executes special-case behavior in the case of runtime errors
+in view code. If a view results in an exception, Django will, by default, call
+the view ``django.views.defaults.server_error``, which loads and renders the
+template ``500.html``.
 
---adminmedia
-------------
+This means you need to define a ``500.html`` template in your root template
+directory. This template will be used for all server errors.
 
-Example usage::
+This ``server_error`` view should suffice for 99% of Web applications, but if
+you want to override the view, you can specify ``handler500`` in your
+URLconf, like so::
 
-    django-admin.py --adminmedia=/tmp/new-admin-style/
+    from django.conf.urls.defaults import *
 
-Tells Django where to find the various CSS and JavaScript files for the admin
-interface when running the development server. Normally these files are served
-out of the Django source tree, but because some designers customize these files
-for their site, this option allows you to test against custom versions.
+    urlpatterns = patterns('',
+        ...
+    )
+
+    handler500 = 'mysite.views.my_custom_error_view'
