@@ -4,7 +4,7 @@ The Django Book
 
 Welcome to the online version of The Django Book, a free book about the Django Web framework for the Python programming language.
 
-.. note:: A note about this edition
+.. admonition:: A note about this edition
 
    Welcome to the community edition of the Django Book!
 
@@ -17,8 +17,6 @@ Welcome to the online version of The Django Book, a free book about the Django W
 __ http://github.com/jacobian/djangobook.com
 __ http://github.com/jacobian/djangobook.com
 
-Contents:
-
 .. toctree::
    :maxdepth: 1
    :glob:
@@ -27,4 +25,4 @@ Contents:
    frontmatter
    chapter*
    appendix*
-
+   license
