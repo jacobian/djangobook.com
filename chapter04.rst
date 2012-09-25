@@ -1297,47 +1297,6 @@ use. The second argument, if given, should be a dictionary to use in creating a
 ``Context`` for that template. If you don't provide a second argument,
 ``render_to_response()`` will use an empty dictionary.
 
-The locals() Trick
-------------------
-
-Consider our latest incarnation of ``current_datetime``::
-
-    def current_datetime(request):
-        now = datetime.datetime.now()
-        return render_to_response('current_datetime.html', {'current_date': now})
-
-Many times, as in this example, you'll find yourself calculating some values,
-storing them in variables (e.g., ``now`` in the preceding code), and sending
-those variables to the template. Particularly lazy programmers should note that
-it's slightly redundant to have to give names for temporary variables *and* give
-names for the template variables. Not only is it redundant, but also it's extra
-typing.
-
-So if you're one of those lazy programmers and you like keeping code
-particularly concise, you can take advantage of a built-in Python function
-called ``locals()``. It returns a dictionary mapping all local
-variable names to their values, where "local" means all variables that have
-been defined within the current scope. Thus, the preceding view could be
-rewritten like so::
-
-    def current_datetime(request):
-        current_date = datetime.datetime.now()
-        return render_to_response('current_datetime.html', locals())
-
-Here, instead of manually specifying the context dictionary as before, we
-pass the value of ``locals()``, which will include all variables
-defined at that point in the function's execution. As a consequence, we've
-renamed the ``now`` variable to ``current_date``, because that's the variable
-name that the template expects. In this example, ``locals()`` doesn't offer a
-*huge* improvement, but this technique can save you some typing if you have
-several template variables to define -- or if you're lazy.
-
-One thing to watch out for when using ``locals()`` is that it includes *every*
-local variable, which may comprise more variables than you actually want your
-template to have access to. In the previous example, ``locals()`` will also
-include ``request``. Whether this matters to you depends on your application
-and your level of perfectionism.
-
 Subdirectories in get_template()
 --------------------------------
 
