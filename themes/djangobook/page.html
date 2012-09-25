@@ -2,6 +2,21 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% macro nav() %}
+<div class="nav">
+    {% if prev %}
+        <a href='{{ prev.link }}'>&laquo; previous</a> &loz;
+    {% endif %}
+    <a href="{{ pathto('index') }}">table of contents</a>
+    {% if next %}
+        &loz; <a href='{{ next.link }}'>next &raquo;</a>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% block hdnav %}{{ nav() }}{% endblock %}
+{% block ftnav %}{{ nav() }}{% endblock %}
+
 {% block content %}
   <div id="chapter-body">{{ body }}</div>
 {% endblock %}
