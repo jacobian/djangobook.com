@@ -11,9 +11,9 @@
   <body>
     <div id="doc" class="yui-t7">
       <div id="hd">
-        <h1><a href="/">The Django Book</a></h1>
+        <h1><a href="{{ pathto("index") }}">The Django Book</a></h1>
         <div id="global-nav">
-            <a class="about" href="/about/">About</a>
+            <a class="about" href="{{ pathto("frontmatter") }}">About</a>
         </div>
         {% block hdnav %}{% endblock %}
       </div>
@@ -27,7 +27,7 @@
       <div id="ft">
         {% block ftnav %}{% endblock %}
         Copyright Adrian Holovaty, Jacob Kaplan-Moss, et al.<br>This
-        work is licensed under the <a href="/license/">GNU Free Document
+        work is licensed under the <a href="{{ pathto("license") }}">GNU Free Document
         License</a>.
       </div>
     </div>
