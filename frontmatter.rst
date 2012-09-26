@@ -60,7 +60,7 @@ He was lead developer at World Online for 2.5 years, during which time Django wa
 
 Adrian lives in Chicago, USA.
 
-__ http://everblock.com/
+__ http://everyblock.com/
 
 **Jacob Kaplan-Moss** is a partner at `Revolution Systems`__ which provides support services around Django and related open source technologies. Jacob previously worked at World Online, where Django was invented, where he was the lead developer of Ellington, a commercial Web publishing platform for media companies.
 
