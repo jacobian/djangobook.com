@@ -196,7 +196,7 @@ successful, you should be able to import the module ``django``:
 
     >>> import django
     >>> django.VERSION
-    (1, 1, 0, 'final', 1)
+    (1, 4, 1, 'final', 0)
 
 .. admonition:: Interactive Interpreter Examples
 
@@ -399,29 +399,47 @@ To do this, navigate to the directory where ``django-admin.py`` is installed
 The ``startproject`` command creates a directory containing four files::
 
     mysite/
-        __init__.py
         manage.py
-        settings.py
-        urls.py
+        mysite/
+            __init__.py
+            settings.py
+            urls.py
+            wsgi.py
+
+.. note:: Doesn't match what you see?
+
+    The default project layout recently changed. If you're seeing a 
+    "flat" layout (with no inner ``mysite/`` directory), you're probably using
+    a version of Django that doesn't match this tutorial version. 
+    You'll want to switch to the newer Django version.
 
 These files are as follows:
 
-* ``__init__.py``: A file required for Python to treat the ``mysite``
-  directory as a package (i.e., a group of Python modules). It's an empty
-  file, and generally you won't add anything to it.
+* ``mysite/``: The outer ``mysite/`` directory is just a container for your project.
+  Its name doesn't matter to Django; you can rename it to anything you like.
 
 * ``manage.py``: A command-line utility that lets you interact with this
   Django project in various ways. Type ``python manage.py help`` to get a
   feel for what it can do. You should never have to edit this file; it's
   created in this directory purely for convenience.
 
+* ``mysite/mysite/``: The inner ``mysite/`` directory is the actual Python package
+  for your project. Its name is the Python package name you'll need to use to
+  import anything inside it (e.g. ``import mysite.settings``).
+
+* ``__init__.py``: A file required for Python to treat the ``mysite``
+  directory as a package (i.e., a group of Python modules). It's an empty
+  file, and generally you won't add anything to it.
+
 * ``settings.py``: Settings/configuration for this Django project. Take a
   look at it to get an idea of the types of settings available, along with
   their default values.
 
 * ``urls.py``: The URLs for this Django project. Think of this as the
-  "table of contents" of your Django-powered site. At the moment, it's
-  empty.
+  "table of contents" of your Django-powered site.
+
+* ``wsgi.py``: An entry-point for WSGI-compatible webservers to serve your project. 
+  See How to deploy with WSGI for more details.
 
 Despite their small size, these files already constitute a working Django
 application.
@@ -440,8 +458,8 @@ Apache) until you're ready for production. The development server watches your
 code and automatically reloads it, making it easy for you to change your code
 without needing to restart anything.
 
-To start the server, change into your project directory (``cd mysite``), if you
-haven't already, and run this command::
+To start the server, change into your project container directory (``cd mysite``),
+if you haven't already, and run this command::
 
     python manage.py runserver
 
@@ -450,13 +468,14 @@ You'll see something like this::
     Validating models...
     0 errors found.
 
-    Django version 1.0, using settings 'mysite.settings'
+    Django version 1.4.1, using settings 'mysite.settings'
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
 This launches the server locally, on port 8000, accessible only to connections
 from your own computer. Now that it's running, visit http://127.0.0.1:8000/
-with your Web browser. You'll see a "Welcome to Django" page shaded in a
+with your Web browser. You might see a different Django version depending on 
+which version of Django you have installed. You'll see a "Welcome to Django" page shaded in a
 pleasant pastel blue. It worked!
 
 One final, important note about the development server is worth mentioning
