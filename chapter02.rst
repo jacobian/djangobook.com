@@ -22,17 +22,17 @@ framework is to make sure you have Python installed.
 Python Versions
 ---------------
 
-The core Django framework works with any Python version from 2.3 to 2.6,
+The core Django framework (version 1.4+) works with any Python version from 2.5 to 2.7,
 inclusive. Django's optional GIS (Geographic Information Systems) support
-requires Python 2.4 to 2.6.
+requires Python 2.5 to 2.7.
 
 If you're not sure which version of Python to install and you have complete
-freedom over the decision, pick the latest one in the 2.x series: version 2.6.
-Although Django works equally well with any version from 2.3 to 2.6, the later
+freedom over the decision, pick the latest one in the 2.x series: version 2.7.
+Although Django works equally well with any version from 2.5 to 2.7, the later
 versions of Python have performance improvements and additional language
 features you might like to use in your applications. Plus, certain third-party
 Django add-ons that you might want to use might require a version newer than
-Python 2.3, so using a later version of Python keeps your options open.
+Python 2.5, so using a later version of Python keeps your options open.
 
 .. admonition:: Django and Python 3.0
 
@@ -51,11 +51,11 @@ Installation
 If you're on Linux or Mac OS X, you probably have Python already installed.
 Type ``python`` at a command prompt (or in Applications/Utilities/Terminal, in
 OS X). If you see something like this, then Python is installed::
-
-    Python 2.4.1 (#2, Mar 31 2005, 00:05:10)
-    [GCC 3.3 20030304 (Apple Computer, Inc. build 1666)] on darwin
+    
+    Python 2.7.3rc2 (default, Apr 22 2012, 22:30:17) 
+    [GCC 4.6.3] on linux2
     Type "help", "copyright", "credits" or "license" for more information.
-    >>>
+    >>> 
 
 Otherwise, you'll need to download and install Python. It's fast and easy, and
 detailed instructions are available at http://www.python.org/download/
@@ -64,19 +64,19 @@ Installing Django
 =================
 
 At any given time, two distinct versions of Django are available to you: the
-latest official release and the bleeding-edge "trunk" version. The version you
+latest official release and the bleeding-edge development version. The version you
 decide to install depends on your priorities. Do you want a stable and tested
 version of Django, or do you want a version containing the latest features,
 perhaps so you can contribute to Django itself, at the expense of stability?
 
 We'd recommend sticking with an official release, but it's important to know
-that the "trunk" development version exists, because you'll find it mentioned
+that the development version exists, because you'll find it mentioned
 in the documentation and by members of the community.
 
 Installing an Official Release
 ------------------------------
 
-Official releases have a version number, such as 1.0.3 or 1.1, and the latest
+Official releases have a version number, such as 1.4.1 or 1.4, and the latest
 one is always available at http://www.djangoproject.com/download/.
 
 If you're on a Linux distribution that includes a package of Django, it's a
@@ -85,14 +85,14 @@ updates along with the rest of your system packages.
 
 If you don't have access to a prepackaged version, you can download and install
 the framework manually. To do so, first download the tarball, which will be
-named something like ``Django-1.0.2-final.tar.gz``. (It doesn't matter which
+named something like ``Django-1.4.1.tar.gz``. (It doesn't matter which
 local directory you download this file into; the installation process will put
 Django's files in the right place.) Then, unzip it and run ``setup.py install``,
 as you do with most Python libraries.
 
 Here's how that process looks on Unix systems:
 
-#. ``tar xzvf Django-1.0.2-final.tar.gz``
+#. ``tar xzvf Django-1.4.1.tar.gz``
 #. ``cd Django-*``
 #. ``sudo python setup.py install``
 
@@ -108,37 +108,34 @@ installation's ``site-packages`` directory -- a directory where Python looks
 for third-party libraries. Usually it's in a place like
 ``/usr/lib/python2.4/site-packages``.
 
-Installing the "Trunk" Version
+Installing the "Development" Version
 ------------------------------
 
-The latest and greatest Django development version is referred to as *trunk*,
-and it's available from Django's Subversion repository. You should consider
-installing this version if you want to work on the bleeding edge, or if you
-want to contribute code to Django itself.
+Django uses Git (http://git-scm.com) for its source control. The latest and greatest 
+Django development version available from Django's official Git repository
+(https://github.com/django/django). You should consider installing this version
+if you want to work on the bleeding edge, or if you want to contribute code
+to Django itself.
 
-Subversion is a free, open source revision-control system, and the Django team
-uses it to manage changes to the Django codebase. You can  use a Subversion
-client to grab the very latest Django source code and, at any given time, you
-can update your local version of the Django code,  known as your
-*local checkout*, to get the latest changes and improvements made by Django
-developers.
+Git is a free, open source distributed revision-control system, and the Django team
+uses it to manage changes to the Django codebase. You can download and install Git from
+http://git-scm.com/download but it is easier to install with your operating system's
+package manager. You can use Git to grab the very latest Django source code 
+and, at any given time, you can update your local version of the Django code
+to get the latest changes and improvements made by Django developers.
 
-When using trunk, keep in mind there's no guarantee things won't be broken at
-any given moment. With that said, though, some members of the Django team run
-production sites on trunk, so they have an incentive to keep it stable.
+When using the development version, keep in mind there's no guarantee 
+things won't be broken at any given moment. With that said, though, 
+some members of the Django team run production sites on development version, 
+so they have an incentive to keep it stable.
 
 To grab the latest Django trunk, follow these steps:
 
-#. Make sure you have a Subversion client installed. You can get the
-   software free from http://subversion.tigris.org/, and you can find
-   excellent documentation at http://svnbook.red-bean.com/.
+#. Make sure you have Git installed. You can get the
+   software free from http://git-scm.com/, and you can find
+   excellent documentation at http://git-scm.com/documentation.
 
-   (If you're on a Mac with OS X 10.5 or later, you're in luck; Subversion
-   should already be installed. You can verify this by typing
-   ``svn --version`` in the Terminal.)
-
-#. Check out the trunk using the command ``svn co
-   http://code.djangoproject.com/svn/django/trunk djtrunk``.
+#. Clone the repository using the command ``git clone https://github.com/django/django djmaster``
 
 #. Locate your Python installation's ``site-packages`` directory. Usually
    it's in a place like ``/usr/lib/python2.4/site-packages``. If you have
@@ -149,12 +146,12 @@ To grab the latest Django trunk, follow these steps:
    The resulting output should include your ``site-packages`` directory.
 
 #  Within the ``site-packages`` directory, create a file called
-   ``django.pth`` and edit it to contain the full path to your ``djtrunk``
+   ``djmaster.pth`` and edit it to contain the full path to your ``djmaster``
    directory to it. For example, the file could just contain this line::
 
-       /home/me/code/djtrunk
+       /path/to/djmaster
 
-#. Place ``djtrunk/django/bin`` on your system PATH. This directory
+#. Place ``djmaster/django/bin`` on your system PATH. This directory
    includes management utilities such as ``django-admin.py``.
 
 .. admonition:: Tip:
@@ -162,24 +159,24 @@ To grab the latest Django trunk, follow these steps:
     If ``.pth`` files are new to you, you can learn more about them at
     http://www.djangoproject.com/r/python/site-module/.
 
-After downloading from Subversion and following the preceding steps, there's no
+After downloading from Git and following the preceding steps, there's no
 need to run ``python setup.py install``-- you've just done the work by hand!
 
 Because the Django trunk changes often with bug fixes and feature additions,
 you'll probably want to update it every once in a while. To update the code,
-just run the command ``svn update`` from within the ``djtrunk`` directory. When
-you run that command, Subversion will contact http://code.djangoproject.com,
+just run the command ``git pull origin master`` from within the ``djmaster`` directory. When
+you run that command, Git will contact https://github.com/django/django,
 determine whether any of Django's code has changed, and update your local
 version of the code with any changes that have been made since you last
 updated. It's quite slick.
 
-Finally, if you use trunk, you should know how to figure out which version of
-trunk you're running. Knowing your version number is important if you ever need
-to reach out to the community for help, or if you submit improvements to the
-framework. In these cases, you should tell people the trunk version, also known
-as a "revision number" or "changeset," that you're using. To find out your
-revision number, type "svn info" from within the ``djtrunk`` directory, and
-look for the number after "Revision:". This number is incremented each time
+Finally, if you use Django development version, you should know how to figure out
+which version of trunk you're running. Knowing your version number is important
+if you ever need to reach out to the community for help, or if you submit improvements to the
+framework. In these cases, you should tell people the revision, also known
+as a "changeset," that you're using. To find out your HEAD changeset, 
+type "git log -1" from within the ``django`` directory, and
+look for the identifier after "commit". This number changes each time
 Django is changed, whether through a bug fix, feature addition, documentation
 improvement or anything else. Among some members of the Django community, it's
 a badge of honor to be able to say, "I've been using Django since [insert very
@@ -410,9 +407,12 @@ The ``startproject`` command creates a directory containing four files::
 
     The default project layout recently changed. If you're seeing a 
     "flat" layout (with no inner ``mysite/`` directory), you're probably using
-    a version of Django that doesn't match this tutorial version. 
-    You'll want to switch to the newer Django version.
-
+    a version of Django that doesn't match this tutorial version. This book covers
+    Django 1.4 and above, so if you're using an older version you probably want to 
+    consult Django's official documentation.
+    
+    The documentation for Django 1.X version is available at https://docs.djangoproject.com/en/1.X/.
+    
 These files are as follows:
 
 * ``mysite/``: The outer ``mysite/`` directory is just a container for your project.
@@ -439,7 +439,7 @@ These files are as follows:
   "table of contents" of your Django-powered site.
 
 * ``wsgi.py``: An entry-point for WSGI-compatible webservers to serve your project. 
-  See How to deploy with WSGI for more details.
+  See How to deploy with WSGI (https://docs.djangoproject.com/en/1.4/howto/deployment/wsgi/) for more details.
 
 Despite their small size, these files already constitute a working Django
 application.
