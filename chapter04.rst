@@ -113,7 +113,7 @@ Let's step through it:
   character (``|``), as a reference to Unix pipes.
 
 Each Django template has access to several built-in tags and filters, many of
-which are discussed in the sections that follow. Appendix F contains the full
+which are discussed in the sections that follow. Appendix E contains the full
 list of tags and filters, and it's a good idea to familiarize yourself with that
 list so you know what's possible. It's also possible to create your own filters
 and tags; we'll cover that in Chapter 9.
@@ -942,7 +942,7 @@ always in double quotes. For example::
 
 This displays the first 30 words of the ``bio`` variable.
 
-The following are a few of the most important filters. Appendix F covers the rest.
+The following are a few of the most important filters. Appendix E covers the rest.
 
 * ``addslashes``: Adds a backslash before any backslash, single quote, or
   double quote. This is useful if the produced text is included in
@@ -953,7 +953,7 @@ The following are a few of the most important filters. Appendix F covers the res
 
       {{ pub_date|date:"F j, Y" }}
 
-  Format strings are defined in Appendix F.
+  Format strings are defined in Appendix E.
 
 * ``length``: Returns the length of the value. For a list, this returns the
   number of elements. For a string, this returns the number of characters.
