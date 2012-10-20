@@ -27,6 +27,12 @@ latex_documents = [
    u'Adrian Holovaty, Jacob Kaplan-Moss, et al.', 'manual'),
 ]
 
+# texinfo builder
+texinfo_documents = [
+    ('index', 'TheDjangoBook.tex', u'The Django Book',
+     u'Adrian Holovaty, Jacob Kaplan-Moss, et al.', 'manual'),
+    ]
+
 # ePub builder
 epub_title = u'The Django Book'
 epub_author = u'Adrian Holovaty, Jacob Kaplan-Moss, et al.'
