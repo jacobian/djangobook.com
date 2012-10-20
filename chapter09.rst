@@ -62,12 +62,14 @@ simplicity.
 RequestContext and Context Processors
 =====================================
 
-When rendering a template, you need a context. Usually this is an instance of
-``django.template.Context``, but Django also comes with a special subclass,
+When rendering a template, you need a context. This can be an instance of
+``django.template.Context``, but Django also comes with a subclass,
 ``django.template.RequestContext``, that acts slightly differently.
 ``RequestContext`` adds a bunch of variables to your template context by
 default -- things like the ``HttpRequest`` object or information about the
-currently logged-in user.
+currently logged-in user. The ``render()`` shortcut creates a ``RequestContext`` 
+unless it is passed a different context instance explicitly.
+
 
 Use ``RequestContext`` when you don't want to have to specify the same set of
 variables in a series of templates. For example, consider these two views::
@@ -96,7 +98,7 @@ variables in a series of templates. For example, consider these two views::
         })
         return t.render(c)
 
-(Note that we're deliberately *not* using the ``render_to_response()`` shortcut
+(Note that we're deliberately *not* using the ``render()`` shortcut
 in these examples -- we're manually loading the templates, constructing the
 context objects and rendering the templates. We're "spelling out" all of the
 steps for the purpose of clarity.)
@@ -108,7 +110,7 @@ redundancy?
 ``RequestContext`` and **context processors** were created to solve this
 problem. Context processors let you specify a number of variables that get set
 in each context automatically -- without you having to specify the variables in
-each ``render_to_response()`` call. The catch is that you have to use
+each ``render()`` call. The catch is that you have to use
 ``RequestContext`` instead of ``Context`` when you render a template.
 
 The most low-level way of using context processors is to create some processors
@@ -161,15 +163,15 @@ Let's step through this code:
   variables it might need. In this example, the ``message`` template
   variable is set differently in each view.
 
-In Chapter 4, we introduced the ``render_to_response()`` shortcut, which saves
+In Chapter 4, we introduced the ``render()`` shortcut, which saves
 you from having to call ``loader.get_template()``, then create a ``Context``,
 then call the ``render()`` method on the template. In order to demonstrate the
 lower-level workings of context processors, the above examples didn't use
-``render_to_response()``, . But it's possible -- and preferable -- to use
-context processors with ``render_to_response()``. Do this with the
+``render()``, . But it's possible -- and preferable -- to use
+context processors with ``render()``. Do this with the
 ``context_instance`` argument, like so::
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from django.template import RequestContext
 
     def custom_proc(request):
@@ -182,13 +184,13 @@ context processors with ``render_to_response()``. Do this with the
 
     def view_1(request):
         # ...
-        return render_to_response('template1.html',
+        return render(request, 'template1.html',
             {'message': 'I am view 1.'},
             context_instance=RequestContext(request, processors=[custom_proc]))
 
     def view_2(request):
         # ...
-        return render_to_response('template2.html',
+        return render(request, 'template2.html',
             {'message': 'I am the second view.'},
             context_instance=RequestContext(request, processors=[custom_proc]))
 

@@ -635,7 +635,7 @@ directly. This function sets, or adds to, the ``Vary header``. For example::
 
     def my_view(request):
         # ...
-        response = render_to_response('template_name', context)
+        response = render(request, 'template_name', context)
         patch_vary_headers(response, ['Cookie'])
         return response
 

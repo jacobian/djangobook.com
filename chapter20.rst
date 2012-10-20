@@ -212,11 +212,11 @@ template system::
 
     # views.py
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
 
     def say_hello(request):
         name = request.GET.get('name', 'world')
-        return render_to_response('hello.html', {'name': name})
+        return render(request, 'hello.html', {'name': name})
 
     # hello.html
 

@@ -320,16 +320,16 @@ contents are identical except for the template they use::
 
     # views.py
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.models import MyModel
 
     def foo_view(request):
         m_list = MyModel.objects.filter(is_new=True)
-        return render_to_response('template1.html', {'m_list': m_list})
+        return render(request, 'template1.html', {'m_list': m_list})
 
     def bar_view(request):
         m_list = MyModel.objects.filter(is_new=True)
-        return render_to_response('template2.html', {'m_list': m_list})
+        return render(request, 'template2.html', {'m_list': m_list})
 
 We're repeating ourselves in this code, and that's inelegant. At first, you
 may think to remove the redundancy by using the same view for both URLs,
@@ -348,7 +348,7 @@ the view to determine the template, like so::
 
     # views.py
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.models import MyModel
 
     def foobar_view(request, url):
@@ -357,7 +357,7 @@ the view to determine the template, like so::
             template_name = 'template1.html'
         elif url == 'bar':
             template_name = 'template2.html'
-        return render_to_response(template_name, {'m_list': m_list})
+        return render(request, template_name, {'m_list': m_list})
 
 The problem with that solution, though, is that it couples your URLs to your
 code. If you decide to rename ``/foo/`` to ``/fooey/``, you'll have to remember
@@ -381,12 +381,12 @@ With this in mind, we can rewrite our ongoing example like this::
 
     # views.py
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.models import MyModel
 
     def foobar_view(request, template_name):
         m_list = MyModel.objects.filter(is_new=True)
-        return render_to_response(template_name, {'m_list': m_list})
+        return render(request, template_name, {'m_list': m_list})
 
 As you can see, the URLconf in this example specifies ``template_name`` in the
 URLconf. The view function treats it as just another parameter.
@@ -487,16 +487,16 @@ Take this code, for example::
 
     # views.py
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.models import Event, BlogEntry
 
     def event_list(request):
         obj_list = Event.objects.all()
-        return render_to_response('mysite/event_list.html', {'event_list': obj_list})
+        return render(request, 'mysite/event_list.html', {'event_list': obj_list})
 
     def entry_list(request):
         obj_list = BlogEntry.objects.all()
-        return render_to_response('mysite/blogentry_list.html', {'entry_list': obj_list})
+        return render(request, 'mysite/blogentry_list.html', {'entry_list': obj_list})
 
 The two views do essentially the same thing: they display a list of objects. So
 let's factor out the type of object they're displaying::
@@ -513,12 +513,12 @@ let's factor out the type of object they're displaying::
 
     # views.py
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
 
     def object_list(request, model):
         obj_list = model.objects.all()
         template_name = 'mysite/%s_list.html' % model.__name__.lower()
-        return render_to_response(template_name, {'object_list': obj_list})
+        return render(request, template_name, {'object_list': obj_list})
 
 With those small changes, we suddenly have a reusable, model-agnostic view!
 From now on, anytime we need a view that lists a set of objects, we can simply
@@ -562,7 +562,7 @@ A common bit of an application to make configurable is the template name::
 
     def my_view(request, template_name):
         var = do_something()
-        return render_to_response(template_name, {'var': var})
+        return render(request, template_name, {'var': var})
 
 Understanding Precedence of Captured Values vs. Extra Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -633,7 +633,7 @@ value for ``template_name``::
 
     def my_view(request, template_name='mysite/my_view.html'):
         var = do_something()
-        return render_to_response(template_name, {'var': var})
+        return render(request, template_name, {'var': var})
 
 .. SL Again wonder whether default should be unicode?
 
@@ -774,7 +774,7 @@ might build a nice way of doing that. Consider this URLconf/view layout::
     # views.py
 
     from django.http import Http404, HttpResponseRedirect
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
 
     def some_page(request):
         if request.method == 'POST':
@@ -782,7 +782,7 @@ might build a nice way of doing that. Consider this URLconf/view layout::
             return HttpResponseRedirect('/someurl/')
         elif request.method == 'GET':
             do_something_for_get()
-            return render_to_response('page.html')
+            return render(request, 'page.html')
         else:
             raise Http404()
 
@@ -800,7 +800,7 @@ this technique could help simplify our ``some_page()`` view::
     # views.py
 
     from django.http import Http404, HttpResponseRedirect
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
 
     def method_splitter(request, GET=None, POST=None):
         if request.method == 'GET' and GET is not None:
@@ -812,7 +812,7 @@ this technique could help simplify our ``some_page()`` view::
     def some_page_get(request):
         assert request.method == 'GET'
         do_something_for_get()
-        return render_to_response('page.html')
+        return render(request, 'page.html')
 
     def some_page_post(request):
         assert request.method == 'POST'
@@ -929,19 +929,19 @@ example::
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/accounts/login/')
         # ...
-        return render_to_response('template1.html')
+        return render(request, 'template1.html')
 
     def my_view2(request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/accounts/login/')
         # ...
-        return render_to_response('template2.html')
+        return render(request, 'template2.html')
 
     def my_view3(request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/accounts/login/')
         # ...
-        return render_to_response('template3.html')
+        return render(request, 'template3.html')
 
 Here, each view starts by checking that ``request.user`` is authenticated
 -- that is, the current user has successfully logged into the site -- and

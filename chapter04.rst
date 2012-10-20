@@ -1252,7 +1252,7 @@ directory using the following template code::
 Refresh the page in your Web browser, and you should see the fully rendered
 page.
 
-render_to_response()
+render()
 --------------------
 
 We've shown you how to load a template, fill a ``Context`` and return an
@@ -1263,39 +1263,39 @@ things. Because this is such a common idiom, Django provides a shortcut that
 lets you load a template, render it and return an ``HttpResponse`` -- all in
 one line of code.
 
-This shortcut is a function called ``render_to_response()``, which lives in the
+This shortcut is a function called ``render()``, which lives in the
 module ``django.shortcuts``. Most of the time, you'll be using
-``render_to_response()`` rather than loading templates and creating ``Context``
+``render()`` rather than loading templates and creating ``Context``
 and ``HttpResponse`` objects manually -- unless your employer judges your work
 by total lines of code written, that is.
 
 Here's the ongoing ``current_datetime`` example rewritten to use
-``render_to_response()``::
+``render()``::
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     import datetime
 
     def current_datetime(request):
         now = datetime.datetime.now()
-        return render_to_response('current_datetime.html', {'current_date': now})
+        return render(request, 'current_datetime.html', {'current_date': now})
 
 What a difference! Let's step through the code changes:
 
 * We no longer have to import ``get_template``, ``Template``, ``Context``,
   or ``HttpResponse``. Instead, we import
-  ``django.shortcuts.render_to_response``. The ``import datetime`` remains.
+  ``django.shortcuts.render``. The ``import datetime`` remains.
 
 * Within the ``current_datetime`` function, we still calculate ``now``, but
   the template loading, context creation, template rendering, and
   ``HttpResponse`` creation are all taken care of by the
-  ``render_to_response()`` call. Because ``render_to_response()`` returns
+  ``render()`` call. Because ``render()`` returns
   an ``HttpResponse`` object, we can simply ``return`` that value in the
   view.
 
-The first argument to ``render_to_response()`` is the name of the template to
-use. The second argument, if given, should be a dictionary to use in creating a
-``Context`` for that template. If you don't provide a second argument,
-``render_to_response()`` will use an empty dictionary.
+The first argument to ``render()`` is the request, the second is the name of
+the template to use. The third argument, if given, should be a dictionary to
+use in creating a ``Context`` for that template. If you don't provide a third
+argument, ``render()`` will use an empty dictionary.
 
 Subdirectories in get_template()
 --------------------------------
@@ -1312,11 +1312,11 @@ the subdirectory name and a slash before the template name, like so::
 
     t = get_template('dateapp/current_datetime.html')
 
-Because ``render_to_response()`` is a small wrapper around ``get_template()``,
-you can do the same thing with the first argument to ``render_to_response()``,
+Because ``render()`` is a small wrapper around ``get_template()``,
+you can do the same thing with the second argument to ``render()``,
 like this::
 
-    return render_to_response('dateapp/current_datetime.html', {'current_date': now})
+    return render(request, 'dateapp/current_datetime.html', {'current_date': now})
 
 There's no limit to the depth of your subdirectory tree. Feel free to use
 as many subdirectories as you like.

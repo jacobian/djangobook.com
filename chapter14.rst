@@ -367,7 +367,7 @@ Here's a typical usage example::
 
         # If we didn't post, send the test cookie along with the login form.
         request.session.set_test_cookie()
-        return render_to_response('foo/login_form.html')
+        return render(request, 'foo/login_form.html')
 
 .. note::
 
@@ -837,7 +837,7 @@ or perhaps display an error message::
 
     def my_view(request):
         if not request.user.is_authenticated():
-            return render_to_response('myapp/login_error.html')
+            return render(request, 'myapp/login_error.html')
         # ...
 
 As a shortcut, you can use the convenient ``login_required`` decorator::
@@ -1031,7 +1031,7 @@ can use for this purpose, which we'll use in this example::
     from django import forms
     from django.contrib.auth.forms import UserCreationForm
     from django.http import HttpResponseRedirect
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
 
     def register(request):
         if request.method == 'POST':
@@ -1041,7 +1041,7 @@ can use for this purpose, which we'll use in this example::
                 return HttpResponseRedirect("/books/")
         else:
             form = UserCreationForm()
-        return render_to_response("registration/register.html", {
+        return render(request, "registration/register.html", {
             'form': form,
         })
 
@@ -1067,7 +1067,8 @@ Using Authentication Data in Templates
 --------------------------------------
 
 The current logged-in user and his or her permissions are made available in the
-template context when you use ``RequestContext`` (see Chapter 9).
+template context when you use the ``render()`` shortcut or explicitly use a
+``RequestContext`` (see Chapter 9).
 
 .. note::
 
@@ -1202,13 +1203,12 @@ playlist::
         request.user.message_set.create(
             message="Your playlist was added successfully."
         )
-        return render_to_response("playlists/create.html",
-            context_instance=RequestContext(request))
+        return render(request, "playlists/create.html")
 
-When you use ``RequestContext``, the current logged-in user and his or her
-messages are made available in the template context as the template variable
-``{{ messages }}``. Here's an example of template code that displays
-messages::
+When you use the ``render()`` shortcut or render a template with a
+``RequestContext``, the current logged-in user and his or her messages are made
+available in the template context as the template variable ``{{ messages }}``.
+Here's an example of template code that displays messages::
 
     {% if messages %}
     <ul>
