@@ -1253,7 +1253,7 @@ Refresh the page in your Web browser, and you should see the fully rendered
 page.
 
 render()
---------------------
+--------
 
 We've shown you how to load a template, fill a ``Context`` and return an
 ``HttpResponse`` object with the result of the rendered template. We've
