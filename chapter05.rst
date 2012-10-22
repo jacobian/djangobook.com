@@ -41,7 +41,7 @@ In this example view, we use the ``MySQLdb`` library (available via
 http://www.djangoproject.com/r/python-mysql/) to connect to a MySQL database,
 retrieve some records, and feed them to a template for display as a Web page::
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     import MySQLdb
 
     def book_list(request):
@@ -50,7 +50,7 @@ retrieve some records, and feed them to a template for display as a Web page::
         cursor.execute('SELECT name FROM books ORDER BY name')
         names = [row[0] for row in cursor.fetchall()]
         db.close()
-        return render_to_response('book_list.html', {'names': names})
+        return render(request, 'book_list.html', {'names': names})
 
 .. SL Tested ok
 
@@ -77,12 +77,12 @@ As you might expect, Django's database layer aims to solve these problems.
 Here's a sneak preview of how the previous view can be rewritten using Django's
 database API::
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.books.models import Book
 
     def book_list(request):
         books = Book.objects.order_by('name')
-        return render_to_response('book_list.html', {'books': books})
+        return render(request, 'book_list.html', {'books': books})
 
 We'll explain this code a little later in the chapter. For now, just get a
 feel for how it looks.

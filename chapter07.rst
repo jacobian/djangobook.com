@@ -162,10 +162,10 @@ Generally, there are two parts to developing a form: the HTML user interface
 and the backend view code that processes the submitted data. The first part is
 easy; let's just set up a view that displays a search form::
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
 
     def search_form(request):
-        return render_to_response('search_form.html')
+        return render(request, 'search_form.html')
 
 As we learned in Chapter 3, this view can live anywhere on your Python path.
 For sake of argument, put it in ``books/views.py``.
@@ -278,14 +278,14 @@ Now that we've verified ``request.GET`` is being passed in properly, let's hook
 the user's search query into our book database (again, in ``views.py``)::
 
     from django.http import HttpResponse
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.books.models import Book
 
     def search(request):
         if 'q' in request.GET and request.GET['q']:
             q = request.GET['q']
             books = Book.objects.filter(title__icontains=q)
-            return render_to_response('search_results.html',
+            return render(request, 'search_results.html',
                 {'books': books, 'query': q})
         else:
             return HttpResponse('Please submit a search term.')
@@ -349,20 +349,20 @@ render the template again, like this:
 .. parsed-literal::
 
     from django.http import HttpResponse
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.books.models import Book
 
     def search_form(request):
-        return render_to_response('search_form.html')
+        return render(request, 'search_form.html')
 
     def search(request):
         if 'q' in request.GET and request.GET['q']:
             q = request.GET['q']
             books = Book.objects.filter(title__icontains=q)
-            return render_to_response('search_results.html',
+            return render(request, 'search_results.html',
                 {'books': books, 'query': q})
         else:
-            **return render_to_response('search_form.html', {'error': True})**
+            **return render(request, 'search_form.html', {'error': True})**
 
 (Note that we've included ``search_form()`` here so you can see both views in
 one place.)
@@ -411,9 +411,9 @@ parameters::
                 error = True
             else:
                 books = Book.objects.filter(title__icontains=q)
-                return render_to_response('search_results.html',
+                return render(request, 'search_results.html',
                     {'books': books, 'query': q})
-        return render_to_response('search_form.html',
+        return render(request, 'search_form.html',
             {'error': error})
 
 .. SL Tested ok
@@ -487,9 +487,9 @@ like this:
                 **error = True**
             else:
                 books = Book.objects.filter(title__icontains=q)
-                return render_to_response('search_results.html',
+                return render(request, 'search_results.html',
                     {'books': books, 'query': q})
-        return render_to_response('search_form.html',
+        return render(request, 'search_form.html',
             {'error': error})
 
 Now, if you try submitting a search query greater than 20 characters long,
@@ -537,9 +537,9 @@ how we might fix that:
                 **errors.append('Please enter at most 20 characters.')**
             else:
                 books = Book.objects.filter(title__icontains=q)
-                return render_to_response('search_results.html',
+                return render(request, 'search_results.html',
                     {'books': books, 'query': q})
-        return render_to_response('search_form.html',
+        return render(request, 'search_form.html',
             {**'errors': errors**})
 
 Then, we need make a small tweak to the ``search_form.html`` template to
@@ -623,7 +623,7 @@ this::
 
     from django.core.mail import send_mail
     from django.http import HttpResponseRedirect
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
 
     def contact(request):
         errors = []
@@ -642,7 +642,7 @@ this::
                     ['siteowner@example.com'],
                 )
                 return HttpResponseRedirect('/contact/thanks/')
-        return render_to_response('contact_form.html',
+        return render(request, 'contact_form.html',
             {'errors': errors})
 
 .. SL Tested ok (modulo email config and lack of thanks view)
@@ -696,7 +696,7 @@ A couple of new things are happening here:
   ``HttpResponseRedirect`` object. We'll leave the implementation of that
   "success" page up to you (it's a simple view/URLconf/template), but we
   should explain why we initiate a redirect instead of, for example, simply
-  calling ``render_to_response()`` with a template right there.
+  calling ``render()`` with a template right there.
 
   The reason: if a user hits "Refresh" on a page that was loaded via
   ``POST``, that request will be repeated. This can often lead to undesired
@@ -740,7 +740,7 @@ edit each HTML field to insert the proper value in the proper place:
                     ['siteowner@example.com'],
                 )
                 return HttpResponseRedirect('/contact/thanks/')
-        return render_to_response('contact_form.html', {
+        return render(request, 'contact_form.html', {
             'errors': errors,
             **'subject': request.POST.get('subject', ''),**
             **'message': request.POST.get('message', ''),**
@@ -957,7 +957,7 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
 
     # views.py
 
-    from django.shortcuts import render_to_response
+    from django.shortcuts import render
     from mysite.contact.forms import ContactForm
 
     def contact(request):
@@ -974,7 +974,7 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
                 return HttpResponseRedirect('/contact/thanks/')
         else:
             form = ContactForm()
-        return render_to_response('contact_form.html', {'form': form})
+        return render(request, 'contact_form.html', {'form': form})
 
     # contact_form.html
 
@@ -1081,7 +1081,7 @@ hurt.) To do this, we can use the ``initial`` argument when we create a
             form = ContactForm(
                 **initial={'subject': 'I love your site!'}**
             )
-        return render_to_response('contact_form.html', {'form': form})
+        return render(request, 'contact_form.html', {'form': form})
 
 .. SL Tested ok
 

@@ -463,7 +463,7 @@ Here's an example::
             p = Poll.objects.get(pk=poll_id)
         except Poll.DoesNotExist:
             raise Http404
-        return render_to_response('polls/detail.html', {'poll': p})
+        return render(request, 'polls/detail.html', {'poll': p})
 
 In order to use the ``Http404`` exception to its fullest, you should create a
 template that is displayed when a 404 error is raised. This template should be
