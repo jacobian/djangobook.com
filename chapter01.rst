@@ -329,7 +329,7 @@ Python tutorial, it highlights Python features and functionality where
 appropriate, particularly when code doesn't immediately make sense. Still, we
 recommend you read the official Python tutorial, available online at
 http://docs.python.org/tut/. We also recommend Mark Pilgrim's free book
-*Dive Into Python*, available at http://www.diveintopython.org/ and published in
+*Dive Into Python*, available at http://www.diveintopython.net/ and published in
 print by Apress.
 
 Required Django Version
