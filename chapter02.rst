@@ -76,7 +76,7 @@ in the documentation and by members of the community.
 Installing an Official Release
 ------------------------------
 
-Official releases have a version number, such as 1.4.1 or 1.4, and the latest
+Official releases have a version number, such as 1.4.2, 1.4.1 or 1.4, and the latest
 one is always available at http://www.djangoproject.com/download/.
 
 If you're on a Linux distribution that includes a package of Django, it's a
@@ -85,14 +85,14 @@ updates along with the rest of your system packages.
 
 If you don't have access to a prepackaged version, you can download and install
 the framework manually. To do so, first download the tarball, which will be
-named something like ``Django-1.4.1.tar.gz``. (It doesn't matter which
+named something like ``Django-1.4.2.tar.gz``. (It doesn't matter which
 local directory you download this file into; the installation process will put
 Django's files in the right place.) Then, unzip it and run ``setup.py install``,
 as you do with most Python libraries.
 
 Here's how that process looks on Unix systems:
 
-#. ``tar xzvf Django-1.4.1.tar.gz``
+#. ``tar xzvf Django-1.4.2.tar.gz``
 #. ``cd Django-*``
 #. ``sudo python setup.py install``
 
@@ -106,7 +106,7 @@ following command from within the directory whose name starts with ``Django-``::
 In case you're curious: Django's files will be installed into your Python
 installation's ``site-packages`` directory -- a directory where Python looks
 for third-party libraries. Usually it's in a place like
-``/usr/lib/python2.4/site-packages``.
+``/usr/lib/python2.7/site-packages``.
 
 Installing the "Development" Version
 ------------------------------
@@ -129,7 +129,7 @@ things won't be broken at any given moment. With that said, though,
 some members of the Django team run production sites on development version, 
 so they have an incentive to keep it stable.
 
-To grab the latest Django trunk, follow these steps:
+To grab the latest Django, follow these steps:
 
 #. Make sure you have Git installed. You can get the
    software free from http://git-scm.com/, and you can find
@@ -138,7 +138,7 @@ To grab the latest Django trunk, follow these steps:
 #. Clone the repository using the command ``git clone https://github.com/django/django djmaster``
 
 #. Locate your Python installation's ``site-packages`` directory. Usually
-   it's in a place like ``/usr/lib/python2.4/site-packages``. If you have
+   it's in a place like ``/usr/lib/python2.7/site-packages``. If you have
    no idea, type this command from a command prompt::
 
        python -c 'import sys, pprint; pprint.pprint(sys.path)'
@@ -162,7 +162,7 @@ To grab the latest Django trunk, follow these steps:
 After downloading from Git and following the preceding steps, there's no
 need to run ``python setup.py install``-- you've just done the work by hand!
 
-Because the Django trunk changes often with bug fixes and feature additions,
+Because the Django code changes often with bug fixes and feature additions,
 you'll probably want to update it every once in a while. To update the code,
 just run the command ``git pull origin master`` from within the ``djmaster`` directory. When
 you run that command, Git will contact https://github.com/django/django,
@@ -171,10 +171,10 @@ version of the code with any changes that have been made since you last
 updated. It's quite slick.
 
 Finally, if you use Django development version, you should know how to figure out
-which version of trunk you're running. Knowing your version number is important
+which version of Django you're running. Knowing your version number is important
 if you ever need to reach out to the community for help, or if you submit improvements to the
 framework. In these cases, you should tell people the revision, also known
-as a "changeset," that you're using. To find out your HEAD changeset, 
+as a "changeset," that you're using. To find out your current changeset, 
 type "git log -1" from within the ``django`` directory, and
 look for the identifier after "commit". This number changes each time
 Django is changed, whether through a bug fix, feature addition, documentation
@@ -193,7 +193,7 @@ successful, you should be able to import the module ``django``:
 
     >>> import django
     >>> django.VERSION
-    (1, 4, 1, 'final', 0)
+    (1, 4, 2, 'final', 0)
 
 .. admonition:: Interactive Interpreter Examples
 
@@ -378,8 +378,8 @@ directory in your current directory.
     ``django-admin.py`` should be on your system path if you installed Django
     via its ``setup.py`` utility.
 
-    If you're using trunk, you'll find ``django-admin.py`` in
-    ``djtrunk/django/bin``. Because you'll be using ``django-admin.py``
+    If you're using the development version, you'll find ``django-admin.py`` in
+    ``djmaster/django/bin``. Because you'll be using ``django-admin.py``
     often, consider adding it to your system path. On Unix, you can do so by
     symlinking from ``/usr/local/bin``, using a command such as ``sudo ln -s
     /path/to/django/bin/django-admin.py /usr/local/bin/django-admin.py``. On
