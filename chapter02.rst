@@ -135,7 +135,7 @@ To grab the latest Django trunk, follow these steps:
 #. Clone the repository using the command ``git clone https://github.com/django/django djmaster``
 
 #. Locate your Python installation's ``site-packages`` directory. Usually
-   it's in a place like ``/usr/lib/python2.4/site-packages``. If you have
+   it's in a place like ``/usr/lib/python2.7/site-packages``. If you have
    no idea, type this command from a command prompt::
 
        python -c 'import sys, pprint; pprint.pprint(sys.path)'
@@ -175,9 +175,7 @@ as a "changeset," that you're using. To find out your HEAD changeset,
 type "git log -1" from within the ``django`` directory, and
 look for the identifier after "commit". This number changes each time
 Django is changed, whether through a bug fix, feature addition, documentation
-improvement or anything else. Among some members of the Django community, it's
-a badge of honor to be able to say, "I've been using Django since [insert very
-low revision number here]."
+improvement or anything else.
 
 Testing the Django installation
 ===============================
