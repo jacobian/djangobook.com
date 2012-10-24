@@ -108,25 +108,26 @@ for third-party libraries. Usually it's in a place like
 Installing the "Development" Version
 ------------------------------
 
-Django uses Git (http://git-scm.com) for its source control. The latest and greatest
-Django development version available from Django's official Git repository
-(https://github.com/django/django). You should consider installing this version
-if you want to work on the bleeding edge, or if you want to contribute code
-to Django itself.
+Django uses Git (http://git-scm.com) for its source control. The latest and
+greatest Django development version available from Django's official Git
+repository (https://github.com/django/django). You should consider installing
+this version if you want to work on the bleeding edge, or if you want to
+contribute code to Django itself.
 
-Git is a free, open source distributed revision-control system, and the Django team
-uses it to manage changes to the Django codebase. You can download and install Git from
-http://git-scm.com/download but it is easier to install with your operating system's
-package manager. You can use Git to grab the very latest Django source code
-and, at any given time, you can update your local version of the Django code
-to get the latest changes and improvements made by Django developers.
+Git is a free, open source distributed revision-control system, and the Django
+team uses it to manage changes to the Django codebase. You can download and
+install Git from http://git-scm.com/download but it is easier to install with
+your operating system's package manager. You can use Git to grab the very latest
+Django source code and, at any given time, you can update your local version of
+the Django code to get the latest changes and improvements made by Django
+developers.
 
-When using the development version, keep in mind there's no guarantee
-things won't be broken at any given moment. With that said, though,
-some members of the Django team run production sites on development version,
-so they have an incentive to keep it stable.
+When using the development version, keep in mind there's no guarantee things
+won't be broken at any given moment. With that said, though, some members of the
+Django team run production sites on the development version, so they have an
+incentive to keep it stable.
 
-To grab the latest Django trunk, follow these steps:
+To grab the latest Django development version, follow these steps:
 
 #. Make sure you have Git installed. You can get the
    software free from http://git-scm.com/, and you can find
@@ -159,23 +160,23 @@ To grab the latest Django trunk, follow these steps:
 After downloading from Git and following the preceding steps, there's no
 need to run ``python setup.py install``-- you've just done the work by hand!
 
-Because the Django trunk changes often with bug fixes and feature additions,
-you'll probably want to update it every once in a while. To update the code,
-just run the command ``git pull origin master`` from within the ``djmaster`` directory. When
-you run that command, Git will contact https://github.com/django/django,
-determine whether any of Django's code has changed, and update your local
-version of the code with any changes that have been made since you last
-updated. It's quite slick.
+Because the Django development version changes often with bug fixes and feature
+additions, you'll probably want to update it every once in a while. To update
+the code, just run the command ``git pull origin master`` from within the
+``djmaster`` directory. When you run that command, Git will contact
+https://github.com/django/django, determine whether any of Django's code has
+changed, and update your local version of the code with any changes that have
+been made since you last updated. It's quite slick.
 
-Finally, if you use Django development version, you should know how to figure out
-which version of trunk you're running. Knowing your version number is important
-if you ever need to reach out to the community for help, or if you submit improvements to the
-framework. In these cases, you should tell people the revision, also known
-as a "changeset," that you're using. To find out your HEAD changeset,
-type "git log -1" from within the ``django`` directory, and
-look for the identifier after "commit". This number changes each time
-Django is changed, whether through a bug fix, feature addition, documentation
-improvement or anything else.
+Finally, if you use Django development version, you should know how to figure
+out which version of Django you're running. Knowing your version number is
+important if you ever need to reach out to the community for help, or if you
+submit improvements to the framework. In these cases, you should tell people the
+revision, also known as a "changeset," that you're using. To find out your HEAD
+changeset, type "git log -1" from within the ``django`` directory, and look for
+the identifier after "commit". This number changes each time Django is changed,
+whether through a bug fix, feature addition, documentation improvement or
+anything else.
 
 Testing the Django installation
 ===============================
@@ -373,8 +374,8 @@ directory in your current directory.
     ``django-admin.py`` should be on your system path if you installed Django
     via its ``setup.py`` utility.
 
-    If you're using trunk, you'll find ``django-admin.py`` in
-    ``djtrunk/django/bin``. Because you'll be using ``django-admin.py``
+    If you're using the development version, you'll find ``django-admin.py`` in
+    ``djmaster/django/bin``. Because you'll be using ``django-admin.py``
     often, consider adding it to your system path. On Unix, you can do so by
     symlinking from ``/usr/local/bin``, using a command such as ``sudo ln -s
     /path/to/django/bin/django-admin.py /usr/local/bin/django-admin.py``. On
