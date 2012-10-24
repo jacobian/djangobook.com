@@ -103,7 +103,7 @@ following command from within the directory whose name starts with ``Django-``::
 In case you're curious: Django's files will be installed into your Python
 installation's ``site-packages`` directory -- a directory where Python looks
 for third-party libraries. Usually it's in a place like
-``/usr/lib/python2.4/site-packages``.
+``/usr/lib/python2.7/site-packages``.
 
 Installing the "Development" Version
 ------------------------------
