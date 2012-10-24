@@ -22,9 +22,9 @@ framework is to make sure you have Python installed.
 Python Versions
 ---------------
 
-The core Django framework (version 1.4+) works with any Python version from 2.5 to 2.7,
-inclusive. Django's optional GIS (Geographic Information Systems) support
-requires Python 2.5 to 2.7.
+The core Django framework (version 1.4+) works with any Python version from 2.5
+to 2.7, inclusive. Django's optional GIS (Geographic Information Systems)
+support requires Python 2.5 to 2.7.
 
 If you're not sure which version of Python to install and you have complete
 freedom over the decision, pick the latest one in the 2.x series: version 2.7.
@@ -51,11 +51,11 @@ Installation
 If you're on Linux or Mac OS X, you probably have Python already installed.
 Type ``python`` at a command prompt (or in Applications/Utilities/Terminal, in
 OS X). If you see something like this, then Python is installed::
-    
-    Python 2.7.3rc2 (default, Apr 22 2012, 22:30:17) 
+
+    Python 2.7.3rc2 (default, Apr 22 2012, 22:30:17)
     [GCC 4.6.3] on linux2
     Type "help", "copyright", "credits" or "license" for more information.
-    >>> 
+    >>>
 
 Otherwise, you'll need to download and install Python. It's fast and easy, and
 detailed instructions are available at http://www.python.org/download/
@@ -111,7 +111,7 @@ for third-party libraries. Usually it's in a place like
 Installing the "Development" Version
 ------------------------------
 
-Django uses Git (http://git-scm.com) for its source control. The latest and greatest 
+Django uses Git (http://git-scm.com) for its source control. The latest and greatest
 Django development version available from Django's official Git repository
 (https://github.com/django/django). You should consider installing this version
 if you want to work on the bleeding edge, or if you want to contribute code
@@ -120,13 +120,13 @@ to Django itself.
 Git is a free, open source distributed revision-control system, and the Django team
 uses it to manage changes to the Django codebase. You can download and install Git from
 http://git-scm.com/download but it is easier to install with your operating system's
-package manager. You can use Git to grab the very latest Django source code 
+package manager. You can use Git to grab the very latest Django source code
 and, at any given time, you can update your local version of the Django code
 to get the latest changes and improvements made by Django developers.
 
-When using the development version, keep in mind there's no guarantee 
-things won't be broken at any given moment. With that said, though, 
-some members of the Django team run production sites on development version, 
+When using the development version, keep in mind there's no guarantee
+things won't be broken at any given moment. With that said, though,
+some members of the Django team run production sites on development version,
 so they have an incentive to keep it stable.
 
 To grab the latest Django trunk, follow these steps:
@@ -174,7 +174,7 @@ Finally, if you use Django development version, you should know how to figure ou
 which version of trunk you're running. Knowing your version number is important
 if you ever need to reach out to the community for help, or if you submit improvements to the
 framework. In these cases, you should tell people the revision, also known
-as a "changeset," that you're using. To find out your HEAD changeset, 
+as a "changeset," that you're using. To find out your HEAD changeset,
 type "git log -1" from within the ``django`` directory, and
 look for the identifier after "commit". This number changes each time
 Django is changed, whether through a bug fix, feature addition, documentation
@@ -405,14 +405,14 @@ The ``startproject`` command creates a directory containing four files::
 
 .. note:: Doesn't match what you see?
 
-    The default project layout recently changed. If you're seeing a 
+    The default project layout recently changed. If you're seeing a
     "flat" layout (with no inner ``mysite/`` directory), you're probably using
     a version of Django that doesn't match this tutorial version. This book covers
-    Django 1.4 and above, so if you're using an older version you probably want to 
+    Django 1.4 and above, so if you're using an older version you probably want to
     consult Django's official documentation.
-    
+
     The documentation for Django 1.X version is available at https://docs.djangoproject.com/en/1.X/.
-    
+
 These files are as follows:
 
 * ``mysite/``: The outer ``mysite/`` directory is just a container for your project.
@@ -438,7 +438,7 @@ These files are as follows:
 * ``urls.py``: The URLs for this Django project. Think of this as the
   "table of contents" of your Django-powered site.
 
-* ``wsgi.py``: An entry-point for WSGI-compatible webservers to serve your project. 
+* ``wsgi.py``: An entry-point for WSGI-compatible webservers to serve your project.
   See How to deploy with WSGI (https://docs.djangoproject.com/en/1.4/howto/deployment/wsgi/) for more details.
 
 Despite their small size, these files already constitute a working Django
@@ -474,7 +474,7 @@ You'll see something like this::
 
 This launches the server locally, on port 8000, accessible only to connections
 from your own computer. Now that it's running, visit http://127.0.0.1:8000/
-with your Web browser. You might see a different Django version depending on 
+with your Web browser. You might see a different Django version depending on
 which version of Django you have installed. You'll see a "Welcome to Django" page shaded in a
 pleasant pastel blue. It worked!
 
