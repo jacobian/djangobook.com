@@ -263,10 +263,9 @@ Setting up the database is a two-step process:
 
 If you're just playing around with Django and don't want to install a database
 server, consider using SQLite. SQLite is unique in the list of supported
-databases in that it doesn't require either of the above steps, if you're using
-Python 2.5 or higher. It merely reads and writes its data to a single file on
-your filesystem, and Python versions 2.5 and higher include built-in support
-for it.
+databases in that it doesn't require either of the above steps. It merely reads
+and writes its data to a single file on your filesystem, and Python versions 2.5
+and higher include built-in support for it.
 
 On Windows, obtaining database driver binaries can be frustrating. If you're
 eager to jump in, we recommend using Python 2.7 and its built-in support for
