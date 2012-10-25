@@ -377,7 +377,7 @@ If you see a "permission denied" message when running
 To do this, navigate to the directory where ``django-admin.py`` is installed
 (e.g., ``cd /usr/local/bin``) and run the command ``chmod +x django-admin.py``.
 
-The ``startproject`` command creates a directory containing four files::
+The ``startproject`` command creates a directory containing five files::
 
     mysite/
         manage.py
