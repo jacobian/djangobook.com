@@ -74,7 +74,7 @@ in the documentation and by members of the community.
 Installing an Official Release
 ------------------------------
 
-Official releases have a version number, such as 1.4.1 or 1.4, and the latest
+Official releases have a version number, such as 1.4.2 or 1.4, and the latest
 one is always available at http://www.djangoproject.com/download/.
 
 If you're on a Linux distribution that includes a package of Django, it's a
@@ -452,7 +452,7 @@ You'll see something like this::
     Validating models...
     0 errors found.
 
-    Django version 1.4.1, using settings 'mysite.settings'
+    Django version 1.4.2, using settings 'mysite.settings'
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
