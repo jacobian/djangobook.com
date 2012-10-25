@@ -290,21 +290,8 @@ system offers a package called "python-psycopg2", "psycopg2-python",
 Using Django with SQLite 3
 --------------------------
 
-If you're using Python version 2.5 or higher, you're in luck: no
-database-specific installation is required, because Python ships with SQLite
-support. Skip ahead to the next section.
-
-If you're working with Python 2.4 or older, you'll need SQLite 3 -- *not*
-version 2 -- from http://www.djangoproject.com/r/sqlite/ and the ``pysqlite``
-package from http://www.djangoproject.com/r/python-sqlite/. Make sure you have
-``pysqlite`` version 2.0.3 or higher.
-
-On Windows, you can skip installing the former (the separate SQLite binaries),
-because they're statically linked into the ``pysqlite`` binaries.
-
-If you're on Linux, check whether your distribution's package-management system
-offers a package called "python-sqlite3", "sqlite-python", "pysqlite" or
-something similar.
+You're in luck: no database-specific installation is required, because Python
+ships with SQLite support. Skip ahead to the next section.
 
 Using Django with MySQL
 -----------------------
