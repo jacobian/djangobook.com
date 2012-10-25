@@ -118,7 +118,7 @@ This default URLconf includes some commonly used Django features commented out,
 so that activating those features is as easy as uncommenting the appropriate
 lines. If we ignore the commented-out code, here's the essence of a URLconf::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls.defaults import patterns, include, url
 
     urlpatterns = patterns('',
     )
