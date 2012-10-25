@@ -312,8 +312,9 @@ Using Django with Oracle
 Django works with Oracle Database Server versions 9i and higher.
 
 If you're using Oracle, you'll need to install the ``cx_Oracle`` library,
-available at http://cx-oracle.sourceforge.net/. Use version 4.3.1 or higher,
-but avoid version 5.0 due to a bug in that version of the driver.
+available at http://cx-oracle.sourceforge.net/. Use version 4.3.1 or higher, but
+avoid version 5.0 due to a bug in that version of the driver.  Version 5.0.1
+resolved the bug, however, so you can choose a higher version as well.
 
 Using Django Without a Database
 -------------------------------
