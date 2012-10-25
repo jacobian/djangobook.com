@@ -173,11 +173,11 @@ Finally, if you use Django development version, you should know how to figure
 out which version of Django you're running. Knowing your version number is
 important if you ever need to reach out to the community for help, or if you
 submit improvements to the framework. In these cases, you should tell people the
-revision, also known as a "changeset," that you're using. To find out your HEAD
-changeset, type "git log -1" from within the ``django`` directory, and look for
-the identifier after "commit". This number changes each time Django is changed,
-whether through a bug fix, feature addition, documentation improvement or
-anything else.
+revision, also known as a "commit," that you're using. To find out your current
+commit (the most recent commit is often called HEAD), type "git log -1" from
+within the ``django`` directory, and look for the identifier after
+"commit". This number changes each time Django is changed, whether through a bug
+fix, feature addition, documentation improvement or anything else.
 
 Testing the Django installation
 ===============================
