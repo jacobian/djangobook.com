@@ -337,18 +337,11 @@ Required Django Version
 
 This book covers Django 1.4.
 
-Django's developers maintain backwards compatibility within "major version"
-numbers. This commitment means that, if you write an application for Django
-1.4, it will still work for 1.5, 1.6, 1.9 and any other version number that
-starts with "1."
+Django's developers maintain backwards compatibility as much as possible, but
+occasionally introduce some backwards incompatible changes.  The changes in each
+release are always covered in the release notes, which you can find here:
+https://docs.djangoproject.com/en/dev/releases/1.X
 
-Once Django hits 2.0, though, your applications might need to be rewritten --
-but version 2.0 is a long way away. As a point of reference, it took more than
-three years to release version 1.0. (This is very similar to the compatibility
-policy taken by the Python language itself: code that was written for Python
-2.0 works on Python 2.7, but not necessarily with Python 3.0.)
-
-Given that this book covers 1.4, it should serve you well for some time.
 
 Getting Help
 ------------
