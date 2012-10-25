@@ -40,7 +40,8 @@ Python 2.5, so using a later version of Python keeps your options open.
     supported it experimentally. Python 3.0 introduced a substantial number of
     backwards-incompatible changes to the language itself, and, as a result,
     many major Python libraries and frameworks, including Django, had not yet
-    caught up.  Python 3.0 support is expected in Django version 1.5.
+    caught up.  Python 3.0 support is expected in Django version 1.5 at the
+    earliest.
 
 Installation
 ------------
@@ -82,14 +83,14 @@ updates along with the rest of your system packages.
 
 If you don't have access to a prepackaged version, you can download and install
 the framework manually. To do so, first download the tarball, which will be
-named something like ``Django-1.4.1.tar.gz``. (It doesn't matter which
+named something like ``Django-1.4.2.tar.gz``. (It doesn't matter which
 local directory you download this file into; the installation process will put
 Django's files in the right place.) Then, unzip it and run ``setup.py install``,
 as you do with most Python libraries.
 
 Here's how that process looks on Unix systems:
 
-#. ``tar xzvf Django-1.4.1.tar.gz``
+#. ``tar xzvf Django-1.4.2.tar.gz``
 #. ``cd Django-*``
 #. ``sudo python setup.py install``
 
