@@ -96,22 +96,22 @@ When you executed ``django-admin.py startproject`` in the previous chapter, the
 script created a URLconf for you automatically: the file ``urls.py``. By
 default, it looks something like this::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls import patterns, include, url
 
     # Uncomment the next two lines to enable the admin:
     # from django.contrib import admin
     # admin.autodiscover()
 
     urlpatterns = patterns('',
-        # Example:
-        # (r'^mysite/', include('mysite.foo.urls')),
+        # Examples:
+        # url(r'^$', 'mysite.views.home', name='home'),
+        # url(r'^mysite/', include('mysite.foo.urls')),
 
-        # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
-        # to INSTALLED_APPS to enable admin documentation:
-        # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+        # Uncomment the admin/doc line below to enable admin documentation:
+        # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
         # Uncomment the next line to enable the admin:
-        # (r'^admin/', include(admin.site.urls)),
+        # url(r'^admin/', include(admin.site.urls)),
     )
 
 This default URLconf includes some commonly used Django features commented out,
