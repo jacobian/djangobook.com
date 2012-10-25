@@ -178,12 +178,12 @@ be handled by the ``hello`` view function.
     looks when you use the Python ``import`` statement.
 
     For example, let's say your Python path is set to ``['',
-    '/usr/lib/python2.4/site-packages', '/home/username/djcode']``. If you
+    '/usr/lib/python2.7/site-packages', '/home/username/djcode']``. If you
     execute the Python statement ``from foo import bar``, Python will look for
     a module called ``foo.py`` in the current directory. (The first entry in the
     Python path, an empty string, means "the current directory.") If that file
     doesn't exist, Python will look for the file
-    ``/usr/lib/python2.4/site-packages/foo.py``. If that file doesn't exist, it
+    ``/usr/lib/python2.7/site-packages/foo.py``. If that file doesn't exist, it
     will try ``/home/username/djcode/foo.py``. Finally, if *that* file doesn't
     exist, it will raise ``ImportError``.
 
