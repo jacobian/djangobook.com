@@ -146,7 +146,7 @@ project and, hence, displays that message.)
 To add a URL and view to the URLconf, just add a Python tuple mapping a URL
 pattern to the view function. Here's how to hook in our ``hello`` view::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls.defaults import patterns, include, url
     from mysite.views import hello
 
     urlpatterns = patterns('',
