@@ -360,9 +360,9 @@ does Django do behind the scenes?
 
 It all starts with the *settings file*. When you run
 ``python manage.py runserver``, the script looks for a file called
-``settings.py`` in the same directory as ``manage.py``. This file contains all
+``settings.py`` in the inner ``mysite`` directory. This file contains all
 sorts of configuration for this particular Django project, all in uppercase:
-``TEMPLATE_DIRS``, ``DATABASE_NAME``, etc. The most important setting is called
+``TEMPLATE_DIRS``, ``DATABASES``, etc. The most important setting is called
 ``ROOT_URLCONF``. ``ROOT_URLCONF`` tells Django which Python module should be
 used as the URLconf for this Web site.
 
