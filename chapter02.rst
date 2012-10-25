@@ -269,7 +269,7 @@ your filesystem, and Python versions 2.5 and higher include built-in support
 for it.
 
 On Windows, obtaining database driver binaries can be frustrating. If you're
-eager to jump in, we recommend using Python 2.5 and its built-in support for
+eager to jump in, we recommend using Python 2.7 and its built-in support for
 SQLite.
 
 Using Django with PostgreSQL
