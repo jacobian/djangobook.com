@@ -496,7 +496,7 @@ After adding that to ``views.py``, add the URLpattern to ``urls.py`` to tell
 Django which URL should handle this view. Something like ``/time/`` would make
 sense::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls.defaults import patterns, include, url
     from mysite.views import hello, current_datetime
 
     urlpatterns = patterns('',
