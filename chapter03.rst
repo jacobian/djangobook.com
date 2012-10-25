@@ -163,7 +163,7 @@ We made two changes here:
   import syntax. (This assumes ``mysite/views.py`` is on your Python path;
   see the sidebar for details.)
 
-* Next, we added the line ``('^hello/$', hello),`` to ``urlpatterns``. This
+* Next, we added the line ``url(r'^hello/$', hello),`` to ``urlpatterns``. This
   line is referred to as a *URLpattern*. It's a Python tuple in which the
   first element is a pattern-matching string (a regular expression; more on
   this in a bit) and the second element is the view function to use for
