@@ -125,9 +125,9 @@ lines. If we ignore the commented-out code, here's the essence of a URLconf::
 
 Let's step through this code one line at a time:
 
-* The first line imports all objects from the ``django.conf.urls.defaults``
-  module, which is Django's URLconf infrastructure. This includes a
-  function called ``patterns``.
+* The first line imports three function from the ``django.conf.urls.defaults``
+  module, which is Django's URLconf infrastructure: ``patterns``, ``include``,
+  and ``urls``.
 
 * The second line calls the function ``patterns`` and saves the result
   into a variable called ``urlpatterns``. The ``patterns`` function gets
@@ -150,7 +150,7 @@ pattern to the view function. Here's how to hook in our ``hello`` view::
     from mysite.views import hello
 
     urlpatterns = patterns('',
-        ('^hello/$', hello),
+        url(r'^hello/$', hello),
     )
 
 (Note that we've removed the commented-out code for brevity. You can choose
