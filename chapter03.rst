@@ -168,8 +168,8 @@ We made two changes here:
   to handle the url that you are configuring. The first argument is a
   pattern-matching string (a regular expression; more on this in a bit) and the
   second argument is the view function to use for that pattern. ``url()`` can
-  take other optional arguments as well.  See
-  https://docs.djangoproject.com/en/1.4/topics/http/urls/#url for details.
+  take other optional arguments as well, which we'll cover in more depth in
+  :doc:`chapter08`.
 
 .. note
 
@@ -662,7 +662,7 @@ data in the URLpattern that we want to save. In the case of our example, we
 want to save whatever number was entered in the URL, so let's put parentheses
 around the ``\d{1,2}``, like this::
 
-    (r'^time/plus/(\d{1,2})/$', hours_ahead),
+    url(r'^time/plus/(\d{1,2})/$', hours_ahead),
 
 If you're familiar with regular expressions, you'll be right at home here;
 we're using parentheses to *capture* data from the matched text.
@@ -673,9 +673,9 @@ The final URLconf, including our previous two views, looks like this::
     from mysite.views import hello, current_datetime, hours_ahead
 
     urlpatterns = patterns('',
-        (r'^hello/$', hello),
-        (r'^time/$', current_datetime),
-        (r'^time/plus/(\d{1,2})/$', hours_ahead),
+        url(r'^hello/$', hello),
+        url(r'^time/$', current_datetime),
+        url(r'^time/plus/(\d{1,2})/$', hours_ahead),
     )
 
 With that taken care of, let's write the ``hours_ahead`` view.
