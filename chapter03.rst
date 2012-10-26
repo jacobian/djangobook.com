@@ -531,7 +531,7 @@ interchangeable. If two pieces of code are loosely coupled, then changes made to
 one of the pieces will have little or no effect on the other.
 
 Django's URLconfs are a good example of this principle in practice. In a Django
-Web application, the URL definitions and the view functions they call are
+web application, the URL definitions and the view functions they call are
 loosely coupled; that is, the decision of what the URL should be for a given
 function, and the implementation of the function itself, reside in two separate
 places. This lets you switch out one piece without affecting the other.
