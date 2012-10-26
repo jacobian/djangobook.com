@@ -567,9 +567,9 @@ without having to touch the view code. In this example, our
 this technique can come in handy::
 
     urlpatterns = patterns('',
-        ('^hello/$', hello),
-        ('^time/$', current_datetime),
-        ('^another-time-page/$', current_datetime),
+        url(r'^hello/$', hello),
+        url(r'^time/$', current_datetime),
+        url(r'^another-time-page/$', current_datetime),
     )
 
 URLconfs and views are loose coupling in action. We'll continue to point out
