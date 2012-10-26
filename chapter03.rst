@@ -171,7 +171,7 @@ We made two changes here:
   take other optional arguments as well, which we'll cover in more depth in
   :doc:`chapter08`.
 
-.. note
+.. note::
 
   One more important detail we've introduced here is that ``r`` character in
   front of the regular expression string. This tells Python that the string is a
