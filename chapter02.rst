@@ -22,9 +22,9 @@ framework is to make sure you have Python installed.
 Python Versions
 ---------------
 
-The core Django framework (version 1.4+) works with any Python version from 2.5 to 2.7,
-inclusive. Django's optional GIS (Geographic Information Systems) support
-requires Python 2.5 to 2.7.
+The core Django framework (version 1.4+) works with any Python version from 2.5
+to 2.7, inclusive. Django's optional GIS (Geographic Information Systems)
+support requires Python 2.5 to 2.7.
 
 If you're not sure which version of Python to install and you have complete
 freedom over the decision, pick the latest one in the 2.x series: version 2.7.
@@ -36,14 +36,11 @@ Python 2.5, so using a later version of Python keeps your options open.
 
 .. admonition:: Django and Python 3.0
 
-    At the time of writing, Python 3.0 had been released, but Django didn't
-    yet support it. Python 3.0 introduced a substantial number of
+    At the time of writing, Python 3.0 had been released, but Django only
+    supported it experimentally. Python 3.0 introduced a substantial number of
     backwards-incompatible changes to the language itself, and, as a result,
-    we expect most major Python libraries and frameworks, including Django,
-    will take a few years to catch up.
-
-    If you're new to Python and are wondering whether to learn Python 2.x or
-    Python 3.x, our advice is to stick with Python 2.x.
+    many major Python libraries and frameworks, including Django, had not yet
+    caught up.  Python 2.6-3.2 will be supported by Django 1.5.
 
 Installation
 ------------
@@ -51,11 +48,11 @@ Installation
 If you're on Linux or Mac OS X, you probably have Python already installed.
 Type ``python`` at a command prompt (or in Applications/Utilities/Terminal, in
 OS X). If you see something like this, then Python is installed::
-    
-    Python 2.7.3rc2 (default, Apr 22 2012, 22:30:17) 
+
+    Python 2.7.3rc2 (default, Apr 22 2012, 22:30:17)
     [GCC 4.6.3] on linux2
     Type "help", "copyright", "credits" or "license" for more information.
-    >>> 
+    >>>
 
 Otherwise, you'll need to download and install Python. It's fast and easy, and
 detailed instructions are available at http://www.python.org/download/
@@ -111,23 +108,24 @@ for third-party libraries. Usually it's in a place like
 Installing the "Development" Version
 ------------------------------
 
-Django uses Git (http://git-scm.com) for its source control. The latest and greatest 
-Django development version available from Django's official Git repository
-(https://github.com/django/django). You should consider installing this version
-if you want to work on the bleeding edge, or if you want to contribute code
-to Django itself.
+Django uses Git (http://git-scm.com) for its source control. The latest and
+greatest Django development version available from Django's official Git
+repository (https://github.com/django/django). You should consider installing
+this version if you want to work on the bleeding edge, or if you want to
+contribute code to Django itself.
 
-Git is a free, open source distributed revision-control system, and the Django team
-uses it to manage changes to the Django codebase. You can download and install Git from
-http://git-scm.com/download but it is easier to install with your operating system's
-package manager. You can use Git to grab the very latest Django source code 
-and, at any given time, you can update your local version of the Django code
-to get the latest changes and improvements made by Django developers.
+Git is a free, open source distributed revision-control system, and the Django
+team uses it to manage changes to the Django codebase. You can download and
+install Git from http://git-scm.com/download but it is easier to install with
+your operating system's package manager. You can use Git to grab the very latest
+Django source code and, at any given time, you can update your local version of
+the Django code to get the latest changes and improvements made by Django
+developers.
 
-When using the development version, keep in mind there's no guarantee 
-things won't be broken at any given moment. With that said, though, 
-some members of the Django team run production sites on development version, 
-so they have an incentive to keep it stable.
+When using the development version, keep in mind there's no guarantee things
+won't be broken at any given moment. With that said, though, some members of the
+Django team run production sites on the development version, so they have an
+incentive to keep it stable.
 
 To grab the latest Django, follow these steps:
 
@@ -164,23 +162,21 @@ need to run ``python setup.py install``-- you've just done the work by hand!
 
 Because the Django code changes often with bug fixes and feature additions,
 you'll probably want to update it every once in a while. To update the code,
-just run the command ``git pull origin master`` from within the ``djmaster`` directory. When
-you run that command, Git will contact https://github.com/django/django,
-determine whether any of Django's code has changed, and update your local
-version of the code with any changes that have been made since you last
-updated. It's quite slick.
+just run the command ``git pull origin master`` from within the ``djmaster``
+directory. When you run that command, Git will contact
+https://github.com/django/django, determine whether any of Django's code has
+changed, and update your local version of the code with any changes that have
+been made since you last updated. It's quite slick.
 
-Finally, if you use Django development version, you should know how to figure out
-which version of Django you're running. Knowing your version number is important
-if you ever need to reach out to the community for help, or if you submit improvements to the
-framework. In these cases, you should tell people the revision, also known
-as a "changeset," that you're using. To find out your current changeset, 
-type "git log -1" from within the ``django`` directory, and
-look for the identifier after "commit". This number changes each time
-Django is changed, whether through a bug fix, feature addition, documentation
-improvement or anything else. Among some members of the Django community, it's
-a badge of honor to be able to say, "I've been using Django since [insert very
-low revision number here]."
+Finally, if you use Django development version, you should know how to figure
+out which version of Django you're running. Knowing your version number is
+important if you ever need to reach out to the community for help, or if you
+submit improvements to the framework. In these cases, you should tell people the
+revision, also known as a "commit," that you're using. To find out your current
+commit, type "git log -1" from within the ``django`` directory, and look for the
+identifier after "commit". This number changes each time Django is changed,
+whether through a bug fix, feature addition, documentation improvement or
+anything else.
 
 Testing the Django installation
 ===============================
@@ -266,13 +262,12 @@ Setting up the database is a two-step process:
 
 If you're just playing around with Django and don't want to install a database
 server, consider using SQLite. SQLite is unique in the list of supported
-databases in that it doesn't require either of the above steps, if you're using
-Python 2.5 or higher. It merely reads and writes its data to a single file on
-your filesystem, and Python versions 2.5 and higher include built-in support
-for it.
+databases in that it doesn't require either of the above steps. It merely reads
+and writes its data to a single file on your filesystem, and Python versions 2.5
+and higher include built-in support for it.
 
 On Windows, obtaining database driver binaries can be frustrating. If you're
-eager to jump in, we recommend using Python 2.5 and its built-in support for
+eager to jump in, we recommend using Python 2.7 and its built-in support for
 SQLite.
 
 Using Django with PostgreSQL
@@ -294,21 +289,8 @@ system offers a package called "python-psycopg2", "psycopg2-python",
 Using Django with SQLite 3
 --------------------------
 
-If you're using Python version 2.5 or higher, you're in luck: no
-database-specific installation is required, because Python ships with SQLite
-support. Skip ahead to the next section.
-
-If you're working with Python 2.4 or older, you'll need SQLite 3 -- *not*
-version 2 -- from http://www.djangoproject.com/r/sqlite/ and the ``pysqlite``
-package from http://www.djangoproject.com/r/python-sqlite/. Make sure you have
-``pysqlite`` version 2.0.3 or higher.
-
-On Windows, you can skip installing the former (the separate SQLite binaries),
-because they're statically linked into the ``pysqlite`` binaries.
-
-If you're on Linux, check whether your distribution's package-management system
-offers a package called "python-sqlite3", "sqlite-python", "pysqlite" or
-something similar.
+You're in luck: no database-specific installation is required, because Python
+ships with SQLite support. Skip ahead to the next section.
 
 Using Django with MySQL
 -----------------------
@@ -329,8 +311,9 @@ Using Django with Oracle
 Django works with Oracle Database Server versions 9i and higher.
 
 If you're using Oracle, you'll need to install the ``cx_Oracle`` library,
-available at http://cx-oracle.sourceforge.net/. Use version 4.3.1 or higher,
-but avoid version 5.0 due to a bug in that version of the driver.
+available at http://cx-oracle.sourceforge.net/. Use version 4.3.1 or higher, but
+avoid version 5.0 due to a bug in that version of the driver.  Version 5.0.1
+resolved the bug, however, so you can choose a higher version as well.
 
 Using Django Without a Database
 -------------------------------
@@ -393,7 +376,7 @@ If you see a "permission denied" message when running
 To do this, navigate to the directory where ``django-admin.py`` is installed
 (e.g., ``cd /usr/local/bin``) and run the command ``chmod +x django-admin.py``.
 
-The ``startproject`` command creates a directory containing four files::
+The ``startproject`` command creates a directory containing five files::
 
     mysite/
         manage.py
@@ -405,14 +388,14 @@ The ``startproject`` command creates a directory containing four files::
 
 .. note:: Doesn't match what you see?
 
-    The default project layout recently changed. If you're seeing a 
+    The default project layout recently changed. If you're seeing a
     "flat" layout (with no inner ``mysite/`` directory), you're probably using
     a version of Django that doesn't match this tutorial version. This book covers
-    Django 1.4 and above, so if you're using an older version you probably want to 
+    Django 1.4 and above, so if you're using an older version you probably want to
     consult Django's official documentation.
-    
+
     The documentation for Django 1.X version is available at https://docs.djangoproject.com/en/1.X/.
-    
+
 These files are as follows:
 
 * ``mysite/``: The outer ``mysite/`` directory is just a container for your project.
@@ -438,7 +421,7 @@ These files are as follows:
 * ``urls.py``: The URLs for this Django project. Think of this as the
   "table of contents" of your Django-powered site.
 
-* ``wsgi.py``: An entry-point for WSGI-compatible webservers to serve your project. 
+* ``wsgi.py``: An entry-point for WSGI-compatible webservers to serve your project.
   See How to deploy with WSGI (https://docs.djangoproject.com/en/1.4/howto/deployment/wsgi/) for more details.
 
 Despite their small size, these files already constitute a working Django
@@ -468,13 +451,13 @@ You'll see something like this::
     Validating models...
     0 errors found.
 
-    Django version 1.4.1, using settings 'mysite.settings'
+    Django version 1.4.2, using settings 'mysite.settings'
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
 This launches the server locally, on port 8000, accessible only to connections
 from your own computer. Now that it's running, visit http://127.0.0.1:8000/
-with your Web browser. You might see a different Django version depending on 
+with your Web browser. You might see a different Django version depending on
 which version of Django you have installed. You'll see a "Welcome to Django" page shaded in a
 pleasant pastel blue. It worked!
 
