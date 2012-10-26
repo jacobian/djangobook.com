@@ -595,11 +595,11 @@ A novice might think to code a separate view function for each hour offset,
 which might result in a URLconf like this::
 
     urlpatterns = patterns('',
-        ('^time/$', current_datetime),
-        ('^time/plus/1/$', one_hour_ahead),
-        ('^time/plus/2/$', two_hours_ahead),
-        ('^time/plus/3/$', three_hours_ahead),
-        ('^time/plus/4/$', four_hours_ahead),
+        url(r'^time/$', current_datetime),
+        url(r'^time/plus/1/$', one_hour_ahead),
+        url(r'^time/plus/2/$', two_hours_ahead),
+        url(r'^time/plus/3/$', three_hours_ahead),
+        url(r'^time/plus/4/$', four_hours_ahead),
     )
 
 Clearly, this line of thought is flawed. Not only would this result in redundant
