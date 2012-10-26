@@ -125,7 +125,7 @@ lines. If we ignore the commented-out code, here's the essence of a URLconf::
 
 Let's step through this code one line at a time:
 
-* The first line imports three function from the ``django.conf.urls.defaults``
+* The first line imports three functions from the ``django.conf.urls.defaults``
   module, which is Django's URLconf infrastructure: ``patterns``, ``include``,
   and ``urls``.
 
