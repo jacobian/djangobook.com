@@ -164,10 +164,27 @@ We made two changes here:
   see the sidebar for details.)
 
 * Next, we added the line ``url(r'^hello/$', hello),`` to ``urlpatterns``. This
-  line is referred to as a *URLpattern*. It's a Python tuple in which the
-  first element is a pattern-matching string (a regular expression; more on
-  this in a bit) and the second element is the view function to use for
-  that pattern.
+  line is referred to as a *URLpattern*. The ``url()`` function tells Django how
+  to handle the url that you are configuring. The first argument is a
+  pattern-matching string (a regular expression; more on this in a bit) and the
+  second argument is the view function to use for that pattern. ``url()`` can
+  take other optional arguments as well.  See
+  https://docs.djangoproject.com/en/1.4/topics/http/urls/#url for details.
+
+.. note
+
+  One more important detail we've introduced here is that ``r`` character in
+  front of the regular expression string. This tells Python that the string is a
+  "raw string" -- its contents should not interpret backslashes. In normal
+  Python strings, backslashes are used for escaping special characters -- such
+  as in the string ``'\n'``, which is a one-character string containing a
+  newline. When you add the ``r`` to make it a raw string, Python does not apply
+  its backslash escaping -- so, ``r'\n'`` is a two-character string containing a
+  literal backslash and a lowercase "n". There's a natural collision between
+  Python's usage of backslashes and the backslashes that are found in regular
+  expressions, so it's strongly suggested that you use raw strings any time
+  you're defining a regular expression in Python. All of the URLpatterns in this
+  book will be raw strings.
 
 In a nutshell, we just told Django that any request to the URL ``/hello/`` should
 be handled by the ``hello`` view function.
@@ -346,7 +363,7 @@ the URLpattern ``'^$'``, which matches an empty string. For example::
     from mysite.views import hello, my_homepage_view
 
     urlpatterns = patterns('',
-        ('^$', my_homepage_view),
+        url(r'^$', my_homepage_view),
         # ...
     )
 
@@ -500,8 +517,8 @@ sense::
     from mysite.views import hello, current_datetime
 
     urlpatterns = patterns('',
-        ('^hello/$', hello),
-        ('^time/$', current_datetime),
+        url(r'^hello/$', hello),
+        url(r'^time/$', current_datetime),
     )
 
 We've made two changes here. First, we imported the ``current_datetime``
@@ -616,7 +633,7 @@ is a regular expression; hence, we can use the regular expression pattern
 
     urlpatterns = patterns('',
         # ...
-        (r'^time/plus/\d+/$', hours_ahead),
+        url(r'^time/plus/\d+/$', hours_ahead),
         # ...
     )
 
@@ -629,7 +646,7 @@ let's limit it so that the maximum allowed offset is 99 hours. That means we
 want to allow either one- or two-digit numbers -- and in regular expression
 syntax, that translates into ``\d{1,2}``::
 
-    (r'^time/plus/\d{1,2}/$', hours_ahead),
+    url(r'^time/plus/\d{1,2}/$', hours_ahead),
 
 .. note::
 
@@ -637,19 +654,6 @@ syntax, that translates into ``\d{1,2}``::
     outlandish data input possible, and decide whether or not the application
     should support that input. We've curtailed the outlandishness here by
     limiting the offset to 99 hours.
-
-One more important detail we've introduced here is that ``r`` character in
-front of the regular expression string. This tells Python that the string is a
-"raw string" -- its contents should not interpret backslashes. In normal Python
-strings, backslashes are used for escaping special characters -- such as in the
-string ``'\n'``, which is a one-character string containing a newline. When you
-add the ``r`` to make it a raw string, Python does not apply its backslash
-escaping -- so, ``r'\n'`` is a two-character string containing a literal
-backslash and a lowercase "n". There's a natural collision between Python's
-usage of backslashes and the backslashes that are found in regular expressions,
-so it's strongly suggested that you use raw strings any time you're defining a
-regular expression in Python. From now on, all of the URLpatterns in this book
-will be raw strings.
 
 Now that we've designated a wildcard for the URL, we need a way of passing that
 wildcard data to the view function, so that we can use a single view function
