@@ -106,7 +106,7 @@ for third-party libraries. Usually it's in a place like
 ``/usr/lib/python2.7/site-packages``.
 
 Installing the "Development" Version
-------------------------------
+------------------------------------
 
 Django uses Git (http://git-scm.com) for its source control. The latest and
 greatest Django development version available from Django's official Git
