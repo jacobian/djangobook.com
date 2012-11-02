@@ -680,26 +680,6 @@ The final URLconf, including our previous two views, looks like this::
 
 With that taken care of, let's write the ``hours_ahead`` view.
 
-.. admonition:: Coding Order
-
-    In this example, we wrote the URLpattern first and the view second, but in
-    the previous examples, we wrote the view first, then the URLpattern. Which
-    technique is better?
-
-    Well, every developer is different.
-
-    If you're a big-picture type of person, it may make the most sense to you
-    to write all of the URLpatterns for your application at the same time, at
-    the start of your project, and then code up the views. This has the
-    advantage of giving you a clear to-do list, and it essentially defines the
-    parameter requirements for the view functions you'll need to write.
-
-    If you're more of a bottom-up developer, you might prefer to write the
-    views first, and then anchor them to URLs afterward. That's OK, too.
-
-    In the end, it comes down to which technique fits your brain the best. Both
-    approaches are valid.
-
 ``hours_ahead`` is very similar to the ``current_datetime`` view we wrote
 earlier, with a key difference: it takes an extra argument, the number of hours
 of offset. Here's the view code::
@@ -791,6 +771,26 @@ URLconf only accepts one- or two-digit numbers; Django should display a "Page
 not found" error in this case, just as we saw in the section "A Quick Note
 About 404 Errors" earlier. The URL ``http://127.0.0.1:8000/time/plus/`` (with
 *no* hour designation) should also throw a 404.
+
+.. admonition:: Coding Order
+
+    In this example, we wrote the URLpattern first and the view second, but in
+    the previous examples, we wrote the view first, then the URLpattern. Which
+    technique is better?
+
+    Well, every developer is different.
+
+    If you're a big-picture type of person, it may make the most sense to you
+    to write all of the URLpatterns for your application at the same time, at
+    the start of your project, and then code up the views. This has the
+    advantage of giving you a clear to-do list, and it essentially defines the
+    parameter requirements for the view functions you'll need to write.
+
+    If you're more of a bottom-up developer, you might prefer to write the
+    views first, and then anchor them to URLs afterward. That's OK, too.
+
+    In the end, it comes down to which technique fits your brain the best. Both
+    approaches are valid.
 
 Django's Pretty Error Pages
 ===========================
