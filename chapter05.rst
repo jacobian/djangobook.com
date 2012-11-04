@@ -1380,7 +1380,5 @@ user-submitted form data.
 
 But in some cases, you or your team might need to enter data manually, in which
 case it would be helpful to have a Web-based interface for entering and
-managing data. The `next chapter`_ covers Django's admin interface, which exists
+managing data. The :doc:`next chapter <chapter06>` covers Django's admin interface, which exists
 precisely for that reason.
-
-.. _next chapter: ../chapter06/
