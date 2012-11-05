@@ -185,10 +185,6 @@ start the interactive interpreter.
     ``python manage.py shell`` in these examples so as to minimize the amount
     of tweaking and configuring you have to do.
 
-    As you become more familiar with Django, you'll likely stop using
-    ``manage.py shell`` and will set ``DJANGO_SETTINGS_MODULE`` manually in
-    your ``.bash_profile`` or other shell environment configuration file.
-
 Let's go through some template system basics::
 
     >>> from django.template import Template
