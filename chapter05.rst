@@ -178,13 +178,13 @@ look for the database settings::
 
     DATABASES = {
         'default': {
-            'ENGINE': '',
-            'NAME': '',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '',
-        },
+            'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+            'NAME': '',                      # Or path to database file if using sqlite3.
+            'USER': '',                      # Not used with sqlite3.
+            'PASSWORD': '',                  # Not used with sqlite3.
+            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        }
     }
 
 Here's a rundown of each setting.
@@ -198,18 +198,13 @@ Here's a rundown of each setting.
       ============================================ ============ ================================================
       Setting                                      Database     Required Adapter
       ============================================ ============ ================================================
-      ``django.db.backends.postgresql``            PostgreSQL   ``psycopg`` version 1.x,
-                                                                http://www.djangoproject.com/r/python-pgsql/1/.
-
       ``django.db.backends.postgresql_psycopg2``   PostgreSQL   ``psycopg`` version 2.x,
                                                                 http://www.djangoproject.com/r/python-pgsql/.
 
       ``django.db.backends.mysql``                 MySQL        ``MySQLdb``,
                                                                 http://www.djangoproject.com/r/python-mysql/.
 
-      ``django.db.backends.sqlite3``               SQLite       No adapter needed if using Python 2.5+.
-                                                                Otherwise, ``pysqlite``,
-                                                                http://www.djangoproject.com/r/python-sqlite/.
+      ``django.db.backends.sqlite3``               SQLite       No adapter needed.
 
       ``django.db.backends.oracle``                Oracle       ``cx_Oracle``,
                                                                 http://www.djangoproject.com/r/python-oracle/.
