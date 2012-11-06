@@ -176,40 +176,39 @@ As with ``TEMPLATE_DIRS`` in the previous chapter, database configuration lives 
 the Django settings file, called ``settings.py`` by default. Edit that file and
 look for the database settings::
 
-    DATABASE_ENGINE = ''
-    DATABASE_NAME = ''
-    DATABASE_USER = ''
-    DATABASE_PASSWORD = ''
-    DATABASE_HOST = ''
-    DATABASE_PORT = ''
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+            'NAME': '',                      # Or path to database file if using sqlite3.
+            'USER': '',                      # Not used with sqlite3.
+            'PASSWORD': '',                  # Not used with sqlite3.
+            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        }
+    }
 
 Here's a rundown of each setting.
 
-* ``DATABASE_ENGINE`` tells Django which database engine to use. If you're
-  using a database with Django, ``DATABASE_ENGINE`` must be set to one of
+* ``ENGINE`` tells Django which database engine to use. If you're
+  using a database with Django, ``ENGINE`` must be set to one of
   the strings shown in Table 5-1.
 
   .. table:: Table 5-1. Database Engine Settings
 
-      =======================  ====================  ==============================================
-      Setting                  Database              Required Adapter
-      =======================  ====================  ==============================================
-      ``postgresql``           PostgreSQL            ``psycopg`` version 1.x,
-                                                     http://www.djangoproject.com/r/python-pgsql/1/.
+      ============================================ ============ ================================================
+      Setting                                      Database     Required Adapter
+      ============================================ ============ ================================================
+      ``django.db.backends.postgresql_psycopg2``   PostgreSQL   ``psycopg`` version 2.x,
+                                                                http://www.djangoproject.com/r/python-pgsql/.
 
-      ``postgresql_psycopg2``  PostgreSQL            ``psycopg`` version 2.x,
-                                                     http://www.djangoproject.com/r/python-pgsql/.
+      ``django.db.backends.mysql``                 MySQL        ``MySQLdb``,
+                                                                http://www.djangoproject.com/r/python-mysql/.
 
-      ``mysql``                MySQL                 ``MySQLdb``,
-                                                     http://www.djangoproject.com/r/python-mysql/.
+      ``django.db.backends.sqlite3``               SQLite       No adapter needed.
 
-      ``sqlite3``              SQLite                No adapter needed if using Python 2.5+.
-                                                     Otherwise, ``pysqlite``,
-                                                     http://www.djangoproject.com/r/python-sqlite/.
-
-      ``oracle``               Oracle                ``cx_Oracle``,
-                                                     http://www.djangoproject.com/r/python-oracle/.
-      =======================  ====================  ==============================================
+      ``django.db.backends.oracle``                Oracle       ``cx_Oracle``,
+                                                                http://www.djangoproject.com/r/python-oracle/.
+      ============================================ ============ ================================================
 
   Note that for whichever database back-end you use, you'll need to download
   and install the appropriate database adapter. Each one is available for
@@ -220,29 +219,29 @@ Here's a rundown of each setting.
 
   Example::
 
-      DATABASE_ENGINE = 'postgresql_psycopg2'
+      'ENGINE': 'django.db.backends.postgresql_psycopg2',
 
-* ``DATABASE_NAME`` tells Django the name of your database. For example::
+* ``NAME`` tells Django the name of your database. For example::
 
-      DATABASE_NAME = 'mydb'
+      'NAME': 'mydb',
 
   If you're using SQLite, specify the full filesystem path to the database
   file on your filesystem. For example::
 
-      DATABASE_NAME = '/home/django/mydata.db'
+      'NAME': '/home/django/mydata.db',
 
   As for where you put that SQLite database, we're using the ``/home/django``
   directory in this example, but you should pick a directory that works
   best for you.
 
-* ``DATABASE_USER`` tells Django which username to use when connecting to
+* ``USER`` tells Django which username to use when connecting to
   your database. For example: If you're using SQLite, leave this blank.
 
-* ``DATABASE_PASSWORD`` tells Django which password to use when connecting
+* ``PASSWORD`` tells Django which password to use when connecting
   to your database. If you're using SQLite or have an empty password, leave
   this blank.
 
-* ``DATABASE_HOST`` tells Django which host to use when connecting to your
+* ``HOST`` tells Django which host to use when connecting to your
   database. If your database is on the same computer as your Django
   installation (i.e., localhost), leave this blank. If you're using SQLite,
   leave this blank.
@@ -251,7 +250,7 @@ Here's a rundown of each setting.
   (``'/'``) and you're using MySQL, MySQL will connect via a Unix socket to
   the specified socket, for example::
 
-      DATABASE_HOST = '/var/run/mysql'
+      'HOST': '/var/run/mysql',
 
 .. SL The usual convention is for the socket to be named 'mysql.sock' or similar,
 .. SL so would '/var/run/mysql.sock' be a better example?
@@ -259,7 +258,7 @@ Here's a rundown of each setting.
   If you're using MySQL and this value *doesn't* start with a forward
   slash, then this value is assumed to be the host.
 
-* ``DATABASE_PORT`` tells Django which port to use when connecting to your
+* ``PORT`` tells Django which port to use when connecting to your
   database. If you're using SQLite, leave this blank. Otherwise, if you
   leave this blank, the underlying database adapter will use whichever
   port is default for your given database server. In most cases, the
@@ -286,7 +285,7 @@ the error message for clues about what's wrong. Table 5-2 shows some common erro
     =========================================================  ===============================================
     Error Message                                              Solution
     =========================================================  ===============================================
-    You haven't set the DATABASE_ENGINE setting yet.           Set the ``DATABASE_ENGINE`` setting to
+    You haven't set the ENGINE setting yet.                    Set the ``ENGINE`` setting to
                                                                something other than an empty string. Valid
                                                                values are in Table 5-1.
     Environment variable DJANGO_SETTINGS_MODULE is undefined.  Run the command ``python manage.py shell``
@@ -296,19 +295,19 @@ the error message for clues about what's wrong. Table 5-2 shows some common erro
                                                                or ``MySQLdb``). Adapters are *not* bundled
                                                                with Django, so it's your responsibility to
                                                                download and install them on your own.
-    _____ isn't an available database backend.                 Set your ``DATABASE_ENGINE`` setting to
+    _____ isn't an available database backend.                 Set your ``ENGINE`` setting to
                                                                one of the valid engine settings described
                                                                previously. Perhaps you made a typo?
-    database _____ does not exist                              Change the ``DATABASE_NAME`` setting to
+    database _____ does not exist                              Change the ``NAME`` setting to
                                                                point to a database that exists, or
                                                                execute the appropriate
                                                                ``CREATE DATABASE`` statement in order to
                                                                create it.
-    role _____ does not exist                                  Change the ``DATABASE_USER`` setting to point
+    role _____ does not exist                                  Change the ``USER`` setting to point
                                                                to a user that exists, or create the user
                                                                in your database.
-    could not connect to server                                Make sure ``DATABASE_HOST`` and
-                                                               ``DATABASE_PORT`` are set correctly, and
+    could not connect to server                                Make sure ``HOST`` and
+                                                               ``PORT`` are set correctly, and
                                                                make sure the database server is running.
     =========================================================  ===============================================
 
@@ -1380,7 +1379,5 @@ user-submitted form data.
 
 But in some cases, you or your team might need to enter data manually, in which
 case it would be helpful to have a Web-based interface for entering and
-managing data. The `next chapter`_ covers Django's admin interface, which exists
+managing data. The :doc:`next chapter <chapter06>` covers Django's admin interface, which exists
 precisely for that reason.
-
-.. _next chapter: ../chapter06/
