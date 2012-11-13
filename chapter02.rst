@@ -36,11 +36,17 @@ Python 2.5, so using a later version of Python keeps your options open.
 
 .. admonition:: Django and Python 3.0
 
-    At the time of writing, Python 3.0 had been released, but Django only
-    supported it experimentally. Python 3.0 introduced a substantial number of
-    backwards-incompatible changes to the language itself, and, as a result,
-    many major Python libraries and frameworks, including Django, had not yet
-    caught up.  Django 1.5 will support Python 2.6-3.2.
+    At the time of writing, Python 3.0 had been released, but Django
+    only supported it experimentally. Python 3.0 introduced a
+    substantial number of backwards-incompatible changes to the
+    language itself, and, as a result, many major Python libraries and
+    frameworks, including Django, had not yet caught up.
+
+    Django 1.5 will support Python 2.6, 2.7, and 3.2.  However,
+    support for Python 3.2 is considered a "preview", which means the
+    Django developers are not yet confident enough to promise
+    stability in production.  For that, they suggest you wait until
+    Django 1.6.
 
 Installation
 ------------
