@@ -96,38 +96,38 @@ When you executed ``django-admin.py startproject`` in the previous chapter, the
 script created a URLconf for you automatically: the file ``urls.py``. By
 default, it looks something like this::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls import patterns, include, url
 
     # Uncomment the next two lines to enable the admin:
     # from django.contrib import admin
     # admin.autodiscover()
 
     urlpatterns = patterns('',
-        # Example:
-        # (r'^mysite/', include('mysite.foo.urls')),
+        # Examples:
+        # url(r'^$', 'mysite.views.home', name='home'),
+        # url(r'^mysite/', include('mysite.foo.urls')),
 
-        # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
-        # to INSTALLED_APPS to enable admin documentation:
-        # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+        # Uncomment the admin/doc line below to enable admin documentation:
+        # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
         # Uncomment the next line to enable the admin:
-        # (r'^admin/', include(admin.site.urls)),
+        # url(r'^admin/', include(admin.site.urls)),
     )
 
 This default URLconf includes some commonly used Django features commented out,
 so that activating those features is as easy as uncommenting the appropriate
 lines. If we ignore the commented-out code, here's the essence of a URLconf::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls.defaults import patterns, include, url
 
     urlpatterns = patterns('',
     )
 
 Let's step through this code one line at a time:
 
-* The first line imports all objects from the ``django.conf.urls.defaults``
-  module, which is Django's URLconf infrastructure. This includes a
-  function called ``patterns``.
+* The first line imports three functions from the ``django.conf.urls.defaults``
+  module, which is Django's URLconf infrastructure: ``patterns``, ``include``,
+  and ``urls``.
 
 * The second line calls the function ``patterns`` and saves the result
   into a variable called ``urlpatterns``. The ``patterns`` function gets
@@ -143,14 +143,14 @@ note, that's how Django knew to show you the "Welcome to Django" page in the
 last chapter. If your URLconf is empty, Django assumes you just started a new
 project and, hence, displays that message.)
 
-To add a URL and view to the URLconf, just add a Python tuple mapping a URL
-pattern to the view function. Here's how to hook in our ``hello`` view::
+To add a URL and view to the URLconf, just add a mapping between a URL
+pattern and the view function. Here's how to hook in our ``hello`` view::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls.defaults import patterns, include, url
     from mysite.views import hello
 
     urlpatterns = patterns('',
-        ('^hello/$', hello),
+        url(r'^hello/$', hello),
     )
 
 (Note that we've removed the commented-out code for brevity. You can choose
@@ -163,11 +163,28 @@ We made two changes here:
   import syntax. (This assumes ``mysite/views.py`` is on your Python path;
   see the sidebar for details.)
 
-* Next, we added the line ``('^hello/$', hello),`` to ``urlpatterns``. This
-  line is referred to as a *URLpattern*. It's a Python tuple in which the
-  first element is a pattern-matching string (a regular expression; more on
-  this in a bit) and the second element is the view function to use for
-  that pattern.
+* Next, we added the line ``url(r'^hello/$', hello),`` to ``urlpatterns``. This
+  line is referred to as a *URLpattern*. The ``url()`` function tells Django how
+  to handle the url that you are configuring. The first argument is a
+  pattern-matching string (a regular expression; more on this in a bit) and the
+  second argument is the view function to use for that pattern. ``url()`` can
+  take other optional arguments as well, which we'll cover in more depth in
+  :doc:`chapter08`.
+
+.. note::
+
+  One more important detail we've introduced here is that ``r`` character in
+  front of the regular expression string. This tells Python that the string is a
+  "raw string" -- its contents should not interpret backslashes. In normal
+  Python strings, backslashes are used for escaping special characters -- such
+  as in the string ``'\n'``, which is a one-character string containing a
+  newline. When you add the ``r`` to make it a raw string, Python does not apply
+  its backslash escaping -- so, ``r'\n'`` is a two-character string containing a
+  literal backslash and a lowercase "n". There's a natural collision between
+  Python's usage of backslashes and the backslashes that are found in regular
+  expressions, so it's strongly suggested that you use raw strings any time
+  you're defining a regular expression in Python. All of the URLpatterns in this
+  book will be raw strings.
 
 In a nutshell, we just told Django that any request to the URL ``/hello/`` should
 be handled by the ``hello`` view function.
@@ -178,12 +195,12 @@ be handled by the ``hello`` view function.
     looks when you use the Python ``import`` statement.
 
     For example, let's say your Python path is set to ``['',
-    '/usr/lib/python2.4/site-packages', '/home/username/djcode']``. If you
+    '/usr/lib/python2.7/site-packages', '/home/username/djcode']``. If you
     execute the Python statement ``from foo import bar``, Python will look for
     a module called ``foo.py`` in the current directory. (The first entry in the
     Python path, an empty string, means "the current directory.") If that file
     doesn't exist, Python will look for the file
-    ``/usr/lib/python2.4/site-packages/foo.py``. If that file doesn't exist, it
+    ``/usr/lib/python2.7/site-packages/foo.py``. If that file doesn't exist, it
     will try ``/home/username/djcode/foo.py``. Finally, if *that* file doesn't
     exist, it will raise ``ImportError``.
 
@@ -346,7 +363,7 @@ the URLpattern ``'^$'``, which matches an empty string. For example::
     from mysite.views import hello, my_homepage_view
 
     urlpatterns = patterns('',
-        ('^$', my_homepage_view),
+        url(r'^$', my_homepage_view),
         # ...
     )
 
@@ -358,13 +375,13 @@ more about how Django works. Specifically, when you view your "Hello world"
 message by visiting ``http://127.0.0.1:8000/hello/`` in your Web browser, what
 does Django do behind the scenes?
 
-It all starts with the *settings file*. When you run
-``python manage.py runserver``, the script looks for a file called
-``settings.py`` in the same directory as ``manage.py``. This file contains all
-sorts of configuration for this particular Django project, all in uppercase:
-``TEMPLATE_DIRS``, ``DATABASE_NAME``, etc. The most important setting is called
-``ROOT_URLCONF``. ``ROOT_URLCONF`` tells Django which Python module should be
-used as the URLconf for this Web site.
+It all starts with the *settings file*. When you run ``python manage.py
+runserver``, the script looks for a file called ``settings.py`` in the inner
+``mysite`` directory. This file contains all sorts of configuration for this
+particular Django project, all in uppercase: ``TEMPLATE_DIRS``, ``DATABASES``,
+etc. The most important setting is called ``ROOT_URLCONF``. ``ROOT_URLCONF``
+tells Django which Python module should be used as the URLconf for this Web
+site.
 
 Remember when ``django-admin.py startproject`` created the files
 ``settings.py`` and ``urls.py``? The autogenerated ``settings.py`` contains a
@@ -496,12 +513,12 @@ After adding that to ``views.py``, add the URLpattern to ``urls.py`` to tell
 Django which URL should handle this view. Something like ``/time/`` would make
 sense::
 
-    from django.conf.urls.defaults import *
+    from django.conf.urls.defaults import patterns, include, url
     from mysite.views import hello, current_datetime
 
     urlpatterns = patterns('',
-        ('^hello/$', hello),
-        ('^time/$', current_datetime),
+        url(r'^hello/$', hello),
+        url(r'^time/$', current_datetime),
     )
 
 We've made two changes here. First, we imported the ``current_datetime``
@@ -531,7 +548,7 @@ interchangeable. If two pieces of code are loosely coupled, then changes made to
 one of the pieces will have little or no effect on the other.
 
 Django's URLconfs are a good example of this principle in practice. In a Django
-Web application, the URL definitions and the view functions they call are
+web application, the URL definitions and the view functions they call are
 loosely coupled; that is, the decision of what the URL should be for a given
 function, and the implementation of the function itself, reside in two separate
 places. This lets you switch out one piece without affecting the other.
@@ -550,9 +567,9 @@ without having to touch the view code. In this example, our
 this technique can come in handy::
 
     urlpatterns = patterns('',
-        ('^hello/$', hello),
-        ('^time/$', current_datetime),
-        ('^another-time-page/$', current_datetime),
+        url(r'^hello/$', hello),
+        url(r'^time/$', current_datetime),
+        url(r'^another-time-page/$', current_datetime),
     )
 
 URLconfs and views are loose coupling in action. We'll continue to point out
@@ -578,11 +595,11 @@ A novice might think to code a separate view function for each hour offset,
 which might result in a URLconf like this::
 
     urlpatterns = patterns('',
-        ('^time/$', current_datetime),
-        ('^time/plus/1/$', one_hour_ahead),
-        ('^time/plus/2/$', two_hours_ahead),
-        ('^time/plus/3/$', three_hours_ahead),
-        ('^time/plus/4/$', four_hours_ahead),
+        url(r'^time/$', current_datetime),
+        url(r'^time/plus/1/$', one_hour_ahead),
+        url(r'^time/plus/2/$', two_hours_ahead),
+        url(r'^time/plus/3/$', three_hours_ahead),
+        url(r'^time/plus/4/$', four_hours_ahead),
     )
 
 Clearly, this line of thought is flawed. Not only would this result in redundant
@@ -616,7 +633,7 @@ is a regular expression; hence, we can use the regular expression pattern
 
     urlpatterns = patterns('',
         # ...
-        (r'^time/plus/\d+/$', hours_ahead),
+        url(r'^time/plus/\d+/$', hours_ahead),
         # ...
     )
 
@@ -629,7 +646,7 @@ let's limit it so that the maximum allowed offset is 99 hours. That means we
 want to allow either one- or two-digit numbers -- and in regular expression
 syntax, that translates into ``\d{1,2}``::
 
-    (r'^time/plus/\d{1,2}/$', hours_ahead),
+    url(r'^time/plus/\d{1,2}/$', hours_ahead),
 
 .. note::
 
@@ -638,19 +655,6 @@ syntax, that translates into ``\d{1,2}``::
     should support that input. We've curtailed the outlandishness here by
     limiting the offset to 99 hours.
 
-One more important detail we've introduced here is that ``r`` character in
-front of the regular expression string. This tells Python that the string is a
-"raw string" -- its contents should not interpret backslashes. In normal Python
-strings, backslashes are used for escaping special characters -- such as in the
-string ``'\n'``, which is a one-character string containing a newline. When you
-add the ``r`` to make it a raw string, Python does not apply its backslash
-escaping -- so, ``r'\n'`` is a two-character string containing a literal
-backslash and a lowercase "n". There's a natural collision between Python's
-usage of backslashes and the backslashes that are found in regular expressions,
-so it's strongly suggested that you use raw strings any time you're defining a
-regular expression in Python. From now on, all of the URLpatterns in this book
-will be raw strings.
-
 Now that we've designated a wildcard for the URL, we need a way of passing that
 wildcard data to the view function, so that we can use a single view function
 for any arbitrary hour offset. We do this by placing parentheses around the
@@ -658,7 +662,7 @@ data in the URLpattern that we want to save. In the case of our example, we
 want to save whatever number was entered in the URL, so let's put parentheses
 around the ``\d{1,2}``, like this::
 
-    (r'^time/plus/(\d{1,2})/$', hours_ahead),
+    url(r'^time/plus/(\d{1,2})/$', hours_ahead),
 
 If you're familiar with regular expressions, you'll be right at home here;
 we're using parentheses to *capture* data from the matched text.
@@ -669,32 +673,12 @@ The final URLconf, including our previous two views, looks like this::
     from mysite.views import hello, current_datetime, hours_ahead
 
     urlpatterns = patterns('',
-        (r'^hello/$', hello),
-        (r'^time/$', current_datetime),
-        (r'^time/plus/(\d{1,2})/$', hours_ahead),
+        url(r'^hello/$', hello),
+        url(r'^time/$', current_datetime),
+        url(r'^time/plus/(\d{1,2})/$', hours_ahead),
     )
 
 With that taken care of, let's write the ``hours_ahead`` view.
-
-.. admonition:: Coding Order
-
-    In this example, we wrote the URLpattern first and the view second, but in
-    the previous examples, we wrote the view first, then the URLpattern. Which
-    technique is better?
-
-    Well, every developer is different.
-
-    If you're a big-picture type of person, it may make the most sense to you
-    to write all of the URLpatterns for your application at the same time, at
-    the start of your project, and then code up the views. This has the
-    advantage of giving you a clear to-do list, and it essentially defines the
-    parameter requirements for the view functions you'll need to write.
-
-    If you're more of a bottom-up developer, you might prefer to write the
-    views first, and then anchor them to URLs afterward. That's OK, too.
-
-    In the end, it comes down to which technique fits your brain the best. Both
-    approaches are valid.
 
 ``hours_ahead`` is very similar to the ``current_datetime`` view we wrote
 earlier, with a key difference: it takes an extra argument, the number of hours
@@ -787,6 +771,26 @@ URLconf only accepts one- or two-digit numbers; Django should display a "Page
 not found" error in this case, just as we saw in the section "A Quick Note
 About 404 Errors" earlier. The URL ``http://127.0.0.1:8000/time/plus/`` (with
 *no* hour designation) should also throw a 404.
+
+.. admonition:: Coding Order
+
+    In this example, we wrote the URLpattern first and the view second, but in
+    the previous examples, we wrote the view first, then the URLpattern. Which
+    technique is better?
+
+    Well, every developer is different.
+
+    If you're a big-picture type of person, it may make the most sense to you
+    to write all of the URLpatterns for your application at the same time, at
+    the start of your project, and then code up the views. This has the
+    advantage of giving you a clear to-do list, and it essentially defines the
+    parameter requirements for the view functions you'll need to write.
+
+    If you're more of a bottom-up developer, you might prefer to write the
+    views first, and then anchor them to URLs afterward. That's OK, too.
+
+    In the end, it comes down to which technique fits your brain the best. Both
+    approaches are valid.
 
 Django's Pretty Error Pages
 ===========================
