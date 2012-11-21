@@ -959,6 +959,8 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
 
     from django.shortcuts import render
     from mysite.contact.forms import ContactForm
+    from django.http import HttpResponseRedirect
+    from django.core.mail import send_mail
 
     def contact(request):
         if request.method == 'POST':
@@ -995,6 +997,7 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
             <table>
                 {{ form.as_table }}
             </table>
+            {% csrf_token %}
             <input type="submit" value="Submit">
         </form>
     </body>
