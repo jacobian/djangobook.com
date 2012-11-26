@@ -149,7 +149,7 @@ To grab the latest Django, follow these steps:
 
    The resulting output should include your ``site-packages`` directory.
 
-#  Within the ``site-packages`` directory, create a file called
+#. Within the ``site-packages`` directory, create a file called
    ``djmaster.pth`` and edit it to contain the full path to your ``djmaster``
    directory to it. For example, the file could just contain this line::
 
