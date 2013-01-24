@@ -54,9 +54,10 @@ better. It's designed to quickly get you moving on your own Django projects, and
 then ultimately teach you everything you need to know to successfully design,
 develop, and deploy a site that you'll be proud of.
 
-We're extremely interested in your feedback. The online version of this book
-will let you comment on any part of the book, and discuss it with other readers.
-We'll do our best to read all the comments posted there, and to respond to as
-many as possible. If you prefer email, please drop us a line at
-feedback@djangobook.com. Either way, we'd love to hear from you! We're glad
-you're here, and we hope you find Django as exciting, fun, and useful as we do.
+We're extremely interested in your feedback. This book is `open source`__ and 
+all are welcome to improve it. If you prefer to suggest changes, please drop us 
+a line at feedback@djangobook.com. Either way, we'd love to hear from you! We're
+glad you're here, and we hope that you find Django as exciting, fun and useful 
+as we do.
+
+__ http://github.com/jacobian/djangobook.com
