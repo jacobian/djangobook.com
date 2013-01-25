@@ -190,7 +190,7 @@ The URLpattern in ``urls.py`` could look like this::
 
     urlpatterns = patterns('',
         # ...
-        (r'^search-form/$', views.search_form),
+        url(r'^search-form/$', views.search_form),
         # ...
     )
 
