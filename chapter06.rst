@@ -62,13 +62,15 @@ First, make a few changes to your settings file:
    alphabetical so it's easy for a human to read.)
 
 2. Make sure ``INSTALLED_APPS`` contains ``'django.contrib.auth'``,
-   ``'django.contrib.contenttypes'`` and ``'django.contrib.sessions'``. The
+   ``'django.contrib.contenttypes'``, ``'django.contrib.messages'`` 
+   and ``'django.contrib.sessions'``. The
    Django admin site requires these three packages. (If you're following
    along with our ongoing ``mysite`` project, note that we commented out
-   these three ``INSTALLED_APPS`` entries in Chapter 5. Uncomment them now.)
+   these four ``INSTALLED_APPS`` entries in Chapter 5. Uncomment them now.)
 
 3. Make sure ``MIDDLEWARE_CLASSES`` contains
    ``'django.middleware.common.CommonMiddleware'``,
+   ``'django.contrib.messages.middleware.MessageMiddleware'``,
    ``'django.contrib.sessions.middleware.SessionMiddleware'`` and
    ``'django.contrib.auth.middleware.AuthenticationMiddleware'``. (Again,
    if you're following along, note that we commented them out in Chapter 5,
