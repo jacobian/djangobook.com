@@ -946,4 +946,4 @@ and/or after every request and can modify requests and responses at will, to
 extend the framework. In the `next chapter`_, we'll discuss Django's built-in
 middleware and explain how you can write your own.
 
-.. _next chapter: ../chapter17/
+.. _next chapter: chapter17.rst/

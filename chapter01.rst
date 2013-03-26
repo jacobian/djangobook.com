@@ -360,5 +360,7 @@ to database design, to deployment -- feel free to ask questions online.
 What's Next
 -----------
 
-In .. _chapter2: chapter02.rst/, we'll get started with Django, covering installation and
+In `Chapter 2`_, we'll get started with Django, covering installation and
 initial setup.
+
+.. _Chapter 2: chapter02.rst/

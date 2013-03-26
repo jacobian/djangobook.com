@@ -1279,5 +1279,7 @@ After these first seven chapters, you should know enough to start writing your
 own Django projects. The rest of the material in this book will help fill in the
 missing pieces as you need them.
 
-We'll start in :doc:`chapter08` by doubling back and taking a closer look at views
+We'll start in `Chapter 8`_ by doubling back and taking a closer look at views
 and URLconfs (introduced first in :doc:`chapter03`).
+
+.. _chapter8: chapter08.rst/
