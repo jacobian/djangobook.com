@@ -1282,4 +1282,4 @@ missing pieces as you need them.
 We'll start in `Chapter 8`_, by doubling back and taking a closer look at views
 and URLconfs (introduced first in `chapter03`).
 
-.. _chapter8: chapter08.rst/
+.. _chapter 8: chapter08.rst/
