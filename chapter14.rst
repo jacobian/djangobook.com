@@ -1236,4 +1236,4 @@ available.
 In the `next chapter`_, we'll take a look at Django's caching infrastructure,
 which is a convenient way to improve the performance of your application.
 
-.. _next chapter: ../chapter15/
+.. _next chapter: ../chapter15.rst/
