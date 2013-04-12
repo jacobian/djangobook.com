@@ -550,11 +550,11 @@ project. By default, it looks something like this::
 
 Temporarily comment out all six of those strings by putting a hash character
 (``#``) in front of them. (They're included by default as a common-case
-convenience, but we'll activate and discuss them in subsequent chapters.)
-While you're at it, comment out the default ``MIDDLEWARE_CLASSES`` setting, too;
-the default values in ``MIDDLEWARE_CLASSES`` depend on some of the apps we
-just commented out. Then, add  ``'mysite.books'`` to the ``INSTALLED_APPS``
-list, so the setting ends up looking like this::
+convenience, but we'll activate and discuss most of them in subsequent 
+chapters.) While you're at it, comment out the default ``MIDDLEWARE_CLASSES`` 
+setting, too; the default values in ``MIDDLEWARE_CLASSES`` depend on some of 
+the apps we just commented out. Then, add  ``'mysite.books'`` to the 
+``INSTALLED_APPS`` list, so the setting ends up looking like this::
 
     MIDDLEWARE_CLASSES = (
         # 'django.middleware.common.CommonMiddleware',
