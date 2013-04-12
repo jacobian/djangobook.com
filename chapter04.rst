@@ -1610,5 +1610,7 @@ Many modern Web sites are *database-driven*: the content of the Web site is
 stored in a relational database. This allows a clean separation of data and logic
 (in the same way views and templates allow the separation of logic and display.)
 
-The :doc:`next chapter <chapter05>` covers the tools Django gives you to
+The next chapter `Chapter 5`_ covers the tools Django gives you to
 interact with a database.
+
+.. _Chapter 4: chapter04.rst/

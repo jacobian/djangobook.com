@@ -518,4 +518,4 @@ recommended reading if you want to get the most out of this powerful feature.
 This concludes the section of this book devoted to "advanced usage." In the
 `next chapter`_, we cover deployment of Django applications.
 
-.. _next chapter: ../chapter12/
+.. _next chapter: chapter12.rst/

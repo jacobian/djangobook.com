@@ -1073,7 +1073,7 @@ Of course, selecting memcached does you no good if you don't actually use it.
 framework, and use it everywhere possible. Aggressive, preemptive caching is
 usually the only thing that will keep a site up under major traffic.
 
-.. _Chapter 15: ../chapter15/
+.. _Chapter 15: chapter15.rst/
 
 Join the Conversation
 ---------------------

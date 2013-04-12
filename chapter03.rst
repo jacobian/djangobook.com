@@ -911,4 +911,6 @@ core concepts, but in the real world, this is nearly always a bad idea.
 
 Django ships with a simple yet powerful template engine that allows you to
 separate the design of the page from the underlying code. We'll dive into
-Django's template engine in the :doc:`next chapter <chapter04>`.
+Django's template engine in the next chapter `Chapter 4`_.
+
+.. _Chapter 4: chapter04.rst/

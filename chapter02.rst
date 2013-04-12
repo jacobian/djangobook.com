@@ -500,4 +500,6 @@ What's Next?
 ============
 
 Now that you have everything installed and the development server running,
-you're ready to :doc:`learn the basics <chapter03>` of serving Web pages with Django.
+you're ready to :doc: learn the basics `Chapter 3`_, of serving Web pages with Django.
+
+.. _Chapter 3: chapter03.rst/

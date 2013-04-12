@@ -984,5 +984,7 @@ What's Next?
 ============
 
 So far we've created a few models and configured a top-notch interface for
-editing data. In the :doc:`next chapter <chapter07>`, we'll move on to the real "meat and potatoes"
+editing data. In the next chapter `Chapter 7`_, we'll move on to the real "meat and potatoes"
 of Web development: form creation and processing.
+
+.. _Chapter 7: chapter07.rst/
