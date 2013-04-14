@@ -959,6 +959,8 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
 
     from django.shortcuts import render
     from mysite.contact.forms import ContactForm
+    from django.http import HttpResponseRedirect
+    from django.core.mail import send_mail
 
     def contact(request):
         if request.method == 'POST':
@@ -995,6 +997,7 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
             <table>
                 {{ form.as_table }}
             </table>
+            {% csrf_token %}
             <input type="submit" value="Submit">
         </form>
     </body>
@@ -1005,6 +1008,14 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
 Look at how much cruft we've been able to remove! Django's forms framework
 handles the HTML display, the validation, data cleanup and form
 redisplay-with-errors.
+
+Since we're creating a POST form (which can have the effect of modifying data),
+we need to worry about Cross Site Request Forgeries. Thankfully, you don't have
+to worry too hard, because Django comes with a very easy-to-use system for 
+protecting against it. In short, all POST forms that are targeted at internal 
+URLs should use the ``{% csrf_token %}`` template tag. More details about 
+``{% csrf_token %}`` can be found in :doc:`chapter16` and :doc:`chapter20`.
+
 
 Try running this locally. Load the form, submit it with none of the fields
 filled out, submit it with an invalid e-mail address, then finally submit it
