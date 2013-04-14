@@ -88,9 +88,9 @@ dt .literal, table .literal { background:none; }
 .note, .admonition { padding:.8em 1em .8em; margin: 1em 0; border:1px solid #94da3a; }
 .admonition-title { font-weight:bold; margin-top:0 !important; margin-bottom:0 !important;}
 .admonition .last { margin-bottom:0 !important; }
-.admonition-philosophy { padding-left:65px; background:url(http://media.djangoproject.com/img/doc/icons/docicons-philosophy.gif) .8em .8em no-repeat;}
-.note, .admonition { padding-left:65px; background:url(http://media.djangoproject.com/img/doc/icons/docicons-note.gif) .8em .8em no-repeat;}
-.admonition-behind-the-scenes { padding-left:65px; background:url(http://media.djangoproject.com/img/doc/icons/docicons-behindscenes.gif) .8em .8em no-repeat;}
+.admonition-philosophy { padding-left:65px; background:url(https://www.djangoproject.com/m/img/doc/icons/docicons-philosophy.gif) .8em .8em no-repeat;}
+.note, .admonition { padding-left:65px; background:url(https://www.djangoproject.com/m/img/doc/icons/docicons-note.gif) .8em .8em no-repeat;}
+.admonition-behind-the-scenes { padding-left:65px; background:url(https://www.djangoproject.com/m/img/doc/icons/docicons-behindscenes.gif) .8em .8em no-repeat;}
 
 /*** footer ***/
 #ft { color:#487858; font-size:90%; padding-bottom: 2em; }
