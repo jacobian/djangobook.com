@@ -913,4 +913,4 @@ Django ships with a simple yet powerful template engine that allows you to
 separate the design of the page from the underlying code. We'll dive into
 Django's template engine in the next chapter `Chapter 4`_.
 
-.. _Chapter 4: chapter04.rst/
+.. _Chapter 4: chapter04.html

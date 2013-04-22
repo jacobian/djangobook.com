@@ -363,4 +363,4 @@ What's Next
 In `Chapter 2`_, we'll get started with Django, covering installation and
 initial setup.
 
-.. _Chapter 2: chapter02.rst/
+.. _Chapter 2: chapter02.html
