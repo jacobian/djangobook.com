@@ -299,4 +299,4 @@ framework (and the hard work of Django's volunteer translators). The
 `next chapter`_ explains how to use this framework to provide localized Django
 sites.
 
-.. _next chapter: chapter19.rst/
+.. _next chapter: chapter19.html
