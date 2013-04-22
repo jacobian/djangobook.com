@@ -389,4 +389,4 @@ Web developers and database-schema designers don't always have the luxury of
 starting from scratch. In the `next chapter`_, we'll cover how to integrate with
 legacy systems, such as database schemas you've inherited from the 1980s.
 
-.. _next chapter: chapter18.rst/
+.. _next chapter: chapter18.html
