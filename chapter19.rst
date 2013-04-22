@@ -940,4 +940,4 @@ What's Next?
 The `final chapter`_ focuses on security -- how you can help secure your sites and
 your users from malicious attackers.
 
-.. _final chapter: chapter20.rst/
+.. _final chapter: chapter20.html
