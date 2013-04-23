@@ -986,4 +986,4 @@ Next, we'll continue to dig deeper into the built-in tools Django gives you.
 `Chapter 14`_ looks at all the tools you need to provide user-customized
 sites: sessions, users, and authentication.
 
-.. _Chapter 14: chapter14.rst/
+.. _Chapter 14: chapter14.html

@@ -1613,4 +1613,4 @@ stored in a relational database. This allows a clean separation of data and logi
 The next chapter `Chapter 5`_ covers the tools Django gives you to
 interact with a database.
 
-.. _Chapter 4: chapter04.rst/
+.. _Chapter 5: chapter05.html

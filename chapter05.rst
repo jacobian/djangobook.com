@@ -1386,4 +1386,4 @@ case it would be helpful to have a Web-based interface for entering and
 managing data. The next chapter `Chapter 6`_ covers Django's admin interface, which exists
 precisely for that reason.
 
-.. _Chapter 6: chapter06.rst/
+.. _Chapter 6: chapter06.html

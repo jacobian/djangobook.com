@@ -598,4 +598,4 @@ What's Next?
 In the `next chapter`_, we'll show you Django's "generic views" framework, which
 lets you save time in building Web sites that follow common patterns.
 
-.. _next chapter: chapter11.rst/
+.. _next chapter: chapter11.html

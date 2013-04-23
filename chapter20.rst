@@ -516,5 +516,5 @@ your Django projects.
 We wish you the best of luck in running your Django site, whether it's a little
 toy for you and a few friends, or the next Google.
 
-.. _Chapter 14: chapter14.rst/
-.. _Chapter 16: chapter16.rst/
+.. _Chapter 14: chapter14.html
+.. _Chapter 16: chapter16.html
