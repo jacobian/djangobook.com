@@ -199,7 +199,7 @@ might look like the following::
 provided in an example in Chapter 4.)
 
 That's really all there is to it. All the cool features of generic views come
-from changing the "info" dictionary passed to the generic view. Appendix D
+from changing the "info" dictionary passed to the generic view. Appendix C
 documents all the generic views and all their options in detail; the rest of
 this chapter will consider some of the common ways you might customize and
 extend generic views.
@@ -287,7 +287,7 @@ Because this example puts ``Book.objects.all()`` in the URLconf, it will
 be evaluated only once (when the URLconf is first loaded). Once you add or
 remove publishers, you'll notice that the generic view doesn't reflect those
 changes until you reload the Web server (see "Caching and QuerySets" in
-Appendix C for more information about when ``QuerySet`` objects are cached and
+Appendix B for more information about when ``QuerySet`` objects are cached and
 evaluated).
 
 .. note::
