@@ -1,5 +1,5 @@
 docutils==0.9.1
-gevent==0.13.8
+gevent==1.1.2
 greenlet==0.4.0
 gunicorn==0.14.6
 Jinja2==2.6
