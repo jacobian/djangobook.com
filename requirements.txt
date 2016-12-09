@@ -1,6 +1,6 @@
 docutils==0.9.1
 gevent==1.1.2
-greenlet==0.4.0
+greenlet==0.4.10
 gunicorn==19.6.0
 Jinja2==2.8
 Pygments==2.1.3
