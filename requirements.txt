@@ -6,6 +6,6 @@ Jinja2==2.8
 Pygments==2.1.3
 resolver==0.2.1
 selector==0.9.4
-Sphinx==1.1.3
+Sphinx==1.5
 static==1.1.1
 Unipath==1.1
